@@ -166,4 +166,29 @@ class EventTest extends TestCase
             ->assertSessionHasNoErrors();
         $this->assertNull($event->fresh()->registration_opens_at);
     }
+
+    public function test_start_time_is_optional_validated_saved_and_shown_next_to_the_date(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('panel.events.store'), $this->payload(['start_time' => '09:30', 'is_public' => '1', 'status' => 'in_progress']))->assertSessionHasNoErrors();
+        $event = $user->events()->firstOrFail();
+        $this->assertSame('09:30', $event->startTime());
+        $this->assertSame('20 de noviembre de 2026 · 09:30 h', $event->startsAtLabel());
+
+        $this->actingAs($user)->get(route('panel.events.edit', $event))->assertSee('name="start_time"', false)->assertSee('value="09:30"', false)->assertSee('Hora de inicio');
+        $this->actingAs($user)->get(route('panel.events.show', $event))->assertSee('20 de noviembre de 2026 · 09:30 h');
+        $this->get(route('home'))->assertSee('20 de noviembre de 2026 · 09:30 h');
+        $this->get(route('public.events.show', $event))->assertSee('09:30 h');
+
+        foreach (['25:00', 'mediodía', '9:5'] as $bad) {
+            $this->actingAs($user)->put(route('panel.events.update', $event), $this->payload(['start_time' => $bad]))->assertSessionHasErrors('start_time');
+        }
+        $this->assertSame('09:30', $event->fresh()->startTime());
+
+        // Se puede quitar.
+        $this->actingAs($user)->put(route('panel.events.update', $event), $this->payload(['start_time' => '']))->assertSessionHasNoErrors();
+        $this->assertNull($event->fresh()->startTime());
+        $this->assertSame('20 de noviembre de 2026', $event->fresh()->startsAtLabel());
+    }
 }

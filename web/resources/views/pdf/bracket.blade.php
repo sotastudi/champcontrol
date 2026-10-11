@@ -32,7 +32,7 @@
         <div class="abs" style="left: {{ \App\Tournament\PaperBracket::MARGIN }}mm; top: {{ \App\Tournament\PaperBracket::MARGIN }}mm; width: 200mm;">
             <div class="title">{{ $event->name }} — {{ $category->name }}</div>
             <div class="meta">
-                {{ $event->starts_on->translatedFormat('j \d\e F \d\e Y') }} · {{ $event->venue }}@if ($category->tatami) · Tatami {{ $category->tatami }}@endif
+                {{ $event->startsAtLabel() }} · {{ $event->venue }}@if ($category->tatami) · Tatami {{ $category->tatami }}@endif
                 · {{ $page['subtitle'] }}
             </div>
         </div>

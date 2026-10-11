@@ -17,7 +17,7 @@
         <ul class="list-unstyled event-facts mb-3">
             <li class="d-flex align-items-start gap-2 mb-2">
                 <svg width="22" height="22" class="flex-shrink-0 text-body-secondary" aria-hidden="true"><use href="#calendar"/></svg>
-                <span><span class="d-block small text-uppercase text-muted">Fecha</span><strong>{{ $event->starts_on->translatedFormat('l, j \d\e F \d\e Y') }}</strong></span>
+                <span><span class="d-block small text-uppercase text-muted">Fecha</span><strong>{{ $event->startsAtLabel('l, j \d\e F \d\e Y') }}</strong></span>
             </li>
             <li class="d-flex align-items-start gap-2 mb-2">
                 <svg width="22" height="22" class="flex-shrink-0 text-body-secondary" aria-hidden="true"><use href="#pin"/></svg>

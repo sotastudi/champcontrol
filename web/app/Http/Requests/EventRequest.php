@@ -26,6 +26,7 @@ class EventRequest extends FormRequest
             'discipline' => ['required', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:5000'],
             'starts_on' => ['required', 'date'],
+            'start_time' => ['nullable', 'date_format:H:i'],
             'venue' => ['required', 'string', 'max:200'],
             'status' => ['required', Rule::enum(EventStatus::class)],
             'is_public' => ['boolean'],

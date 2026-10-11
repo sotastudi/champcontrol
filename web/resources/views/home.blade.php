@@ -17,7 +17,7 @@
                     <h2 class="h5 card-title">{{ $event->name }}</h2>
                     <p class="card-text text-muted small mb-3">
                         {{ $event->venue }}<br>
-                        {{ $event->starts_on->translatedFormat('j \d\e F \d\e Y') }}
+                        {{ $event->startsAtLabel() }}
                     </p>
                     <div class="mt-auto">
                         @if ($event->acceptsPublicRegistrations())

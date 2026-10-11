@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div>
         <h1 class="h3 mb-1">{{ $event->name }}</h1>
-        <div class="text-muted">{{ $event->discipline }} · {{ $event->starts_on->translatedFormat('j \d\e F \d\e Y') }} · {{ $event->venue }}</div>
+        <div class="text-muted">{{ $event->discipline }} · {{ $event->startsAtLabel() }} · {{ $event->venue }}</div>
         <div class="mt-2">
             <span class="badge text-bg-secondary">{{ $event->status->label() }}</span>
             <span class="badge text-bg-{{ $event->is_public ? 'success' : 'light' }}">{{ $event->is_public ? 'Público' : 'Privado' }}</span>

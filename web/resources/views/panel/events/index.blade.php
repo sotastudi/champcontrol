@@ -10,7 +10,7 @@
 @forelse ($events as $event)
     <a href="{{ route('panel.events.show', $event) }}" class="card mb-2 text-decoration-none text-body">
         <div class="card-body d-flex justify-content-between flex-wrap gap-2">
-            <div><strong>{{ $event->name }}</strong><div class="text-muted small">{{ $event->discipline }} · {{ $event->starts_on->translatedFormat('j \d\e F \d\e Y') }} · {{ $event->venue }}</div></div>
+            <div><strong>{{ $event->name }}</strong><div class="text-muted small">{{ $event->discipline }} · {{ $event->startsAtLabel() }} · {{ $event->venue }}</div></div>
             <div><span class="badge text-bg-secondary">{{ $event->status->label() }}</span> <span class="badge text-bg-{{ $event->is_public ? 'success' : 'light' }}">{{ $event->is_public ? 'Público' : 'Privado' }}</span></div>
         </div>
     </a>
@@ -26,7 +26,7 @@
         @foreach ($operations as $operation)
             <a href="{{ route('panel.tatamis.show', [$operation->event, $operation->tatami]) }}" class="list-group-item list-group-item-action d-flex justify-content-between flex-wrap gap-2">
                 <span><strong>{{ $operation->event->name }}</strong> · Tatami {{ $operation->tatami }}</span>
-                <span class="text-muted small">{{ $operation->event->starts_on->translatedFormat('j \d\e F \d\e Y') }} · {{ $operation->event->venue }}</span>
+                <span class="text-muted small">{{ $operation->event->startsAtLabel() }} · {{ $operation->event->venue }}</span>
             </a>
         @endforeach
     </div>

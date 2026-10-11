@@ -20,7 +20,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'discipline', 'description', 'starts_on', 'venue', 'status', 'is_public', 'registration_form_enabled',
+#[Fillable(['name', 'discipline', 'description', 'starts_on', 'start_time', 'venue', 'status', 'is_public', 'registration_form_enabled',
     'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule', 'draw_criteria', 'registration_opens_at', 'registration_closes_at', 'tatami_count', 'rules_text'])]
 class Event extends Model
 {
@@ -173,6 +173,18 @@ class Event extends Model
     public function tatamiCount(): int
     {
         return max(1, (int) ($this->tatami_count ?? 1));
+    }
+
+    /** Hora de inicio como «HH:MM» (la base de datos la devuelve con segundos), o null si no se ha indicado. */
+    public function startTime(): ?string
+    {
+        return $this->start_time ? substr((string) $this->start_time, 0, 5) : null;
+    }
+
+    /** Fecha del evento con la hora de inicio si la hay: «11 de noviembre de 2026 · 09:30 h». */
+    public function startsAtLabel(string $dateFormat = 'j \d\e F \d\e Y'): string
+    {
+        return $this->starts_on->translatedFormat($dateFormat).($this->startTime() ? ' · '.$this->startTime().' h' : '');
     }
 
     public function hasRulesPdf(): bool
