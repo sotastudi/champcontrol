@@ -11,7 +11,8 @@
     <div class="col-md-6"><x-field name="min_weight" type="number" step="0.1" label="Peso mínimo (kg)" :value="$category?->min_weight" min="0" /></div>
     <div class="col-md-6"><x-field name="max_weight" type="number" step="0.1" label="Peso máximo (kg)" :value="$category?->max_weight" min="0" /></div>
 </div>
-<x-field name="level" label="Nivel" :value="$category?->level" />
+<x-select name="level" label="Nivel" :options="\App\Support\MartialLevels::options()" :value="$category?->level" placeholder="Cualquier nivel" />
 <x-select name="bronze_rule" label="Regla del bronce" :options="\App\Enums\BronzeRule::options()" :value="$category?->bronze_rule?->value ?? $defaultBronzeRule" required />
+<x-select name="draw_criteria" label="Criterios del sorteo" :options="\App\Enums\DrawCriteria::options()" :value="$category?->draw_criteria?->value" :placeholder="'Según el evento (' . $event->drawCriteria()->label() . ')'" />
 <x-check name="show_fourth" label="Mostrar también el 4.º puesto" :checked="$category?->show_fourth ?? false"
          help="Solo aplica con combate por el bronce." />

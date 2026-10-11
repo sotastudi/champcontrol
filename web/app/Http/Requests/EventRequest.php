@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\BronzeRule;
 use App\Enums\DisqualifiedPodiumRule;
+use App\Enums\DrawCriteria;
 use App\Enums\EventStatus;
 use App\Enums\PreResultsWithdrawalRule;
 use App\Enums\UnfoughtWithdrawalRule;
@@ -31,6 +32,7 @@ class EventRequest extends FormRequest
             'dq_podium_rule' => ['sometimes', 'required', Rule::enum(DisqualifiedPodiumRule::class)],
             'unfought_withdrawal_rule' => ['sometimes', 'required', Rule::enum(UnfoughtWithdrawalRule::class)],
             'default_bronze_rule' => ['sometimes', 'required', Rule::enum(BronzeRule::class)],
+            'draw_criteria' => ['sometimes', 'required', Rule::enum(DrawCriteria::class)],
             'withdrawal_before_results_rule' => ['sometimes', 'required', Rule::enum(PreResultsWithdrawalRule::class)],
         ];
     }

@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Enums\BronzeRule;
+use App\Enums\DrawCriteria;
 use App\Enums\Sex;
+use App\Support\MartialLevels;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,7 +27,7 @@ class CategoryRequest extends FormRequest
             'max_age' => ['nullable', 'integer', 'min:0', 'max:120', Rule::when($this->filled('min_age'), ['gte:min_age'])],
             'min_weight' => ['nullable', 'numeric', 'min:0', 'max:300'],
             'max_weight' => ['nullable', 'numeric', 'min:0', 'max:300', Rule::when($this->filled('min_weight'), ['gte:min_weight'])],
-            'level' => ['nullable', 'string', 'max:100'],
+            'level' => ['nullable', Rule::in(MartialLevels::values())],
             'bronze_rule' => ['required', Rule::enum(BronzeRule::class), function (string $attribute, mixed $value, \Closure $fail) {
                 $category = $this->route('category');
                 if ($category && $category->isRegenerationLocked() && $category->bronze_rule->value !== $value) {
@@ -33,6 +35,7 @@ class CategoryRequest extends FormRequest
                 }
             }],
             'show_fourth' => ['boolean'],
+            'draw_criteria' => ['nullable', Rule::enum(DrawCriteria::class)],
         ];
     }
 

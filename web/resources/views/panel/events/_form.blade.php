@@ -21,4 +21,6 @@
     <div class="form-text mb-3">Solo es el valor que se precarga al crear una categoría; cada categoría guarda su propia regla y se puede cambiar en su formulario.</div>
     <x-select name="withdrawal_before_results_rule" label="Baja antes de que haya resultados" :options="\App\Enums\PreResultsWithdrawalRule::options()" :value="($event?->preResultsWithdrawalRule()->value ?? 'cancel_and_regenerate')" required />
     <div class="form-text mb-3">Con «permitir baja desde el principio», la baja cuenta como resultado y bloquea el cuadro: ya no se podrá regenerar ni ajustar, y una victoria por incomparecencia no se puede corregir.</div>
+    <x-select name="draw_criteria" label="Criterios del sorteo" :options="\App\Enums\DrawCriteria::options()" :value="($event?->drawCriteria()->value ?? 'level_weight_club')" required />
+    <div class="form-text mb-3">Cómo se ordenan los inscritos al generar el cuadro: los de nivel/peso parecidos se enfrentan entre sí, los de mayor nivel reciben los pases y se evita que el primer combate sea entre el mismo club. Cada categoría puede usar otro criterio.</div>
 </fieldset>

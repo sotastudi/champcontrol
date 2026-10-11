@@ -20,9 +20,25 @@ class CategoryTest extends TestCase
     {
         return array_merge([
             'name' => 'Sub-18 -60kg', 'modality' => 'Combate', 'sex' => 'male', 'min_age' => 15, 'max_age' => 17,
-            'min_weight' => 55, 'max_weight' => 60, 'level' => 'Cinturón verde',
+            'min_weight' => 55, 'max_weight' => 60, 'level' => '5º kyu',
             'bronze_rule' => 'bronze_match', 'show_fourth' => '1',
         ], $o);
+    }
+
+    public function test_level_is_a_select_of_kyu_and_dan_grades(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+
+        $this->actingAs($user)->get(route('panel.categories.create', $event))
+            ->assertSee('<select id="level"', false)
+            ->assertSeeInOrder(['10º kyu', '1º kyu', '1º dan', '10º dan']);
+
+        $this->actingAs($user)->post(route('panel.categories.store', $event), $this->payload(['level' => 'Cinturón verde']))
+            ->assertSessionHasErrors('level');
+        $this->actingAs($user)->post(route('panel.categories.store', $event), $this->payload(['level' => '10º dan']))
+            ->assertSessionDoesntHaveErrors();
+        $this->assertSame('10º dan', $event->categories()->firstOrFail()->level);
     }
 
     public function test_owner_creates_updates_and_deletes_a_category(): void

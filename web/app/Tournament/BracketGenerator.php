@@ -12,10 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 final class BracketGenerator
 {
-    public function __construct(private readonly BracketAdvancer $advancer) {}
+    public function __construct(private readonly BracketAdvancer $advancer, private readonly DrawOrderer $orderer) {}
 
     /**
-     * @param  Closure(Collection<int,int>): Collection<int,int>|null  $shuffler  reordena los ids de inscripción (sorteo)
+     * @param  Closure(Collection<int,int>): Collection<int,int>|null  $shuffler  sustituye el sorteo por nivel > peso > club (tests)
      *
      * @throws TournamentException
      */
@@ -25,7 +25,9 @@ final class BracketGenerator
             throw new TournamentException('Hay resultados o bajas registradas: el cuadro ya no se puede regenerar.');
         }
 
-        $ids = $category->registrations()->where('status', RegistrationStatus::Confirmed->value)->orderBy('id')->pluck('id');
+        $registrations = $category->registrations()->with('competitor')
+            ->where('status', RegistrationStatus::Confirmed->value)->orderBy('id')->get();
+        $ids = $registrations->pluck('id');
 
         if ($ids->count() === 1) {
             throw new TournamentException('Solo hay un inscrito confirmado: no se genera cuadro. Resuelve la clasificación manualmente según el reglamento.');
@@ -34,7 +36,9 @@ final class BracketGenerator
             throw new TournamentException('No hay inscripciones confirmadas para generar el cuadro.');
         }
 
-        $ordered = ($shuffler ?? fn (Collection $c) => $c->shuffle())($ids)->values();
+        $ordered = $shuffler
+            ? $shuffler($ids)->values()
+            : $this->orderer->order($registrations, $this->seedOrder($this->bracketSize($ids->count())), $category->effectiveDrawCriteria());
 
         DB::transaction(function () use ($category, $ordered) {
             $category->bouts()->update(['next_bout_id' => null, 'loser_next_bout_id' => null]);
@@ -45,6 +49,16 @@ final class BracketGenerator
             $category->forceFill(['bracket_generated_at' => now()])->save();
             $this->advancer->settle($category);
         });
+    }
+
+    private function bracketSize(int $n): int
+    {
+        $size = 2;
+        while ($size < $n) {
+            $size *= 2;
+        }
+
+        return $size;
     }
 
     private function build(Category $category, Collection $ids): void

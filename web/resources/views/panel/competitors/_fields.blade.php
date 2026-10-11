@@ -9,7 +9,7 @@
     <div class="col-md-4"><x-select name="sex" label="Sexo" :options="\App\Enums\Sex::options()" :value="$competitor?->sex?->value" placeholder="Sin indicar" /></div>
     <div class="col-md-4"><x-field name="weight" type="number" step="0.1" min="0" max="300" label="Peso (kg)" :value="$competitor?->weight" /></div>
 </div>
-<x-field name="level" label="Nivel" :value="$competitor?->level" />
+<x-select name="level" label="Nivel" :options="\App\Support\MartialLevels::options()" :value="$competitor?->level" placeholder="Sin especificar" />
 <div class="row">
     <div class="col-md-6"><x-field name="email" type="email" label="Correo electrónico" :value="$competitor?->email" /></div>
     <div class="col-md-6"><x-field name="phone" label="Teléfono" :value="$competitor?->phone" /></div>

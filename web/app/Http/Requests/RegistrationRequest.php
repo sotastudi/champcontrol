@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\Sex;
+use App\Support\MartialLevels;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,7 +23,7 @@ class RegistrationRequest extends FormRequest
             'birth_date' => ['required', 'date', 'before_or_equal:today'],
             'sex' => ['nullable', Rule::enum(Sex::class)],
             'weight' => ['nullable', 'numeric', 'min:0', 'max:300'],
-            'level' => ['nullable', 'string', 'max:100'],
+            'level' => ['nullable', Rule::in(MartialLevels::values())],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'guardian_name' => ['nullable', 'string', 'max:150'],

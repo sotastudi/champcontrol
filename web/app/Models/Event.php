@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BronzeRule;
 use App\Enums\DisqualifiedPodiumRule;
+use App\Enums\DrawCriteria;
 use App\Enums\EventStatus;
 use App\Enums\PreResultsWithdrawalRule;
 use App\Enums\UnfoughtWithdrawalRule;
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Str;
 
 #[Fillable(['name', 'discipline', 'description', 'starts_on', 'venue', 'status', 'is_public', 'registration_form_enabled',
-    'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule'])]
+    'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule', 'draw_criteria'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
@@ -35,6 +36,7 @@ class Event extends Model
             'unfought_withdrawal_rule' => UnfoughtWithdrawalRule::class,
             'default_bronze_rule' => BronzeRule::class,
             'withdrawal_before_results_rule' => PreResultsWithdrawalRule::class,
+            'draw_criteria' => DrawCriteria::class,
         ];
     }
 
@@ -91,6 +93,11 @@ class Event extends Model
     public function unfoughtWithdrawalRule(): UnfoughtWithdrawalRule
     {
         return $this->unfought_withdrawal_rule ?? UnfoughtWithdrawalRule::KeepPlace;
+    }
+
+    public function drawCriteria(): DrawCriteria
+    {
+        return $this->draw_criteria ?? DrawCriteria::LevelWeightClub;
     }
 
     public function defaultBronzeRule(): BronzeRule

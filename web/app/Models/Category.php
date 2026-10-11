@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BronzeRule;
+use App\Enums\DrawCriteria;
 use App\Enums\Sex;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'modality', 'sex', 'min_age', 'max_age', 'min_weight', 'max_weight', 'level', 'bronze_rule', 'show_fourth'])]
+#[Fillable(['name', 'modality', 'sex', 'min_age', 'max_age', 'min_weight', 'max_weight', 'level', 'bronze_rule', 'show_fourth', 'draw_criteria'])]
 class Category extends Model
 {
     /** @use HasFactory<CategoryFactory> */
@@ -22,12 +23,19 @@ class Category extends Model
         return [
             'sex' => Sex::class,
             'bronze_rule' => BronzeRule::class,
+            'draw_criteria' => DrawCriteria::class,
             'min_weight' => 'float',
             'max_weight' => 'float',
             'show_fourth' => 'boolean',
             'is_published' => 'boolean',
             'bracket_generated_at' => 'datetime',
         ];
+    }
+
+    /** Criterio propio de la categoría o, si no tiene, el del evento. */
+    public function effectiveDrawCriteria(): DrawCriteria
+    {
+        return $this->draw_criteria ?? $this->event->drawCriteria();
     }
 
     public function event(): BelongsTo
