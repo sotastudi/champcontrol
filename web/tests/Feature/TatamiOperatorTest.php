@@ -326,14 +326,14 @@ class TatamiOperatorTest extends TestCase
 
         $html = $this->actingAs($owner)->get(route('panel.events.show', $event))->getContent();
         $this->assertMatchesRegularExpression('#data-bs-target="\#create-operator" aria-expanded="false"[^>]*>.*?Crear controlador#s', $html);
-        $this->assertMatchesRegularExpression('#<form[^>]*class="collapse  row[^"]*"[^>]*id="create-operator"#', $html, 'el formulario empieza plegado');
+        $this->assertMatchesRegularExpression('#<form[^>]*class="collapse"[^>]*id="create-operator"#', $html, 'el formulario empieza plegado');
         $this->assertMatchesRegularExpression('#data-bs-target="\#create-operator">Cancelar</button>#', $html);
 
         // Un error al crear lo deja desplegado con lo escrito.
         $this->actingAs($owner)->from(route('panel.events.show', $event))
             ->post(route('panel.operators.store', $event), ['_form' => 'create', 'username' => 'ab', 'tatamis' => [1]])->assertSessionHasErrors('username');
         $open = $this->actingAs($owner)->get(route('panel.events.show', $event))->getContent();
-        $this->assertMatchesRegularExpression('#<form[^>]*class="collapse show row[^"]*"[^>]*id="create-operator"#', $open);
+        $this->assertMatchesRegularExpression('#<form[^>]*class="collapse show"[^>]*id="create-operator"#', $open);
         $this->assertStringContainsString('value="ab"', $open);
 
         // Un error en la edición de un controlador no despliega el formulario de crear.
@@ -342,6 +342,22 @@ class TatamiOperatorTest extends TestCase
         $this->actingAs($owner)->from(route('panel.events.show', $event))
             ->put(route('panel.operators.update', [$event, $operator]), ['_form' => 'edit', 'username' => 'juez', 'tatamis' => [9]])->assertSessionHasErrors('tatamis.0');
         $afterEdit = $this->actingAs($owner)->get(route('panel.events.show', $event))->getContent();
-        $this->assertMatchesRegularExpression('#<form[^>]*class="collapse  row[^"]*"[^>]*id="create-operator"#', $afterEdit);
+        $this->assertMatchesRegularExpression('#<form[^>]*class="collapse"[^>]*id="create-operator"#', $afterEdit);
+    }
+
+    public function test_the_create_form_is_laid_out_in_two_sections_with_tatami_chips_for_desktop(): void
+    {
+        [$owner, $event] = $this->setUpEvent();
+
+        $html = $this->actingAs($owner)->get(route('panel.events.show', $event))->getContent();
+
+        $this->assertStringContainsString('Nuevo controlador de tatami', $html);
+        $this->assertStringContainsString('1 · Cuenta de acceso', $html);
+        $this->assertStringContainsString('2 · Tatamis con acceso', $html);
+        $this->assertStringContainsString('col-12 col-lg-7', $html, 'cuenta a la izquierda en escritorio');
+        $this->assertStringContainsString('col-12 col-lg-5', $html, 'tatamis a la derecha en escritorio');
+        $this->assertSame(2, preg_match_all('#class="btn-check" type="checkbox" name="tatamis\[\]" value="\d" id="op-tatami-\d"#', $html), 'una ficha por tatami del evento');
+        $this->assertStringContainsString('data-check-all="#create-operator"', $html);
+        $this->assertMatchesRegularExpression('#card-footer[^>]*>.*?Cancelar.*?Añadir controlador#s', $html);
     }
 }

@@ -231,35 +231,55 @@
             @endforeach
         </ul>
     @endif
-    <form method="POST" action="{{ route('panel.operators.store', $event) }}" class="collapse {{ old('_form') === 'create' ? 'show' : '' }} row g-2 align-items-start card card-body" id="create-operator">
+    <form method="POST" action="{{ route('panel.operators.store', $event) }}" class="collapse{{ old('_form') === 'create' ? ' show' : '' }}" id="create-operator">
         @csrf
         <input type="hidden" name="_form" value="create">
-        <div class="col-12 col-md-3"><x-field name="username" label="Usuario" :value="old('username')" required autocomplete="off" help="Letras minúsculas, números, . - _" /></div>
-        <div class="col-12 col-md-3">
-            <label for="password" class="form-label">Contraseña</label>
-            <div class="input-group">
-                <input type="text" id="password" name="password" value="{{ old('password') }}" class="form-control @error('password') is-invalid @enderror" autocomplete="new-password" minlength="6">
-                <button type="button" class="btn btn-outline-secondary" data-generate-password="#password" title="Generar una contraseña aleatoria">Generar</button>
-                <button type="button" class="btn btn-outline-secondary" data-copy-password="#password" title="Copiar la contraseña" aria-label="Copiar la contraseña">Copiar</button>
-                @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        <div class="card operator-create">
+            <div class="card-header d-flex align-items-center gap-2">
+                <svg width="20" height="20" aria-hidden="true"><use href="#user"/></svg>
+                <strong>Nuevo controlador de tatami</strong>
             </div>
-            <div class="form-text">Mínimo 6. Solo para cuentas nuevas. Cópiala antes de guardar: después no se puede ver.</div>
-        </div>
-        <div class="col-12 col-md-3"><x-field name="name" label="Nombre (opcional)" :value="old('name')" /></div>
-        <div class="col-12 col-md-3"><x-field name="email" type="email" label="Correo (opcional)" :value="old('email')" /></div>
-        <div class="col-12">
-            <div class="form-label">Tatamis con acceso <span class="text-danger">*</span></div>
-            <div class="d-flex flex-wrap gap-3 mb-2">
-                @foreach (range(1, $event->tatamiCount()) as $n)
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="tatamis[]" value="{{ $n }}" id="op-tatami-{{ $n }}" @checked(in_array($n, (array) old('tatamis', [])))>
-                        <label class="form-check-label" for="op-tatami-{{ $n }}">Tatami {{ $n }}</label>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-12 col-lg-7">
+                        <h3 class="h6 text-uppercase text-muted mb-3">1 · Cuenta de acceso</h3>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6"><x-field name="username" label="Usuario" :value="old('username')" required autocomplete="off" help="Letras minúsculas, números, punto, guion y guion bajo." /></div>
+                            <div class="col-12 col-md-6">
+                                <label for="password" class="form-label">Contraseña</label>
+                                <div class="input-group">
+                                    <input type="text" id="password" name="password" value="{{ old('password') }}" class="form-control @error('password') is-invalid @enderror" autocomplete="new-password" minlength="6">
+                                    <button type="button" class="btn btn-outline-secondary" data-generate-password="#password" title="Generar una contraseña aleatoria">Generar</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-copy-password="#password" title="Copiar la contraseña" aria-label="Copiar la contraseña">Copiar</button>
+                                    @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="form-text">Mínimo 6. Solo para cuentas nuevas. Cópiala antes de guardar: después no se puede ver.</div>
+                            </div>
+                            <div class="col-12 col-md-6"><x-field name="name" label="Nombre (opcional)" :value="old('name')" help="Si lo dejas vacío se usa el usuario." /></div>
+                            <div class="col-12 col-md-6"><x-field name="email" type="email" label="Correo (opcional)" :value="old('email')" help="Sin correo no hay «recuperar contraseña»: se la cambias tú." /></div>
+                        </div>
                     </div>
-                @endforeach
+                    <div class="col-12 col-lg-5">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="h6 text-uppercase text-muted mb-0">2 · Tatamis con acceso <span class="text-danger">*</span></h3>
+                            <button type="button" class="btn btn-link btn-sm p-0" data-check-all="#create-operator">Marcar / quitar todos</button>
+                        </div>
+                        <div class="operator-tatamis d-flex flex-wrap gap-2">
+                            @foreach (range(1, $event->tatamiCount()) as $n)
+                                <input class="btn-check" type="checkbox" name="tatamis[]" value="{{ $n }}" id="op-tatami-{{ $n }}" autocomplete="off" @checked(in_array($n, (array) old('tatamis', [])))>
+                                <label class="btn btn-outline-secondary operator-tatami-option" for="op-tatami-{{ $n }}">Tatami {{ $n }}</label>
+                            @endforeach
+                        </div>
+                        @error('tatamis')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
+                        @error('tatamis.0')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
+                        <p class="form-text mt-3 mb-0">Solo verá y podrá puntuar el combate actual de los tatamis marcados. Puedes cambiarlo después con «Editar».</p>
+                    </div>
+                </div>
             </div>
-            @error('tatamis')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
-            <button type="submit" class="btn btn-outline-primary">Añadir controlador</button>
-            <button type="button" class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#create-operator">Cancelar</button>
+            <div class="card-footer d-flex justify-content-end align-items-center gap-2">
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#create-operator">Cancelar</button>
+                <button type="submit" class="btn btn-primary btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#plus"/></svg> Añadir controlador</button>
+            </div>
         </div>
     </form>
 </section>
