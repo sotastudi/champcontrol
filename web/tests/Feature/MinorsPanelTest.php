@@ -84,6 +84,20 @@ class MinorsPanelTest extends TestCase
         $this->assertSame('rosa@familia.test', $competitor->fresh()->guardian_contact);
     }
 
+    public function test_clearing_the_guardian_name_also_clears_the_recorded_consent(): void
+    {
+        [$user, $event] = $this->setUpEvent();
+        $competitor = Competitor::factory()->for($event)->create(['birth_date' => '2012-05-05', 'guardian_name' => 'Rosa Roca', 'guardian_contact' => '600']);
+        $competitor->forceFill(['guardian_consent_at' => now()])->save();
+
+        $this->actingAs($user)->put(route('panel.competitors.update', [$event, $competitor]), [
+            'first_name' => $competitor->first_name, 'last_name' => $competitor->last_name, 'birth_date' => '2012-05-05',
+            'guardian_name' => '', 'guardian_contact' => '600',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertNull($competitor->fresh()->guardian_consent_at);
+    }
+
     public function test_csv_includes_minor_and_guardian_columns(): void
     {
         [$user, $event, $category] = $this->setUpEvent();

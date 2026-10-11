@@ -135,9 +135,18 @@ class PublicResultsTest extends TestCase
 
         $csv = $this->actingAs($category->event->user)->get(route('panel.exports.standings', $category->event))->streamedContent();
 
-        $row = implode(';', [$category->name, $loser->competitor->last_name, $loser->competitor->first_name]);
-        $this->assertStringNotContainsString($row, str_replace('"', '', $csv));
-        $this->assertStringContainsString('Puesto', $csv);
+        $rows = array_values(array_map(fn ($l) => str_getcsv($l, ';', '"', ''), array_filter(preg_split('/\r?\n/', ltrim($csv, "\xEF\xBB\xBF")))));
+        $this->assertSame(['Categoría', 'Puesto', 'Apellidos', 'Nombre', 'Club'], $rows[0]);
+        $data = array_slice($rows, 1);
+
+        foreach ($data as $row) {
+            $this->assertFalse(
+                $row[2] === $loser->competitor->last_name && $row[3] === $loser->competitor->first_name,
+                'El descalificado sigue en el CSV de clasificación.'
+            );
+        }
+        // Sin renumerar: desaparece el 2.º puesto y quedan 1.º, 3.º y 4.º.
+        $this->assertSame(['1', '3', '4'], collect($data)->where(0, $category->name)->pluck(1)->sort()->values()->all());
     }
 
     public function test_a_withdrawn_finalist_keeps_the_podium_place_without_revealing_the_withdrawal(): void

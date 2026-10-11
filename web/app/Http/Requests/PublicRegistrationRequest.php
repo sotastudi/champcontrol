@@ -23,6 +23,9 @@ class PublicRegistrationRequest extends RegistrationRequest
             $rules['guardian_name'] = ['required', 'string', 'max:150'];
             $rules['guardian_contact'] = ['required', 'string', 'max:255'];
             $rules['guardian_consent'] = ['accepted'];
+        } else {
+            // Adulto: los campos del representante se ignoran por completo (ni se validan ni se guardan).
+            unset($rules['guardian_name'], $rules['guardian_contact'], $rules['guardian_consent']);
         }
 
         return $rules;

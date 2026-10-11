@@ -20,6 +20,11 @@ class CompetitorController extends Controller
     {
         $competitor->update($request->validated());
 
+        // Sin representante no puede quedar un consentimiento registrado.
+        if (blank($competitor->guardian_name) && $competitor->guardian_consent_at !== null) {
+            $competitor->forceFill(['guardian_consent_at' => null])->save();
+        }
+
         return redirect()->route('panel.registrations.index', $event)->with('status', 'Datos actualizados.');
     }
 }

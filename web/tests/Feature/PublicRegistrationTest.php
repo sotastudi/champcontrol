@@ -111,6 +111,28 @@ class PublicRegistrationTest extends TestCase
         $this->assertSame(0, Competitor::whereNotNull('guardian_name')->orWhereNotNull('guardian_contact')->orWhereNotNull('guardian_consent_at')->count());
     }
 
+    public function test_adult_sending_a_free_form_consent_value_is_accepted_and_nothing_guardian_is_stored(): void
+    {
+        [$event, $category] = $this->openEvent();
+
+        $this->post(route('public.registration.store', $event), $this->data($category, $this->guardian(['guardian_consent' => 'on'])))
+            ->assertSessionHasNoErrors();
+
+        $competitor = Competitor::firstOrFail();
+        $this->assertNull($competitor->guardian_name);
+        $this->assertNull($competitor->guardian_contact);
+        $this->assertNull($competitor->guardian_consent_at);
+    }
+
+    public function test_minor_can_consent_with_yes_or_on(): void
+    {
+        [$event, $category] = $this->openEvent();
+
+        $this->post(route('public.registration.store', $event), $this->data($category, ['birth_date' => '2008-11-21'] + $this->guardian(['guardian_consent' => 'on'])))
+            ->assertSessionHasNoErrors();
+        $this->assertNotNull(Competitor::firstOrFail()->guardian_consent_at);
+    }
+
     public function test_invalid_birth_date_is_a_validation_error_not_a_server_error(): void
     {
         [$event, $category] = $this->openEvent();
