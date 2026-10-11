@@ -58,7 +58,9 @@ class BoutScorePanelTest extends TestCase
         $this->actingAs(User::factory()->create())->put(route('panel.bouts.score', [$event, $category, $bout]), [])->assertForbidden();
 
         $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
-        $this->assertStringContainsString('AKA (rojo)', $html);
+        $this->assertStringContainsString('name="a_wazari" form="score-form-'.$bout->id.'"', $html, 'controles de W/I/F bajo cada participante');
+        $this->assertStringContainsString('class="collapse score-panel-'.$bout->id.' no-print small mt-1"', $html);
+        $this->assertStringNotContainsString('<strong class="me-1"', $html, 'sin filas con la etiqueta de texto AKA (rojo)/SHIRO (blanco)');
         $this->assertStringContainsString('Juez 3', $html);
         $this->assertStringNotContainsString('Juez 4', $html);
         $this->assertStringContainsString('Hikiwake, empate: blanca y roja', $html);
@@ -76,7 +78,7 @@ class BoutScorePanelTest extends TestCase
         auth()->logout();
 
         $this->get(route('public.categories.show', [$event, $category]))
-            ->assertOk()->assertSee('W:1')->assertSee('Jueces: AKA 2 · SHIRO 1 · hikiwake 0')
+            ->assertOk()->assertSee('W:1')->assertSee('Jueces: 🟥 2 · ⬜ 1 · hikiwake 0')
             ->assertSee('W:1')->assertDontSee('F:4')->assertDontSee('Falta')->assertDontSee('name="a_warnings"', false);
     }
 
@@ -90,7 +92,7 @@ class BoutScorePanelTest extends TestCase
         $panel = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
         $this->assertStringContainsString('W:1 F:3', $panel);
         $this->assertMatchesRegularExpression('#score-marks">I</small>#', $panel);
-        $this->assertStringContainsString('<label>Falta', $panel);
+        $this->assertStringContainsString('name="a_warnings" form="score-form-'.$bout->id.'"', $panel);
         $this->assertStringNotContainsString('Amonest', $panel);
 
         auth()->logout();
@@ -132,5 +134,21 @@ class BoutScorePanelTest extends TestCase
         $this->assertMatchesRegularExpression('#<div class="collapse" id="score-help-'.$bout->id.'">\s*<p class="text-muted mb-0">Jueces: bandera blanca = SHIRO#', $html);
         $this->assertStringContainsString('2 wazari = 1 ippon', $html);
         $this->assertDoesNotMatchRegularExpression('#<p class="text-muted mb-2">Jueces#', $html, 'la ayuda ya no se muestra siempre');
+    }
+
+    public function test_controls_are_stacked_w_then_ippon_then_f_and_two_wazari_check_ippon_in_the_form_and_on_the_server(): void
+    {
+        [$user, $event, $category, $bout] = $this->setUpBracket();
+
+        $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
+        $this->assertMatchesRegularExpression('#name="a_wazari".*?data-ippon-for=.*?name="a_warnings"#s', $html, 'orden W, I, F');
+        $this->assertStringContainsString('data-wazari-for="score-form-'.$bout->id.'-a"', $html);
+        $this->assertStringContainsString('data-ippon-for="score-form-'.$bout->id.'-a"', $html);
+
+        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_wazari' => 0, 'b_wazari' => 2, 'a_ippon' => 0, 'b_ippon' => 0])
+            ->assertSessionHasNoErrors();
+        $bout->refresh();
+        $this->assertTrue($bout->b_ippon);
+        $this->assertSame($bout->slot_b_id, $bout->winner_id);
     }
 }

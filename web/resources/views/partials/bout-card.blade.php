@@ -6,6 +6,9 @@
         'b' => $bout->slotB?->competitor->displayName(),
     ];
     $empty = $bout->isBye() ? 'Pase' : 'Por determinar';
+    $scorable = $editable && $canRecord && $bout->filledSlots() === 2 && ! $bout->isBye() && ! $bout->isWalkover();
+    $scoreForm = 'score-form-'.$bout->id;
+    $scorePanel = 'score-panel-'.$bout->id;
 @endphp
 <div class="bout-card mb-2">
     <div class="small text-muted px-2 pt-1">
@@ -36,8 +39,27 @@
                 @if ($marks)
                     <small class="d-block fw-semibold score-marks">{{ implode(' ', $marks) }}</small>
                 @endif
+                @if ($scorable)
+                    {{-- Controles de wazari, ippon y falta de este participante: viven en el formulario de puntuación (atributo form). --}}
+                    <div class="collapse {{ $scorePanel }} no-print small mt-1">
+                        <div class="score-controls d-flex flex-column gap-1 align-items-start">
+                            <label>W
+                                <select name="{{ $slot }}_wazari" form="{{ $scoreForm }}" class="form-select form-select-sm d-inline-block w-auto" aria-label="Wazari" data-wazari-for="{{ $scoreForm }}-{{ $slot }}">
+                                    @foreach ([0, 1, 2] as $n)<option value="{{ $n }}" @selected($bout->{$slot.'_wazari'} === $n)>{{ $n === 0 ? '—' : $n }}</option>@endforeach
+                                </select>
+                            </label>
+                            <input type="hidden" name="{{ $slot }}_ippon" value="0" form="{{ $scoreForm }}">
+                            <label class="form-check-label"><input type="checkbox" class="form-check-input" name="{{ $slot }}_ippon" value="1" form="{{ $scoreForm }}" id="{{ $scoreForm }}-{{ $slot }}-ippon" data-ippon-for="{{ $scoreForm }}-{{ $slot }}" @checked($bout->{$slot.'_ippon'})> I (ippon)</label>
+                            <label>F
+                                <select name="{{ $slot }}_warnings" form="{{ $scoreForm }}" class="form-select form-select-sm d-inline-block w-auto" aria-label="Falta">
+                                    @foreach ([0, 1, 2, 3, 4] as $n)<option value="{{ $n }}" @selected($bout->{$slot.'_warnings'} === $n)>{{ $n === 0 ? '—' : $n }}</option>@endforeach
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                @endif
             </span>
-            @if ($editable && $canRecord && $bout->filledSlots() === 2 && ! $bout->isBye() && ! $bout->isWalkover())
+            @if ($scorable)
                 <form method="POST" action="{{ route('panel.bouts.result', [$event, $category, $bout]) }}" class="no-print">
                     @csrf @method('PUT')
                     <input type="hidden" name="winner_id" value="{{ $registrationId }}">
@@ -51,48 +73,31 @@
     @endif
     @php
         $notes = [];
-        if ($bout->abandoned_slot) { $notes[] = 'Abandona '.($bout->abandoned_slot === 'a' ? 'AKA' : 'SHIRO'); }
+        if ($bout->abandoned_slot) { $notes[] = 'Abandona '.($bout->abandoned_slot === 'a' ? '🟥' : '⬜'); }
         if ($bout->judge_votes) {
             $tally = array_count_values(array_filter($bout->judge_votes, fn ($v) => $v !== null));
-            $notes[] = 'Jueces: AKA '.($tally['aka'] ?? 0).' · SHIRO '.($tally['shiro'] ?? 0).' · hikiwake '.($tally['hikiwake'] ?? 0);
+            $notes[] = 'Jueces: 🟥 '.($tally['aka'] ?? 0).' · ⬜ '.($tally['shiro'] ?? 0).' · hikiwake '.($tally['hikiwake'] ?? 0);
         }
     @endphp
     @if ($notes)
         <div class="small text-muted px-2 pb-1">{{ implode(' · ', $notes) }}</div>
     @endif
-    @if ($editable && $canRecord && $bout->filledSlots() === 2 && ! $bout->isBye() && ! $bout->isWalkover())
+    @if ($scorable)
         @php
             $judges = in_array((int) $category->referees, [2, 3, 5], true) ? (int) $category->referees : 3;
             $votes = $bout->judge_votes ?? [];
             $voteOptions = [['shiro', 'flag-shiro', 'SHIRO: bandera blanca'], ['aka', 'flag-aka', 'AKA: bandera roja'], ['hikiwake', 'flag-hikiwake', 'Hikiwake, empate: blanca y roja']];
         @endphp
-        <details class="px-2 pb-2 no-print">
-            <summary class="small text-primary" style="cursor: pointer">Puntuación</summary>
-            <form method="POST" action="{{ route('panel.bouts.score', [$event, $category, $bout]) }}" class="small mt-2">
+        <div class="px-2 pb-2 no-print">
+            <button type="button" class="btn btn-link btn-sm p-0 small" data-bs-toggle="collapse" data-bs-target=".{{ $scorePanel }}" aria-expanded="false">Puntuación</button>
+            <form id="{{ $scoreForm }}" method="POST" action="{{ route('panel.bouts.score', [$event, $category, $bout]) }}" class="collapse {{ $scorePanel }} small mt-2">
                 @csrf @method('PUT')
-                @foreach (['a' => 'AKA (rojo)', 'b' => 'SHIRO (blanco)'] as $side => $label)
-                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                        <strong class="me-1" style="min-width: 6.5rem">{{ $label }}</strong>
-                        <label>Wazari
-                            <select name="{{ $side }}_wazari" class="form-select form-select-sm d-inline-block w-auto">
-                                @foreach ([0, 1, 2] as $n)<option value="{{ $n }}" @selected($bout->{$side.'_wazari'} === $n)>{{ $n }}</option>@endforeach
-                            </select>
-                        </label>
-                        <input type="hidden" name="{{ $side }}_ippon" value="0">
-                        <label class="form-check-label"><input type="checkbox" class="form-check-input" name="{{ $side }}_ippon" value="1" @checked($bout->{$side.'_ippon'})> Ippon</label>
-                        <label>Falta
-                            <select name="{{ $side }}_warnings" class="form-select form-select-sm d-inline-block w-auto">
-                                @foreach ([0, 1, 2, 3, 4] as $n)<option value="{{ $n }}" @selected($bout->{$side.'_warnings'} === $n)>{{ $n === 0 ? '—' : $n }}</option>@endforeach
-                            </select>
-                        </label>
-                    </div>
-                @endforeach
                 <div class="mb-1">
                     <label>Abandona
                         <select name="abandoned_slot" class="form-select form-select-sm d-inline-block w-auto">
                             <option value="">Nadie</option>
-                            <option value="a" @selected($bout->abandoned_slot === 'a')>AKA (gana SHIRO)</option>
-                            <option value="b" @selected($bout->abandoned_slot === 'b')>SHIRO (gana AKA)</option>
+                            <option value="a" @selected($bout->abandoned_slot === 'a')>🟥 (gana ⬜)</option>
+                            <option value="b" @selected($bout->abandoned_slot === 'b')>⬜ (gana 🟥)</option>
                         </select>
                     </label>
                 </div>
@@ -113,9 +118,9 @@
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle fw-bold score-help-toggle" data-bs-toggle="collapse" data-bs-target="#score-help-{{ $bout->id }}" aria-expanded="false" aria-controls="score-help-{{ $bout->id }}" title="Más información" aria-label="Más información sobre la puntuación">?</button>
                 </div>
                 <div class="collapse" id="score-help-{{ $bout->id }}">
-                    <p class="text-muted mb-0">Jueces: bandera blanca = SHIRO, roja = AKA, blanca y roja = hikiwake (pulsa otra vez para quitar el voto). 2 wazari = 1 ippon. El ippon gana al instante; si no, decide la mayoría de jueces (el hikiwake no suma) y, sin jueces, la ventaja de wazari. Las faltas (F) solo se registran y solo las ve el organizador. En el cuadro: W = wazari, I = ippon, F = faltas.</p>
+                    <p class="text-muted mb-0">Jueces: bandera blanca = SHIRO (⬜), roja = AKA (🟥), blanca y roja = hikiwake (pulsa otra vez para quitar el voto). 2 wazari = 1 ippon. El ippon gana al instante; si no, decide la mayoría de jueces (el hikiwake no suma) y, sin jueces, la ventaja de wazari. Las faltas (F) solo se registran y solo las ve el organizador. En el cuadro: W = wazari, I = ippon, F = faltas.</p>
                 </div>
             </form>
-        </details>
+        </div>
     @endif
 </div>

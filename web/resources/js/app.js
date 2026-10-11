@@ -64,3 +64,35 @@ systemDark.addEventListener('change', () => {
 // Imprimir siempre en claro y restaurar después.
 window.addEventListener('beforeprint', () => root.setAttribute('data-bs-theme', 'light'));
 window.addEventListener('afterprint', () => root.setAttribute('data-bs-theme', resolve(storedMode())));
+
+// 2 wazari = 1 ippon y el ippon gana al instante: al elegir 2 wazari se marca el ippon y, con ippon marcado, se guarda la puntuación,
+// con lo que el participante queda como ganador. Al bajar de 2 wazari se desmarca el ippon si lo había marcado el propio selector.
+const submitScore = (control) => {
+    const form = document.getElementById(control.getAttribute('form'));
+    if (form && !form.dataset.submitting) {
+        form.dataset.submitting = '1';
+        form.requestSubmit();
+    }
+};
+
+document.addEventListener('change', (event) => {
+    const select = event.target.closest('[data-wazari-for]');
+    if (select) {
+        const ippon = document.querySelector(`[data-ippon-for="${select.dataset.wazariFor}"]`);
+        if (!ippon) return;
+        if (select.value === '2') {
+            if (!ippon.checked) ippon.dataset.auto = '1';
+            ippon.checked = true;
+            submitScore(select);
+        } else if (ippon.dataset.auto === '1') {
+            ippon.checked = false;
+            ippon.dataset.auto = '';
+        }
+        return;
+    }
+
+    const ippon = event.target.closest('[data-ippon-for]');
+    if (ippon && ippon.checked) {
+        submitScore(ippon);
+    }
+});
