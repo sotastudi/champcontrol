@@ -25,6 +25,19 @@
                         @else
                             <a href="{{ route('public.events.show', $event) }}" class="btn btn-outline-primary w-100">Ver evento</a>
                         @endif
+                        @php $dateNote = $event->registrationDateNote(); @endphp
+                        @if ($dateNote)
+                            <div class="small text-muted text-center mt-2 registration-date">
+                                @if ($dateNote['type'] === 'closes')
+                                    Inscripciones abiertas hasta el {{ $dateNote['at']->translatedFormat('j \d\e F \d\e Y, H:i') }}
+                                @else
+                                    Las inscripciones abren el {{ $dateNote['at']->translatedFormat('j \d\e F \d\e Y, H:i') }}
+                                @endif
+                            </div>
+                            @if (! empty($dateNote['countdown']))
+                                @include('partials.registration-countdown', ['closesAt' => $dateNote['at']])
+                            @endif
+                        @endif
                     </div>
                 </div>
             </div>

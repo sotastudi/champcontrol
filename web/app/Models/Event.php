@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -120,6 +121,32 @@ class Event extends Model
             && $this->registration_form_enabled
             && $this->status === EventStatus::RegistrationOpen
             && $this->isInsideRegistrationWindow();
+    }
+
+    public const COUNTDOWN_DAYS = 5;
+
+    /**
+     * Fecha de inscripción que se muestra al público: la apertura si todavía no ha llegado, o el cierre si las
+     * inscripciones están abiertas ahora mismo. Null si no hay nada que anunciar.
+     *
+     * @return array{type: 'opens'|'closes', at: Carbon, countdown?: bool}|null
+     */
+    public function registrationDateNote(): ?array
+    {
+        if ($this->registration_opens_at !== null && now()->lt($this->registration_opens_at)) {
+            return ['type' => 'opens', 'at' => $this->registration_opens_at];
+        }
+
+        if ($this->acceptsPublicRegistrations() && $this->registration_closes_at !== null) {
+            return [
+                'type' => 'closes',
+                'at' => $this->registration_closes_at,
+                // Cuenta atrás cuando faltan menos de 5 días para el cierre.
+                'countdown' => now()->diffInSeconds($this->registration_closes_at, false) < self::COUNTDOWN_DAYS * 86400,
+            ];
+        }
+
+        return null;
     }
 
     /** Sin fechas, la ventana está siempre abierta; con fechas, solo entre apertura y cierre (ambos incluidos). */

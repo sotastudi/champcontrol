@@ -18,7 +18,12 @@
         @if ($event->registration_closes_at)hasta el {{ $event->registration_closes_at->translatedFormat('j \d\e F \d\e Y, H:i') }}@endif
     </p>
 @endif
-@if ($event->acceptsPublicRegistrations())<a class="btn btn-primary" href="{{ route('public.registration.create', $event) }}">Inscribirse</a>@endif
+@if ($event->acceptsPublicRegistrations())
+    <a class="btn btn-primary" href="{{ route('public.registration.create', $event) }}">Inscribirse</a>
+    @if (! empty($event->registrationDateNote()['countdown']))
+        <div style="max-width: 16rem">@include('partials.registration-countdown', ['closesAt' => $event->registration_closes_at])</div>
+    @endif
+@endif
 @if ($event->rules_text)
     <h2 class="h5 mt-4">Normas</h2>
     <p style="white-space: pre-line">{{ $event->rules_text }}</p>
