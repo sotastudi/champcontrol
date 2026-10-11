@@ -65,7 +65,7 @@
 <p class="text-muted small">Estos datos son privados: no se muestran en las páginas públicas.</p>
 
 <div class="d-flex flex-wrap gap-2 no-print">
-    @foreach ([['confirmed', 'Confirmar', 'btn-success'], ['cancelled', 'Cancelar', 'btn-outline-danger'], ['pending', 'Pendiente', 'btn-outline-secondary']] as [$target, $text, $class])
+    @foreach ([['confirmed', 'Confirmar', 'btn-success'], ['cancelled', 'Cancelar', 'btn-outline-danger'], ['pending', 'Pendiente', 'btn-yellow']] as [$target, $text, $class])
         @if ($registration->status->value !== $target)
             <form method="POST" action="{{ route('panel.registrations.update', [$event, $registration]) }}">
                 @csrf

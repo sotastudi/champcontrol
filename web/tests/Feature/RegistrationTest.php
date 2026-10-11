@@ -260,4 +260,19 @@ class RegistrationTest extends TestCase
         $this->post(route('public.registration.store', $event), ['club' => ''] + $payload)->assertSessionHasErrors('club');
         $this->get(route('public.registration.create', $event))->assertSee('Club');
     }
+
+    public function test_the_pending_button_is_yellow_in_the_list_and_in_the_card(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+        $category = Category::factory()->for($event)->create();
+        $registration = Registration::factory()->forCategory($category)->create(['status' => RegistrationStatus::Confirmed]);
+
+        $list = $this->actingAs($user)->get(route('panel.registrations.index', $event))->getContent();
+        $this->assertMatchesRegularExpression('#<button type="submit" class="btn btn-yellow btn-sm">Pendiente</button>#', $list);
+        $this->assertMatchesRegularExpression('#<button type="submit" class="btn btn-outline-secondary btn-sm">Cancelar</button>#', $list, 'los demás botones no cambian');
+
+        $card = $this->actingAs($user)->get(route('panel.registrations.show', [$event, $registration]))->getContent();
+        $this->assertMatchesRegularExpression('#class="btn btn-yellow">Pendiente</button>#', $card);
+    }
 }

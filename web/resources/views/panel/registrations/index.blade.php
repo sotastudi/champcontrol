@@ -63,13 +63,13 @@
                     <td>{{ $registration->category->name }}</td>
                     <td><span class="badge {{ $registration->status->badgeClass() }}">{{ $registration->status->label() }}</span></td>
                     <td class="text-end text-nowrap no-print">
-                        @foreach ([['confirmed', 'Confirmar'], ['cancelled', 'Cancelar'], ['pending', 'Pendiente']] as [$target, $text])
+                        @foreach ([['confirmed', 'Confirmar', 'btn-outline-secondary'], ['cancelled', 'Cancelar', 'btn-outline-secondary'], ['pending', 'Pendiente', 'btn-yellow']] as [$target, $text, $class])
                             @if ($registration->status->value !== $target)
                                 <form method="POST" action="{{ route('panel.registrations.update', [$event, $registration]) }}" class="d-inline">
                                     @csrf
                                     @method('PATCH')
                                     <input type="hidden" name="status" value="{{ $target }}">
-                                    <button type="submit" class="btn btn-outline-secondary btn-sm">{{ $text }}</button>
+                                    <button type="submit" class="btn {{ $class }} btn-sm">{{ $text }}</button>
                                 </form>
                             @endif
                         @endforeach
