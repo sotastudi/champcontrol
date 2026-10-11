@@ -9,20 +9,25 @@ use App\Models\Category;
 use App\Models\Event;
 use App\Tournament\ScoreRecorder;
 use App\Tournament\TournamentException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 
 class BoutScoreController extends Controller
 {
-    public function update(ScoreBoutRequest $request, Event $event, Category $category, Bout $bout, ScoreRecorder $scores): RedirectResponse
+    public function update(ScoreBoutRequest $request, Event $event, Category $category, Bout $bout, ScoreRecorder $scores): RedirectResponse|JsonResponse
     {
         try {
             $winner = $scores->record($bout, $request->scoreData());
         } catch (TournamentException $e) {
-            return back()->withInput()->withErrors(['error' => $e->getMessage()]);
+            return $request->expectsJson()
+                ? response()->json(['ok' => false, 'message' => $e->getMessage()], 422)
+                : back()->withInput()->withErrors(['error' => $e->getMessage()]);
         }
 
-        return back()->with('status', $winner === null
+        $message = $winner === null
             ? 'Puntuación guardada. No hay ganador deducible (empate): resuélvelo con «Gana».'
-            : 'Puntuación guardada y ganador registrado.');
+            : 'Puntuación guardada y ganador registrado.';
+
+        return $request->expectsJson() ? response()->json(['ok' => true, 'winner' => $winner, 'message' => $message]) : back()->with('status', $message);
     }
 }

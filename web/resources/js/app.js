@@ -2,6 +2,7 @@ import * as bootstrap from 'bootstrap';
 
 import './registration-form';
 import './judge-votes';
+import './offline-scores';
 
 window.bootstrap = bootstrap;
 

@@ -211,4 +211,40 @@ class BoutScorePanelTest extends TestCase
         $this->assertStringContainsString('data-score-hint', $html);
         $this->assertStringContainsString('Marca la bandera de cada juez', $html);
     }
+
+    public function test_scores_can_be_sent_as_json_for_the_offline_queue_and_errors_come_back_as_json(): void
+    {
+        [$user, $event, $category, $bout] = $this->setUpBracket();
+        $url = route('panel.bouts.score', [$event, $category, $bout]);
+
+        $this->actingAs($user)->putJson($url, ['a_ippon' => 1])
+            ->assertOk()->assertJson(['ok' => true, 'winner' => $bout->slot_a_id]);
+
+        $second = $category->bouts()->where('round', 1)->where('position', 2)->firstOrFail();
+        $this->actingAs($user)->putJson(route('panel.bouts.score', [$event, $category, $second]), ['a_wazari' => 1])
+            ->assertStatus(422)->assertJson(['ok' => false])->assertJsonPath('message', fn ($m) => str_contains($m, 'Faltan los votos'));
+        $this->actingAs($user)->putJson($url, ['a_wazari' => 9])->assertStatus(422)->assertJsonValidationErrors('a_wazari');
+        $this->actingAs(User::factory()->create())->putJson($url, ['a_ippon' => 1])->assertForbidden();
+    }
+
+    public function test_a_fresh_csrf_token_is_available_to_signed_in_users_for_resending_saved_scores(): void
+    {
+        [$user] = $this->setUpBracket();
+
+        $this->getJson(route('panel.csrf'))->assertUnauthorized();
+        $this->actingAs($user)->getJson(route('panel.csrf'))->assertOk()->assertJsonStructure(['token']);
+    }
+
+    public function test_pages_with_scoring_include_the_sync_indicator_and_the_per_bout_status(): void
+    {
+        [$user, $event, $category] = $this->setUpBracket();
+
+        $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
+
+        $this->assertStringContainsString('id="sync-indicator"', $html);
+        $this->assertStringContainsString('data-sync-state="synced"', $html);
+        $this->assertStringContainsString('#cloud-check', $html);
+        $this->assertStringContainsString('data-score-status', $html);
+        $this->assertStringContainsString('name="csrf-token"', $html);
+    }
 }

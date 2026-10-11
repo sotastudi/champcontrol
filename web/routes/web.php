@@ -49,6 +49,8 @@ Route::middleware('guest')->group(function () {
 Route::post('salir', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
 Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
+    // Token CSRF nuevo para reenviar resultados guardados en local tras estar sin conexión (sesión iniciada).
+    Route::get('csrf', fn () => response()->json(['token' => csrf_token()]))->name('csrf');
     Route::get('eventos', [EventController::class, 'index'])->name('events.index');
     Route::get('eventos/crear', [EventController::class, 'create'])->name('events.create');
     Route::post('eventos', [EventController::class, 'store'])->name('events.store');

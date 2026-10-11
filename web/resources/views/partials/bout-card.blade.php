@@ -130,6 +130,7 @@
                 @endfor
                 <div class="d-flex align-items-center gap-2 mb-2">
                     <button type="submit" class="btn btn-sm btn-outline-primary" data-score-save>Guardar puntuación</button>
+                    <span data-score-status aria-live="polite"></span>
                     <small class="text-danger d-none" data-score-hint>Marca la bandera de cada juez (o ippon / abandono).</small>
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle fw-bold score-help-toggle" data-bs-toggle="collapse" data-bs-target="#score-help-{{ $bout->id }}" aria-expanded="false" aria-controls="score-help-{{ $bout->id }}" title="Más información" aria-label="Más información sobre la puntuación">?</button>
                 </div>
