@@ -32,7 +32,7 @@ La primera versión cubre un flujo completo: **crear evento → definir categor�
 
 ### Fuera de la primera versión
 
-Pagos de inscripción, marcadores en directo, calendario o reparto automático de combates por tatami, rankings, clasificación por equipos, cabezas de serie, liguillas, doble eliminación, reglas de puntuación específicas de cada federación (solo hay wazari/ippon, jueces y amonestaciones sin sanciones automáticas), aplicación móvil nativa y permisos para equipos de organizadores. Se podrán añadir tras validar el flujo básico con un campeonato real.
+Pagos de inscripción, marcadores en directo, calendario o reparto automático de combates por tatami, rankings, clasificación por equipos, cabezas de serie, liguillas, doble eliminación, reglas de puntuación específicas de cada federación (solo hay wazari/ippon, jueces y faltas sin sanciones automáticas por faltas), aplicación móvil nativa y permisos para equipos de organizadores. Se podrán añadir tras validar el flujo básico con un campeonato real.
 
 ## Reglas de funcionamiento
 
