@@ -92,8 +92,10 @@
                     <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="auto"><svg width="18" height="18" aria-hidden="true"><use href="#bulb-half"/></svg> Automático (sistema)</button></li>
                 </ul>
             </div>
-            <a class="btn btn-outline-secondary btn-sm d-md-none d-flex align-items-center" href="{{ auth()->check() ? route('panel.events.index') : route('login') }}" aria-label="{{ auth()->check() ? 'Mi panel' : 'Iniciar sesión' }}" title="{{ auth()->check() ? 'Mi panel' : 'Iniciar sesión' }}">
+            {{-- Usuario: solo el icono; el texto aparece al pasar el cursor o al tocar (en tablet, un primer toque lo muestra y el segundo entra). --}}
+            <a class="btn btn-outline-secondary btn-sm d-flex align-items-center user-chip" href="{{ auth()->check() ? route('panel.events.index') : route('login') }}" aria-label="{{ auth()->check() ? 'Mi panel' : 'Iniciar sesión' }}" data-user-chip>
                 <svg width="18" height="18" aria-hidden="true"><use href="#user"/></svg>
+                <span class="user-chip-text">{{ auth()->check() ? 'Mi panel' : 'Iniciar sesión' }}</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Menú">
                 <span class="navbar-toggler-icon"></span>
@@ -109,7 +111,6 @@
                         </form>
                     </li>
                 @else
-                    <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Iniciar sesión</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Registrarse</a></li>
                 @endauth
             </ul>

@@ -149,3 +149,17 @@ document.addEventListener('change', (event) => {
 });
 
 document.querySelectorAll('[data-score-form]').forEach(syncSave);
+
+// Botón de usuario: el texto se ve al pasar el cursor; en pantallas táctiles anchas (tablet) el primer toque lo muestra
+// unos segundos y el segundo toque navega. En móvil estrecho (menos de 768 px) navega directamente.
+document.addEventListener('click', (event) => {
+    const chip = event.target.closest('[data-user-chip]');
+    if (!chip) return;
+    const touchWide = window.matchMedia('(hover: none)').matches && window.innerWidth >= 768;
+    if (touchWide && !chip.classList.contains('is-open')) {
+        event.preventDefault();
+        chip.classList.add('is-open');
+        clearTimeout(chip._hideTimer);
+        chip._hideTimer = setTimeout(() => chip.classList.remove('is-open'), 3000);
+    }
+});

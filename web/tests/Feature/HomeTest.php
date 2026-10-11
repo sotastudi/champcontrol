@@ -28,7 +28,9 @@ class HomeTest extends TestCase
         $this->assertLessThan(strpos($html, 'navbar-toggler'), strpos($html, 'id="theme-menu"'), 'a la izquierda de la hamburguesa');
 
         // Botón de usuario (solo móvil) hacia el inicio de sesión.
-        $this->assertMatchesRegularExpression('#<a class="btn btn-outline-secondary btn-sm d-md-none[^>]*href="'.preg_quote(route('login'), '#').'"[^>]*aria-label="Iniciar sesión"#', $html);
+        $this->assertMatchesRegularExpression('#<a class="btn btn-outline-secondary btn-sm d-flex align-items-center user-chip"[^>]*href="'.preg_quote(route('login'), '#').'"[^>]*aria-label="Iniciar sesión"[^>]*data-user-chip>\s*<svg[^>]*>.*?</svg>\s*<span class="user-chip-text">Iniciar sesión</span>#s', $html, 'icono con el texto oculto, visible en todos los anchos');
+        $this->assertStringNotContainsString('d-md-none d-flex align-items-center user-chip', $html);
+        $this->assertDoesNotMatchRegularExpression('#class="nav-link" href="'.preg_quote(route('login'), '#').'"#', $html, 'el enlace de texto «Iniciar sesión» ya no está en el menú');
 
         $this->get(route('login'))->assertOk()->assertSee('Registrarse (crear cuenta)')->assertSee(route('register'), false);
     }
@@ -37,6 +39,6 @@ class HomeTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user)->get(route('home'))->assertSee('aria-label="Mi panel"', false);
+        $this->actingAs($user)->get(route('home'))->assertSee('aria-label="Mi panel"', false)->assertSee('user-chip-text">Mi panel', false);
     }
 }
