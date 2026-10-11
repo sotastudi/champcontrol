@@ -31,6 +31,16 @@ class TatamiAndProgressTest extends TestCase
         $event = $user->events()->firstOrFail();
         $this->assertSame(3, $event->tatamiCount());
 
+        $html = $this->actingAs($user)->get(route('panel.events.edit', $event))->getContent();
+        preg_match('#<select id="tatami_count".*?</select>#s', $html, $select);
+        $this->assertSame(10, substr_count($select[0], '<option'), 'selector de 1 a 10');
+        $this->assertStringNotContainsString('<option value="11"', $html);
+        $this->assertStringContainsString('<option value="3" selected', $html);
+
+        foreach ([0, 11, 'abc', '2x'] as $bad) {
+            $this->actingAs($user)->put(route('panel.events.update', $event), $this->payload(['tatami_count' => $bad]))->assertSessionHasErrors('tatami_count');
+        }
+
         $this->actingAs($user)->get(route('panel.categories.create', $event))->assertSee('Tatami 3')->assertDontSee('Tatami 4');
 
         $base = ['name' => 'Cat', 'bronze_rule' => 'bronze_match'];

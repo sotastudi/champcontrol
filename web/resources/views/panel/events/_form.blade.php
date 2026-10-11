@@ -34,7 +34,8 @@
          help="Un evento público y no en borrador aparece en la portada y tiene página pública." />
 <x-check name="registration_form_enabled" label="Habilitar formulario público de inscripción" :checked="$event?->registration_form_enabled ?? false"
          help="Solo funciona con el evento público y en estado «Inscripciones abiertas». Ver docs/menores.md." />
-<x-field name="tatami_count" type="number" min="1" max="50" label="Número de tatamis" :value="$event?->tatamiCount() ?? 1" help="Cada categoría se asigna a un tatami en su formulario. No hay calendario automático." required />
+<x-select name="tatami_count" label="Número de tatamis" :options="array_combine(range(1, 10), range(1, 10))" :value="$event?->tatamiCount() ?? 1" required />
+<div class="form-text mb-3" style="margin-top: -.75rem">De 1 a 10. Cada categoría se asigna a un tatami en su formulario. No hay calendario automático.</div>
 <div class="row">
     <div class="col-md-6"><x-field name="registration_opens_at" type="datetime-local" label="Inicio de inscripciones" :value="$event?->registration_opens_at?->format('Y-m-d\TH:i')" help="Opcional. Hora local del evento. Sin fecha, las inscripciones se abren en cuanto el estado es «Inscripciones abiertas»." /></div>
     <div class="col-md-6"><x-field name="registration_closes_at" type="datetime-local" label="Cierre de inscripciones" :value="$event?->registration_closes_at?->format('Y-m-d\TH:i')" help="Opcional. Pasada esta fecha y hora el formulario público deja de aceptar inscripciones." /></div>

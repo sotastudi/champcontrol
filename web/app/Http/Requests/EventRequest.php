@@ -34,7 +34,7 @@ class EventRequest extends FormRequest
             'default_bronze_rule' => ['sometimes', 'required', Rule::enum(BronzeRule::class)],
             'registration_opens_at' => ['nullable', 'date'],
             'registration_closes_at' => ['nullable', 'date', Rule::when($this->filled('registration_opens_at'), ['after:registration_opens_at'])],
-            'tatami_count' => ['sometimes', 'required', 'integer', 'min:1', 'max:50', function (string $attribute, mixed $value, \Closure $fail) {
+            'tatami_count' => ['sometimes', 'required', 'integer', 'min:1', 'max:10', function (string $attribute, mixed $value, \Closure $fail) {
                 $event = $this->route('event');
                 $max = $event?->categories()->max('tatami');
                 if ($max !== null && (int) $value < (int) $max) {
