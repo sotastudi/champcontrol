@@ -2,7 +2,7 @@
 @section('title', 'Editar competidor')
 @section('content')
 <h1 class="h3 mb-3">Editar competidor</h1>
-<form method="POST" action="{{ route('panel.competitors.update', [$event, $competitor]) }}" @include('panel.competitors._form_data')>
+<form method="POST" enctype="multipart/form-data" action="{{ route('panel.competitors.update', [$event, $competitor]) }}" @include('panel.competitors._form_data')>
     @csrf
     @method('PUT')
     @include('panel.competitors._fields')

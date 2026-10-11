@@ -2,11 +2,11 @@
 @section('title', 'Inscripción · '.$event->name)
 @section('content')
 <h1 class="h3 mb-3">Inscripción: {{ $event->name }}</h1>
-<div class="alert alert-info">Tus datos de contacto y fecha de nacimiento no se publican.</div>
+<div class="alert alert-info">Tus datos de contacto, fecha de nacimiento y foto no se publican.</div>
 @if ($categories->isEmpty())
     <div class="alert alert-warning">Este evento aún no tiene categorías disponibles.</div>
 @endif
-<form method="POST" action="{{ route('public.registration.store', $event) }}" @include('panel.competitors._form_data', ['categoryModels' => $categories])>
+<form method="POST" enctype="multipart/form-data" action="{{ route('public.registration.store', $event) }}" @include('panel.competitors._form_data', ['categoryModels' => $categories])>
     @csrf
     <x-select name="category_id" label="Categoría" :options="$categories->pluck('name', 'id')" placeholder="Selecciona una categoría" required />
     @include('panel.competitors._fields')

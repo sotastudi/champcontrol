@@ -5,7 +5,7 @@
 @if (empty($categories))
     <div class="alert alert-info">Primero crea alguna categoría en el evento.</div>
 @endif
-<form method="POST" action="{{ route('panel.registrations.store', $event) }}" @include('panel.competitors._form_data')>
+<form method="POST" enctype="multipart/form-data" action="{{ route('panel.registrations.store', $event) }}" @include('panel.competitors._form_data')>
     @csrf
     <x-select name="category_id" label="Categoría" :options="$categories" placeholder="Selecciona una categoría" required />
     @include('panel.competitors._fields')

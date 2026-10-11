@@ -25,6 +25,9 @@
 <div class="row g-4 mb-4">
     <div class="col-md-6">
         <h2 class="h5">Competidor</h2>
+        @if ($competitor->hasPhoto())
+            <img src="{{ route('panel.competitors.photo', [$event, $competitor]) }}?v={{ $competitor->updated_at?->timestamp }}" alt="Foto de {{ $competitor->first_name }}" class="img-thumbnail mb-3" style="max-height: 12rem">
+        @endif
         <dl class="row mb-0">
             <dt class="col-5">Club</dt><dd class="col-7">{{ $competitor->club ?: '—' }}</dd>
             <dt class="col-5">Fecha de nacimiento</dt><dd class="col-7">{{ $competitor->birth_date->format('d/m/Y') }}</dd>

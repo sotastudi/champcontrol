@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 #[Fillable(['first_name', 'last_name', 'club', 'birth_date', 'sex', 'weight', 'level', 'email', 'phone', 'notes', 'guardian_name', 'guardian_contact'])]
@@ -68,6 +69,11 @@ class Competitor extends Model
     public function isMinorOn(CarbonInterface $date): bool
     {
         return $this->ageOn($date) < config('champcontrol.adult_age');
+    }
+
+    public function hasPhoto(): bool
+    {
+        return filled($this->photo_path) && Storage::disk('local')->exists($this->photo_path);
     }
 
     public function hasGuardianData(): bool

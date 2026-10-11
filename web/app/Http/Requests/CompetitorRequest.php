@@ -30,6 +30,8 @@ class CompetitorRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:30'],
             'guardian_name' => ['nullable', 'string', 'max:150'],
             'guardian_contact' => ['nullable', 'string', 'max:255'],
+            'photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
+            'remove_photo' => ['boolean'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }

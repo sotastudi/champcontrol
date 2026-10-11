@@ -57,6 +57,7 @@ class EventController extends Controller
     public function destroy(Event $event): RedirectResponse
     {
         $this->deletePoster($event);
+        $event->competitors()->whereNotNull('photo_path')->pluck('photo_path')->each(fn ($path) => Storage::disk('local')->delete($path));
         $event->delete();
 
         return redirect()->route('panel.events.index')->with('status', 'Evento eliminado.');

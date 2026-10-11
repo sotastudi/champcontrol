@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Competitor;
 use App\Models\Event;
 use App\Models\Registration;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -73,6 +74,10 @@ final class RegistrationService
             'first_name' => Str::squish($data['first_name']),
             'last_name' => Str::squish($data['last_name']),
         ]));
+
+        if (($data['photo'] ?? null) instanceof UploadedFile) {
+            $competitor->forceFill(['photo_path' => $data['photo']->store('competitor-photos', 'local')])->save();
+        }
 
         if (! empty($data['guardian_consent']) && filled($data['guardian_name'] ?? null)) {
             $competitor->forceFill(['guardian_consent_at' => now()])->save();

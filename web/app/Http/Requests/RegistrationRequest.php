@@ -29,6 +29,7 @@ class RegistrationRequest extends FormRequest
             'guardian_name' => ['nullable', 'string', 'max:150'],
             'guardian_contact' => ['nullable', 'string', 'max:255'],
             'guardian_consent' => ['nullable', 'boolean'],
+            'photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
             'category_id' => ['required', Rule::exists('categories', 'id')->where('event_id', $this->route('event')->id)],
         ];
     }

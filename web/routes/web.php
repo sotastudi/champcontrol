@@ -64,6 +64,7 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::get('inscripciones/{registration}', [RegistrationController::class, 'show'])->name('registrations.show');
         Route::patch('inscripciones/{registration}', [RegistrationController::class, 'update'])->name('registrations.update');
         Route::get('competidores/{competitor}/editar', [CompetitorController::class, 'edit'])->name('competitors.edit');
+        Route::get('competidores/{competitor}/foto', [CompetitorController::class, 'photo'])->name('competitors.photo');
         Route::put('competidores/{competitor}', [CompetitorController::class, 'update'])->name('competitors.update');
         Route::get('exportar/inscritos.csv', [ExportController::class, 'registrations'])->name('exports.registrations');
         Route::get('categorias/{category}/cuadro', [BracketController::class, 'show'])->name('brackets.show');
