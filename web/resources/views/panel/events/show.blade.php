@@ -51,6 +51,7 @@
                         </td>
                         <td class="text-center"><a href="{{ route('panel.registrations.index', ['event' => $event, 'category_id' => $category->id]) }}">{{ $category->confirmed_count }}</a></td>
                         <td class="text-end">
+                            <a href="{{ route('panel.brackets.show', [$event, $category]) }}" class="btn btn-outline-secondary btn-sm">Cuadro</a>
                             <a href="{{ route('panel.categories.edit', [$event, $category]) }}" class="btn btn-outline-primary btn-sm">Editar</a>
                             <form method="POST" action="{{ route('panel.categories.destroy', [$event, $category]) }}" class="d-inline" onsubmit="return confirm('¿Eliminar la categoría?')">
                                 @csrf

@@ -40,6 +40,11 @@ class Competitor extends Model
         return $this->hasMany(Registration::class);
     }
 
+    public function displayName(): string
+    {
+        return $this->first_name.' '.$this->last_name;
+    }
+
     /** Clave de comparación de nombres: sin acentos, minúsculas y espacios colapsados. */
     public static function normalizeName(string $value): string
     {

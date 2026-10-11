@@ -5,6 +5,8 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Panel\BoutResultController;
+use App\Http\Controllers\Panel\BracketController;
 use App\Http\Controllers\Panel\CategoryController;
 use App\Http\Controllers\Panel\CompetitorController;
 use App\Http\Controllers\Panel\EventController;
@@ -56,6 +58,10 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::get('competidores/{competitor}/editar', [CompetitorController::class, 'edit'])->name('competitors.edit');
         Route::put('competidores/{competitor}', [CompetitorController::class, 'update'])->name('competitors.update');
         Route::get('exportar/inscritos.csv', [ExportController::class, 'registrations'])->name('exports.registrations');
+        Route::get('categorias/{category}/cuadro', [BracketController::class, 'show'])->name('brackets.show');
+        Route::post('categorias/{category}/cuadro', [BracketController::class, 'store'])->name('brackets.store');
+        Route::post('categorias/{category}/cuadro/intercambio', [BracketController::class, 'swap'])->name('brackets.swap');
+        Route::put('categorias/{category}/combates/{bout}/resultado', [BoutResultController::class, 'update'])->name('bouts.result');
         // Las tareas siguientes añaden aquí categorías, inscripciones, cuadros, exportaciones…
     });
 });
