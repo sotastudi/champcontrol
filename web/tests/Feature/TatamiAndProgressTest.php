@@ -93,7 +93,7 @@ class TatamiAndProgressTest extends TestCase
         app(BracketGenerator::class)->generate($category, fn ($ids) => $ids->values());
 
         $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))
-            ->assertSee('bracket-pair', false)->assertSee('bracket-slot', false);
+            ->assertSee('bracket-grid', false)->assertSee('bracket-cell', false);
 
         $club = $category->registrations()->with('competitor')->firstOrFail()->competitor->club;
         $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();

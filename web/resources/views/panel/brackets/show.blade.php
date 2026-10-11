@@ -39,6 +39,15 @@
     <div class="alert alert-warning">Hay cambios posteriores en las inscripciones: resuélvelos manualmente según el reglamento.</div>
 @endif
 
+@if ($category->draw_warnings)
+    <div class="alert alert-warning">
+        <strong>Revisa el sorteo:</strong> para que ningún participante quede suelto en la primera ronda se ha forzado una regla del sorteo. Puedes ajustarlo con «Intercambiar participantes».
+        <ul class="mb-0">
+            @foreach ($category->draw_warnings as $warning)<li>{{ $warning }}</li>@endforeach
+        </ul>
+    </div>
+@endif
+
 <div class="alert alert-info">Regla del bronce: {{ $category->bronze_rule->label() }}</div>
 
 @if ($confirmedCount === 1)

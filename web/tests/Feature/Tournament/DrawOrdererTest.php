@@ -9,6 +9,8 @@ use App\Models\Event;
 use App\Models\Registration;
 use App\Models\User;
 use App\Tournament\BracketGenerator;
+use App\Tournament\PodiumCalculator;
+use App\Tournament\ResultRecorder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -144,5 +146,58 @@ class DrawOrdererTest extends TestCase
         $this->actingAs($user)->post(route('panel.categories.store', $event), $payload + ['draw_criteria' => 'nope'])->assertSessionHasErrors('draw_criteria');
         $this->actingAs($user)->post(route('panel.categories.store', $event), $payload + ['draw_criteria' => 'random'])->assertSessionDoesntHaveErrors();
         $this->assertSame(DrawCriteria::Random, $event->categories()->firstOrFail()->draw_criteria);
+    }
+
+    public function test_a_forced_same_club_pairing_is_kept_and_reported_as_a_warning(): void
+    {
+        $rows = [];
+        foreach (range(1, 6) as $i) {
+            $rows[] = ['level' => '1º kyu', 'weight' => 60 + $i, 'club' => 'Dojo Único'];
+        }
+        $category = $this->category($rows);
+
+        app(BracketGenerator::class)->generate($category);
+
+        $category->refresh();
+        $this->assertSame(3, $category->bouts()->where('round', 1)->where('required_participants', 2)->count(), 'nadie queda suelto aunque se fuerce la regla');
+        $this->assertCount(3, $category->draw_warnings);
+        $this->assertStringContainsString('mismo club (Dojo Único)', $category->draw_warnings[0]);
+
+        $owner = $category->event->user;
+        $this->actingAs($owner)->get(route('panel.brackets.show', [$category->event, $category]))
+            ->assertSee('Revisa el sorteo')->assertSee('mismo club (Dojo Único)');
+    }
+
+    public function test_no_warning_when_clubs_can_be_separated_and_regenerating_clears_old_warnings(): void
+    {
+        $category = $this->category([
+            ['level' => '1º kyu', 'weight' => 60, 'club' => 'A'], ['level' => '1º kyu', 'weight' => 61, 'club' => 'A'],
+            ['level' => '1º kyu', 'weight' => 62, 'club' => 'B'], ['level' => '1º kyu', 'weight' => 63, 'club' => 'B'],
+        ]);
+        $category->forceFill(['draw_warnings' => ['viejo aviso']])->save();
+
+        app(BracketGenerator::class)->generate($category);
+
+        $this->assertNull($category->fresh()->draw_warnings);
+    }
+
+    public function test_every_bracket_size_can_be_played_to_the_final_with_the_loose_rule(): void
+    {
+        foreach ([5, 6, 7, 9, 12, 21, 37] as $n) {
+            $category = Category::factory()->create();
+            Registration::factory()->count($n)->confirmed()->forCategory($category)->create();
+            app(BracketGenerator::class)->generate($category);
+
+            $recorder = app(ResultRecorder::class);
+            while ($bout = $category->bouts()->orderBy('number')->get()->first(fn ($b) => $b->isReady())) {
+                $recorder->record($bout, $bout->slot_a_id);
+            }
+
+            $final = $category->bouts()->get()->first(fn ($b) => $b->isFinal());
+            $this->assertTrue($final->isCompleted(), "n={$n}: la final no se resolvió");
+            $this->assertSame(0, $category->bouts()->where('required_participants', 2)->whereNull('winner_id')->count(), "n={$n}: combates sin ganador");
+            $podium = app(PodiumCalculator::class)->for($category->fresh());
+            $this->assertGreaterThanOrEqual(3, count($podium), "n={$n}");
+        }
     }
 }

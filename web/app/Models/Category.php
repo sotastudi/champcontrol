@@ -24,6 +24,7 @@ class Category extends Model
             'sex' => Sex::class,
             'bronze_rule' => BronzeRule::class,
             'draw_criteria' => DrawCriteria::class,
+            'draw_warnings' => 'array',
             'min_weight' => 'float',
             'max_weight' => 'float',
             'show_fourth' => 'boolean',

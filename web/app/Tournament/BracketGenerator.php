@@ -36,42 +36,47 @@ final class BracketGenerator
             throw new TournamentException('No hay inscripciones confirmadas para generar el cuadro.');
         }
 
-        $ordered = $shuffler
-            ? $shuffler($ids)->values()
-            : $this->orderer->order($registrations, $this->seedOrder($this->bracketSize($ids->count())), $category->effectiveDrawCriteria());
+        if ($shuffler) {
+            // Orden dado (tests): con un número impar el primero queda con el pase y el resto se empareja en orden.
+            $ordered = $shuffler($ids)->values()->all();
+            $pairs = [];
+            if (count($ordered) % 2 === 1) {
+                $pairs[] = [array_shift($ordered), null];
+            }
+            foreach (array_chunk($ordered, 2) as $chunk) {
+                $pairs[] = [$chunk[0], $chunk[1]];
+            }
+            $warnings = [];
+        } else {
+            ['pairs' => $pairs, 'warnings' => $warnings] = $this->orderer->order($registrations, $category->effectiveDrawCriteria());
+        }
 
-        DB::transaction(function () use ($category, $ordered) {
+        DB::transaction(function () use ($category, $pairs, $warnings) {
             $category->bouts()->update(['next_bout_id' => null, 'loser_next_bout_id' => null]);
             $category->bouts()->delete();
 
-            $this->build($category, $ordered);
+            $this->build($category, $pairs);
 
-            $category->forceFill(['bracket_generated_at' => now()])->save();
+            $category->forceFill(['bracket_generated_at' => now(), 'draw_warnings' => $warnings ?: null])->save();
             $this->advancer->settle($category);
         });
     }
 
-    private function bracketSize(int $n): int
+    /**
+     * Cuadro de eliminación directa donde en cada ronda todos combaten salvo, como mucho, uno (el último combate de la
+     * ronda recibe un pase si el número de participantes es impar). Ronda 1 = las parejas del sorteo; cada ronda siguiente
+     * empareja los ganadores de dos combates consecutivos.
+     *
+     * @param  list<array{0:int,1:?int}>  $pairs
+     */
+    private function build(Category $category, array $pairs): void
     {
-        $size = 2;
-        while ($size < $n) {
-            $size *= 2;
+        $counts = [count($pairs)];
+        while (end($counts) > 1) {
+            $counts[] = intdiv(end($counts) + 1, 2);
         }
+        $rounds = count($counts);
 
-        return $size;
-    }
-
-    private function build(Category $category, Collection $ids): void
-    {
-        $n = $ids->count();
-        $size = 2;
-        $rounds = 1;
-        while ($size < $n) {
-            $size *= 2;
-            $rounds++;
-        }
-
-        $seeds = $this->seedOrder($size);
         $number = 0;
         /** @var array<int,array<int,Bout>> $grid */
         $grid = [];
@@ -80,18 +85,17 @@ final class BracketGenerator
         for ($round = 1; $round <= $rounds; $round++) {
             // El combate por el bronce se disputa antes que la final.
             if ($round === $rounds && $rounds >= 2 && $category->bronze_rule === BronzeRule::BronzeMatch) {
-                $semiByes = $rounds === 2 ? count(array_filter($grid[1], fn (Bout $b) => $b->isBye())) : 0;
+                $semiByes = count(array_filter($grid[$round - 1], fn (Bout $b) => $b->isBye()));
                 $bronze = $this->create($category, ['round' => $round, 'position' => 1, 'is_bronze' => true, 'required_participants' => 2 - $semiByes], $number);
             }
 
-            for ($p = 1; $p <= ($size >> $round); $p++) {
-                $attributes = ['round' => $round, 'position' => $p, 'required_participants' => 2];
-
+            for ($p = 1; $p <= $counts[$round - 1]; $p++) {
                 if ($round === 1) {
-                    $slotA = $ids[$seeds[2 * ($p - 1)] - 1] ?? null;
-                    $slotB = $ids[$seeds[2 * ($p - 1) + 1] - 1] ?? null;
-                    $attributes += ['slot_a_id' => $slotA, 'slot_b_id' => $slotB];
-                    $attributes['required_participants'] = ($slotA && $slotB) ? 2 : 1;
+                    [$slotA, $slotB] = $pairs[$p - 1];
+                    $attributes = ['round' => 1, 'position' => $p, 'slot_a_id' => $slotA, 'slot_b_id' => $slotB, 'required_participants' => $slotB ? 2 : 1];
+                } else {
+                    $feeders = min(2, $counts[$round - 2] - 2 * ($p - 1));
+                    $attributes = ['round' => $round, 'position' => $p, 'required_participants' => $feeders];
                 }
 
                 $grid[$round][$p] = $this->create($category, $attributes, $number);
@@ -119,26 +123,5 @@ final class BracketGenerator
         $required = $attributes['required_participants'];
 
         return $category->bouts()->create($attributes + ['number' => $required === 2 ? ++$number : null]);
-    }
-
-    /**
-     * Orden de siembra estándar: [1,2] → [1,4,2,3] → [1,8,4,5,2,7,3,6]…
-     * Las plazas por encima de n son pases; con n > size/2 nunca se enfrentan dos pases.
-     *
-     * @return list<int>
-     */
-    private function seedOrder(int $size): array
-    {
-        $order = [1];
-        for ($n = 1; $n < $size; $n *= 2) {
-            $next = [];
-            foreach ($order as $seed) {
-                $next[] = $seed;
-                $next[] = 2 * $n + 1 - $seed;
-            }
-            $order = $next;
-        }
-
-        return $order;
     }
 }

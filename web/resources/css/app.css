@@ -63,27 +63,20 @@
 [data-theme-mode="dark"] .theme-icon-dark,
 [data-theme-mode="auto"] .theme-icon-auto { display: inline; }
 
-/* Cuadro: columnas por ronda con líneas que unen cada pareja de combates con el combate siguiente. */
-.bracket { overflow-x: auto; --bracket-line: var(--bs-secondary-color); }
-.bracket-round { min-width: 16rem; margin-right: 2rem; display: flex; flex-direction: column; }
-.bracket-round:last-child { margin-right: 0; }
-.bracket-bouts { flex: 1; display: flex; flex-direction: column; }
-.bracket-round.has-next .bracket-bouts > .bracket-pair { flex: 1; }
-.bracket-pair { position: relative; display: flex; flex-direction: column; }
-.bracket-slot { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: .25rem 0; }
-.bracket-slot .bout-card { margin-bottom: 0 !important; }
-.bracket-round:not(:last-child) .bracket-pair::after {
-    content: ''; position: absolute; right: -1rem; top: 25%; bottom: 25%; width: 1rem;
-    border: 2px solid var(--bracket-line); border-left: 0;
-}
-.bracket-round:not(:last-child) .bracket-pair::before {
-    content: ''; position: absolute; right: -2rem; top: 50%; width: 1rem; border-top: 2px solid var(--bracket-line);
-}
-.bracket-round:not(:last-child) .bracket-slot { position: relative; }
-.bracket-round:not(:last-child) .bracket-slot::after {
-    content: ''; position: absolute; right: -1rem; top: 50%; width: 1rem; border-top: 2px solid var(--bracket-line);
-}
-.bracket-round.has-next .bracket-bouts { justify-content: space-around; }
+/* Cuadro: una cuadrícula con una columna por ronda; cada combate abarca las filas de sus combates de origen y las líneas lo unen con ellos. */
+.bracket-wrap { overflow-x: auto; --bracket-line: var(--bs-secondary-color); }
+.bracket-grid { display: grid; grid-template-columns: repeat(var(--rounds), minmax(16rem, 1fr)); column-gap: 2rem; align-items: stretch; min-width: min-content; }
+.bracket-cell { position: relative; display: flex; flex-direction: column; justify-content: center; padding: .25rem 0; }
+.bracket-cell .bout-card { margin-bottom: 0 !important; }
+/* Salida hacia el combate siguiente: en una pareja, la mitad de arriba baja y la de abajo sube hasta unirse. */
+.bracket-cell.link-top::after, .bracket-cell.link-bottom::after, .bracket-cell.link-single::after { content: ''; position: absolute; right: -1rem; width: 1rem; }
+.bracket-cell.link-top::after { top: 50%; bottom: 0; border-top: 2px solid var(--bracket-line); border-right: 2px solid var(--bracket-line); }
+.bracket-cell.link-bottom::after { top: 0; bottom: 50%; border-bottom: 2px solid var(--bracket-line); border-right: 2px solid var(--bracket-line); }
+.bracket-cell.link-single::after { top: 50%; right: -2rem; width: 2rem; border-top: 2px solid var(--bracket-line); }
+/* Entrada desde dos combates: tramo final hasta la tarjeta. */
+.bracket-cell.has-in::before { content: ''; position: absolute; left: -1rem; width: 1rem; top: 50%; border-top: 2px solid var(--bracket-line); }
+
+.bout-card { margin-bottom: 0 !important; }
 
 /* Podio: 2.º - 1.º - 3.º con escalones de distinta altura. */
 .podium-col { flex: 1 1 0; max-width: 11rem; }
@@ -103,7 +96,7 @@
     .no-print, .navbar, .alert { display: none !important; }
     body { background: #fff !important; }
     .brand-dark { display: none !important; }
-    .bracket { overflow: visible !important; }
+    .bracket-wrap { overflow: visible !important; }
     a { text-decoration: none; color: inherit; }
 }
 

@@ -60,16 +60,18 @@ class FirstMilestoneTest extends TestCase
         }
 
         $this->post(route('panel.brackets.store', [$event, $category]))->assertSessionHasNoErrors();
-        $this->assertSame(3, $category->bouts()->where('required_participants', 1)->where('is_bronze', false)->count(), 'cinco competidores → tres pases');
+        // Como mucho un participante suelto por ronda: uno en la primera ronda y otro en la segunda.
+        $this->assertSame(2, $category->bouts()->where('required_participants', 1)->where('is_bronze', false)->count(), 'cinco competidores → dos pases');
+        $this->assertSame(1, $category->bouts()->where('round', 1)->where('required_participants', 1)->count());
 
         while ($bout = $category->bouts()->orderBy('number')->get()->first(fn ($b) => $b->isReady())) {
             $this->put(route('panel.bouts.result', [$event, $category, $bout]), ['winner_id' => $bout->slot_a_id])
                 ->assertSessionHasNoErrors();
         }
 
-        // Todos los combates reales (no pases) se han resuelto: con 5 participantes hay 2 combates de primera ronda, 1 semifinal, 1 final y 1 bronce.
+        // Todos los combates reales (no pases) se han resuelto: con 5 participantes hay 2 combates de primera ronda, 1 semifinal y 1 final; el bronce es automático (la otra semifinal es un pase).
         $real = $category->bouts()->where('required_participants', 2)->get();
-        $this->assertCount(5, $real, 'cinco competidores → cinco combates reales (incluido el bronce)');
+        $this->assertCount(4, $real, 'cinco competidores → cuatro combates reales');
         $this->assertCount(0, $real->filter(fn ($b) => $b->winner_id === null), 'ningún combate real sin ganador');
 
         $final = $category->bouts()->get()->first(fn ($b) => $b->isFinal());
@@ -79,9 +81,8 @@ class FirstMilestoneTest extends TestCase
             1 => $name($final->winner_id),
             2 => $name($final->loserId()),
             3 => $name($bronze->winner_id),
-            4 => $name($bronze->loserId()),
         ];
-        $this->assertCount(4, array_unique($podium));
+        $this->assertCount(3, array_unique($podium));
 
         $this->patch(route('panel.categories.publication', [$event, $category]))->assertRedirect()->assertSessionHasNoErrors();
         $this->assertTrue($category->fresh()->is_published);
@@ -89,7 +90,7 @@ class FirstMilestoneTest extends TestCase
 
         $html = $this->get(route('public.categories.show', [$event, $category]))->assertOk()->getContent();
 
-        // Solo el bloque del podio (columnas 1.º-3.º y fila del 4.º): el cuadro y los resultados de debajo listan a todos.
+        // Solo el bloque del podio (columnas 1.º-3.º): el cuadro y los resultados de debajo listan a todos.
         $this->assertSame(1, preg_match('#<div class="podium d-flex.*?(?=<section)#s', $html, $block));
         $rows = [];
         foreach (preg_split('#<div class="podium-col podium-#', $block[0]) as $i => $piece) {
@@ -97,9 +98,7 @@ class FirstMilestoneTest extends TestCase
                 $rows[(int) $piece[0]] = explode('<ul class="list-group', $piece)[0];
             }
         }
-        $this->assertSame(1, preg_match('#<li\b.*?</li>#s', $block[0], $fourth));
-        $rows[4] = $fourth[0];
-        $this->assertCount(4, $rows, 'el podio tiene cuatro puestos');
+        $this->assertCount(3, $rows, 'el podio tiene tres puestos (no hay combate por el bronce con 5)');
         foreach ($podium as $place => $expected) {
             $row = $rows[$place];
             $this->assertStringContainsString($place.'.º', $row);

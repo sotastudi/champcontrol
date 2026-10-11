@@ -68,36 +68,48 @@ class BracketGeneratorTest extends TestCase
         $this->assertSame([1, 2, 3, 4], $category->bouts()->orderBy('number')->pluck('number')->all());
     }
 
-    public function test_five_participants_get_three_byes_that_advance_automatically(): void
+    public function test_five_participants_have_one_bye_per_round_at_most_and_it_advances_automatically(): void
     {
         $category = $this->generated(5);
         $ids = $category->registrations()->orderBy('id')->pluck('id');
 
-        // 8 plazas: 4 de primera ronda + 2 semis + final + bronce.
-        $this->assertSame(8, $category->bouts()->count());
-        $byes = $category->bouts()->where('round', 1)->where('required_participants', 1)->get();
-        $this->assertCount(3, $byes);
-        $this->assertTrue($byes->every(fn ($b) => $b->isCompleted() && $b->number === null));
+        // Ronda 1: pase + 2 combates; ronda 2: 1 combate + 1 pase; final; bronce (pase: solo hay una semifinal real).
+        $this->assertSame(7, $category->bouts()->count());
+        $r1 = $category->bouts()->where('round', 1)->orderBy('position')->get();
+        $this->assertCount(3, $r1);
+        $this->assertSame(1, $r1->where('required_participants', 1)->count());
+        $this->assertTrue($r1[0]->isBye() && $r1[0]->isCompleted() && $r1[0]->number === null);
+        $this->assertSame([$ids[1], $ids[2]], [$r1[1]->slot_a_id, $r1[1]->slot_b_id]);
+        $this->assertSame([$ids[3], $ids[4]], [$r1[2]->slot_a_id, $r1[2]->slot_b_id]);
 
-        // Siembra estándar con sorteo identidad: 1-pase, 4v5, 2-pase, 3v6(pase)
-        $m2 = $this->bout($category, 1, 2);
-        $this->assertSame([$ids[3], $ids[4]], [$m2->slot_a_id, $m2->slot_b_id]);
-        $this->assertTrue($m2->isReady());
+        $semi = $this->bout($category, 2, 1);
+        $this->assertSame($ids[0], $semi->slot_a_id);   // el suelto pasa directo
+        $this->assertNull($semi->slot_b_id);            // espera al ganador del combate 2
+        $this->assertTrue($this->bout($category, 2, 2)->isBye());
 
-        $semi1 = $this->bout($category, 2, 1);
-        $this->assertSame($ids[0], $semi1->slot_a_id);   // el cabeza de la plaza 1 pasa directo
-        $this->assertNull($semi1->slot_b_id);            // espera al ganador de 4v5
+        // Ningún participante aparece dos veces en primera ronda.
+        $placed = $r1->flatMap(fn ($b) => [$b->slot_a_id, $b->slot_b_id])->filter();
+        $this->assertCount(5, $placed->unique());
 
-        // Ningún participante aparece dos veces en primera ronda y no hay dos pases enfrentados.
-        $round1 = $category->bouts()->where('round', 1)->get();
-        $placed = $round1->flatMap(fn ($b) => [$b->slot_a_id, $b->slot_b_id])->filter();
-        $this->assertSame($placed->count(), $placed->unique()->count());
-        $this->assertTrue($round1->every(fn ($b) => $b->filledSlots() >= 1));
-
-        // Numeración contigua solo para combates reales (2 de primera ronda... y 2 semis, bronce, final).
+        // Numeración contigua solo para combates reales: 2 de primera ronda, 1 semifinal y la final.
         $real = $category->bouts()->whereNotNull('number')->orderBy('number')->pluck('number')->all();
-        $this->assertSame(range(1, count($real)), $real);
-        $this->assertCount(5, $real);
+        $this->assertSame([1, 2, 3, 4], $real);
+    }
+
+    public function test_never_more_than_one_participant_left_loose_in_any_round(): void
+    {
+        foreach ([2, 3, 4, 5, 6, 7, 9, 11, 12, 13, 17, 23, 31, 33] as $n) {
+            $category = $this->generated($n);
+            $real = $category->bouts()->where('is_bronze', false)->get();
+
+            foreach ($real->groupBy('round') as $round => $bouts) {
+                $this->assertLessThanOrEqual(1, $bouts->filter->isBye()->count(), "n={$n} ronda {$round}: más de un pase");
+            }
+            // Todos combaten en la primera ronda salvo, como mucho, uno.
+            $round1 = $real->where('round', 1);
+            $this->assertSame($n % 2, $round1->filter->isBye()->count(), "n={$n}");
+            $this->assertSame($n, $round1->sum(fn ($b) => $b->filledSlots()));
+        }
     }
 
     public function test_three_participants_bronze_bout_is_a_single_participant_pase(): void
@@ -134,7 +146,7 @@ class BracketGeneratorTest extends TestCase
 
         app(BracketGenerator::class)->generate($category->refresh());
 
-        $this->assertSame(8, $category->bouts()->count()); // 5 participantes ahora
+        $this->assertSame(7, $category->bouts()->count()); // 5 participantes ahora
         $this->assertNotNull($category->fresh()->bracket_generated_at);
     }
 
