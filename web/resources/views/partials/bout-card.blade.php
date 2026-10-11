@@ -16,11 +16,14 @@
         <div class="slot d-flex justify-content-between gap-2 {{ $registrationId && $registrationId === $bout->winner_id ? 'winner' : '' }}">
             <span class="{{ $registrationId ? '' : 'text-muted fst-italic' }}">
                 {{ $names[$slot] ?? $empty }}
+                @if ($editable && $registration?->isWithdrawn())
+                    <small class="text-danger">({{ $registration->isDisqualified() ? 'descalificado' : 'retirado' }})</small>
+                @endif
                 @if ($registration?->competitor->club)
                     <small class="text-muted">({{ $registration->competitor->club }})</small>
                 @endif
             </span>
-            @if ($editable && $canRecord && $bout->filledSlots() === 2 && ! $bout->isBye())
+            @if ($editable && $canRecord && $bout->filledSlots() === 2 && ! $bout->isBye() && ! $bout->isWalkover())
                 <form method="POST" action="{{ route('panel.bouts.result', [$event, $category, $bout]) }}" class="no-print">
                     @csrf @method('PUT')
                     <input type="hidden" name="winner_id" value="{{ $registrationId }}">
@@ -29,4 +32,7 @@
             @endif
         </div>
     @endforeach
+    @if ($bout->isWalkover())
+        <div class="small text-muted px-2 pb-1">Gana por incomparecencia</div>
+    @endif
 </div>

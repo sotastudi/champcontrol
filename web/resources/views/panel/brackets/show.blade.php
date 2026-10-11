@@ -91,9 +91,67 @@
         </div>
     </section>
 
+    @if ($hasResults)
+        @php
+            $alive = $participants->reject(fn ($r) => $r->isWithdrawn());
+            $withdrawals = $participants->filter(fn ($r) => $r->isWithdrawn())->sortBy('withdrawn_at');
+        @endphp
+        <section class="mb-4 no-print">
+            <h2 class="h5">Retiradas y descalificaciones</h2>
+            @if ($alive->isNotEmpty())
+                <form method="POST" action="{{ route('panel.withdrawals.store', [$event, $category]) }}" class="row g-2 align-items-end"
+                      onsubmit="return confirm('Se dará por ganado cada combate pendiente de este participante a su rival. No se puede deshacer. ¿Continuar?')">
+                    @csrf
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="withdrawal_registration">Participante</label>
+                        <select class="form-select" id="withdrawal_registration" name="registration_id" required>
+                            @foreach ($alive as $registration)
+                                <option value="{{ $registration->id }}">{{ $registration->competitor->displayName() }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <span class="form-label d-block">Tipo</span>
+                        @foreach (\App\Enums\WithdrawalType::options() as $value => $label)
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="type" id="withdrawal_type_{{ $value }}" value="{{ $value }}" @checked($loop->first) required>
+                                <label class="form-check-label" for="withdrawal_type_{{ $value }}">{{ $label }}</label>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="col-12 col-md-5">
+                        <label class="form-label" for="withdrawal_reason">Motivo (privado, no se publica)</label>
+                        <textarea class="form-control" id="withdrawal_reason" name="reason" rows="2" maxlength="500"></textarea>
+                    </div>
+                    <div class="col-12"><button type="submit" class="btn btn-outline-danger">Registrar baja</button></div>
+                </form>
+            @endif
+            @if ($withdrawals->isNotEmpty())
+                <div class="table-responsive mt-3">
+                    <table class="table table-sm align-middle">
+                        <thead><tr><th>Participante</th><th>Tipo</th><th>Motivo</th><th>Fecha</th></tr></thead>
+                        <tbody>
+                        @foreach ($withdrawals as $registration)
+                            <tr>
+                                <td>{{ $registration->competitor->displayName() }}</td>
+                                <td>{{ $registration->withdrawal_type->label() }}</td>
+                                <td>{{ $registration->withdrawal_reason ?? '—' }}</td>
+                                <td>{{ $registration->withdrawn_at?->format('d/m/Y H:i') }}</td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </section>
+    @endif
+
     <section>
         <h2 class="h5">Podio</h2>
-        @include('partials.podium')
+        @include('partials.podium', ['editable' => true])
+        @if (count($vacantPlaces))
+            <div class="alert alert-warning">Puesto vacante por descalificación: resolver según el reglamento.</div>
+        @endif
     </section>
 @endif
 @endsection

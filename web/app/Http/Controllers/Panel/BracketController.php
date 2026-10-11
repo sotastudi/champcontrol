@@ -27,6 +27,7 @@ class BracketController extends Controller
             'category' => $category,
             'bouts' => $bouts,
             'placements' => $podium->for($category),
+            'vacantPlaces' => $podium->vacantPlaces($category),
             'confirmedCount' => $category->registrations()->where('status', 'confirmed')->count(),
             'stale' => $stale,
             'hasResults' => $hasResults,

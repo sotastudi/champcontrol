@@ -13,6 +13,7 @@ use App\Http\Controllers\Panel\EventController;
 use App\Http\Controllers\Panel\ExportController;
 use App\Http\Controllers\Panel\PublicationController;
 use App\Http\Controllers\Panel\RegistrationController;
+use App\Http\Controllers\Panel\WithdrawalController;
 use App\Http\Controllers\PublicCategoryController;
 use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\PublicRegistrationController;
@@ -66,6 +67,7 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::post('categorias/{category}/cuadro', [BracketController::class, 'store'])->name('brackets.store');
         Route::post('categorias/{category}/cuadro/intercambio', [BracketController::class, 'swap'])->name('brackets.swap');
         Route::put('categorias/{category}/combates/{bout}/resultado', [BoutResultController::class, 'update'])->name('bouts.result');
+        Route::post('categorias/{category}/bajas', [WithdrawalController::class, 'store'])->name('withdrawals.store');
         Route::patch('categorias/{category}/publicacion', [PublicationController::class, 'toggle'])->name('categories.publication');
         Route::get('exportar/clasificacion.csv', [ExportController::class, 'standings'])->name('exports.standings');
         // Las tareas siguientes añaden aquí categorías, inscripciones, cuadros, exportaciones…
