@@ -1,0 +1,32 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editores / IDE
+.idea/
+.vscode/
+.zed/
+.nova/
+*.swp
+*.swo
+
+# Credenciales y entorno (cualquier nivel)
+.env
+.env.*
+!.env.example
+!.env.*.example
+auth.json
+*.pem
+*.key
+
+# Dependencias y builds (por si aparecen fuera de web/)
+node_modules/
+vendor/
+
+# Datos y logs locales
+*.log
+*.sqlite
+*.sqlite3
+.phpunit.result.cache
+.phpunit.cache/
