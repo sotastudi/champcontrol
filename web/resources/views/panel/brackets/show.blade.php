@@ -33,9 +33,9 @@
     </div>
 </div>
 
-@if ($stale && ! $hasResults)
+@if ($stale && ! $regenerationLocked)
     <div class="alert alert-warning">El cuadro está <strong>desactualizado</strong> respecto a las inscripciones confirmadas: regenera el cuadro.</div>
-@elseif ($stale && $hasResults)
+@elseif ($stale)
     <div class="alert alert-warning">Hay cambios posteriores en las inscripciones: resuélvelos manualmente según el reglamento.</div>
 @endif
 

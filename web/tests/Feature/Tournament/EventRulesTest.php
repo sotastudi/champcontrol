@@ -6,12 +6,15 @@ use App\Enums\BronzeRule;
 use App\Enums\DisqualifiedPodiumRule;
 use App\Enums\EventStatus;
 use App\Enums\PreResultsWithdrawalRule;
+use App\Enums\RegistrationStatus;
 use App\Enums\UnfoughtWithdrawalRule;
 use App\Enums\WithdrawalType;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\Registration;
 use App\Models\User;
+use App\Registrations\RegistrationException;
+use App\Registrations\RegistrationService;
 use App\Tournament\BracketAdjuster;
 use App\Tournament\BracketGenerator;
 use App\Tournament\PodiumCalculator;
@@ -411,5 +414,69 @@ class EventRulesTest extends TestCase
             $this->assertStringContainsString('desactualizado', $e->getMessage());
         }
         $this->assertFalse(Registration::find($target)->isWithdrawn());
+    }
+
+    /** n=3 con AllowWalkover y el receptor del pase de baja antes de cualquier resultado: bloqueado sin resultados. */
+    private function lockedWithoutResults(): Category
+    {
+        $category = $this->generated(3);
+        $this->rules($category, ['withdrawal_before_results_rule' => 'allow_walkover']);
+        $bye = $category->bouts()->where('round', 1)->get()->first(fn ($b) => $b->isBye());
+        $this->withdraw($bye->winner_id, WithdrawalType::Withdrawn);
+        $this->assertFalse($category->hasResults());
+
+        return $category->refresh();
+    }
+
+    public function test_locked_category_with_a_new_confirmation_goes_to_manual_resolution(): void
+    {
+        $category = $this->lockedWithoutResults();
+        Registration::factory()->confirmed()->forCategory($category)->create();
+        $owner = $category->event->user;
+        $real = $category->bouts()->where('round', 1)->get()->first(fn ($b) => ! $b->isBye());
+        $url = route('panel.brackets.show', [$category->event, $category]);
+
+        $this->actingAs($owner)->get($url)->assertOk()
+            ->assertSee('resuélvelos manualmente según el reglamento')
+            ->assertDontSee('regenera el cuadro')->assertDontSee('Regenerar cuadro')
+            ->assertSee('Retiradas y descalificaciones');
+
+        $this->win($category, 1, $real->position, $real->slot_a_id);   // no lanza STALE_BRACKET
+        $this->assertTrue($category->hasResults());
+
+        $inBracket = Registration::query()->whereIn('id', [$real->slot_b_id])->first();
+        $this->withdraw($inBracket->id, WithdrawalType::Withdrawn);   // otra baja, sin STALE_BRACKET
+        $this->assertTrue($inBracket->fresh()->isWithdrawn());
+    }
+
+    public function test_withdrawal_and_result_are_not_blocked_by_stale_when_locked_without_results(): void
+    {
+        $category = $this->lockedWithoutResults();
+        Registration::factory()->confirmed()->forCategory($category)->create();
+        $real = $category->bouts()->where('round', 1)->get()->first(fn ($b) => ! $b->isBye());
+
+        $this->withdraw($real->slot_a_id, WithdrawalType::Withdrawn);
+
+        $this->assertTrue(Registration::find($real->slot_a_id)->isWithdrawn());
+    }
+
+    public function test_locked_category_blocks_cancelling_an_in_bracket_registration(): void
+    {
+        $category = $this->lockedWithoutResults();
+        $real = $category->bouts()->where('round', 1)->get()->first(fn ($b) => ! $b->isBye());
+
+        $this->expectException(RegistrationException::class);
+        app(RegistrationService::class)->changeStatus(Registration::find($real->slot_b_id), RegistrationStatus::Cancelled);
+    }
+
+    public function test_locked_category_rejects_a_bronze_rule_change(): void
+    {
+        $category = $this->lockedWithoutResults();
+        $event = $category->event;
+
+        $this->actingAs($event->user)->put(route('panel.categories.update', [$event, $category]), [
+            'name' => $category->name, 'bronze_rule' => 'shared_bronze',
+        ])->assertSessionHasErrors('bronze_rule');
+        $this->assertSame(BronzeRule::BronzeMatch, $category->fresh()->bronze_rule);
     }
 }

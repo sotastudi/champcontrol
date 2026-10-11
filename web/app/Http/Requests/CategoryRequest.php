@@ -28,8 +28,8 @@ class CategoryRequest extends FormRequest
             'level' => ['nullable', 'string', 'max:100'],
             'bronze_rule' => ['required', Rule::enum(BronzeRule::class), function (string $attribute, mixed $value, \Closure $fail) {
                 $category = $this->route('category');
-                if ($category && $category->hasResults() && $category->bronze_rule->value !== $value) {
-                    $fail('No se puede cambiar la regla del bronce cuando ya hay resultados.');
+                if ($category && $category->isRegenerationLocked() && $category->bronze_rule->value !== $value) {
+                    $fail('No se puede cambiar la regla del bronce cuando ya hay resultados o bajas registradas.');
                 }
             }],
             'show_fourth' => ['boolean'],

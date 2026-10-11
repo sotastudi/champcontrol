@@ -34,7 +34,7 @@ final class ResultRecorder
             return; // idempotente
         }
         $category = $bout->category;
-        if (! $category->hasResults() && $category->bracketIsStale()) {
+        if (! $category->isRegenerationLocked() && $category->bracketIsStale()) {
             throw new TournamentException(TournamentException::STALE_BRACKET);
         }
 

@@ -32,7 +32,7 @@ final class WithdrawalRecorder
             if ($category->event->preResultsWithdrawalRule() === PreResultsWithdrawalRule::CancelAndRegenerate) {
                 throw new TournamentException('Aún no hay resultados: cancela la inscripción y regenera el cuadro.');
             }
-            if ($category->bracketIsStale()) {
+            if (! $category->isRegenerationLocked() && $category->bracketIsStale()) {
                 throw new TournamentException(TournamentException::STALE_BRACKET);
             }
         }
