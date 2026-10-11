@@ -8,7 +8,15 @@
     <div>
         <a href="{{ route('panel.events.show', $event) }}" class="small">&larr; {{ $event->name }}</a>
         <h1 class="h3 mb-1">{{ $category->name }}</h1>
-        <div class="text-muted">@if ($category->tatami)Tatami {{ $category->tatami }}@if ($category->referees) · {{ $category->referees }} jueces @endif · @endif {{ $confirmedCount }} {{ $confirmedCount === 1 ? 'inscrito confirmado' : 'inscritos confirmados' }}</div>
+        <div class="mb-1 category-tatami">
+            @if ($category->tatami)
+                <span class="badge text-bg-secondary">Tatami {{ $category->tatami }}</span>
+                @if ($category->referees)<span class="text-muted small">{{ $category->referees }} jueces</span>@endif
+            @else
+                <span class="text-muted small fst-italic">Sin tatami asignado</span>
+            @endif
+        </div>
+        <div class="text-muted">{{ $confirmedCount }} {{ $confirmedCount === 1 ? 'inscrito confirmado' : 'inscritos confirmados' }}</div>
     </div>
     <div class="d-flex gap-2 flex-wrap no-print">
         @unless ($regenerationLocked)

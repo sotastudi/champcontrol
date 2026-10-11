@@ -121,4 +121,18 @@ class TatamiAndProgressTest extends TestCase
         $this->assertStringContainsString('Dojo Sur</small>', $html);
         $this->assertStringContainsString('text-muted fst-italic">Sin club</small>', $html);
     }
+
+    public function test_category_panel_shows_the_tatami_right_under_the_name(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create(['tatami_count' => 3]);
+        $with = Category::factory()->for($event)->create(['name' => 'Cat Con', 'tatami' => 2, 'referees' => 3, 'is_published' => true]);
+        $without = Category::factory()->for($event)->create(['name' => 'Cat Sin']);
+
+        $this->actingAs($user)->get(route('panel.brackets.show', [$event, $with]))
+            ->assertSeeInOrder(['<h1 class="h3 mb-1">Cat Con</h1>', 'Tatami 2', '3 jueces'], false);
+        $this->actingAs($user)->get(route('panel.brackets.show', [$event, $without]))->assertSee('Sin tatami asignado');
+        $this->actingAs($user)->get(route('panel.events.show', $event))->assertSeeInOrder(['Cat Con', 'Tatami 2'], false);
+        $this->seeResults($event)->get(route('public.categories.show', [$event, $with]))->assertSeeInOrder(['Cat Con', 'Tatami 2'], false);
+    }
 }

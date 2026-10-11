@@ -57,7 +57,7 @@
                 <tbody>
                 @foreach ($event->categories as $category)
                     <tr>
-                        <td>{{ $category->name }}</td>
+                        <td>{{ $category->name }}@if ($category->tatami)<div><span class="badge text-bg-secondary">Tatami {{ $category->tatami }}</span></div>@endif</td>
                         <td class="text-muted small">
                             {{ collect([
                                 $category->modality,

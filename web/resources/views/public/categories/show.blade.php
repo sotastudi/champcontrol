@@ -6,7 +6,8 @@
     <div>
         <a href="{{ route('public.events.show', $event) }}" class="small no-print">&larr; {{ $event->name }}</a>
         <h1 class="h3 mb-1">{{ $category->name }}</h1>
-        <div class="text-muted">{{ $event->name }}@if ($category->tatami) · Tatami {{ $category->tatami }}@endif</div>
+        @if ($category->tatami)<div class="mb-1"><span class="badge text-bg-secondary">Tatami {{ $category->tatami }}</span></div>@endif
+        <div class="text-muted">{{ $event->name }}</div>
     </div>
     <button type="button" class="btn btn-outline-secondary no-print" onclick="window.print()">Imprimir</button>
 </div>
