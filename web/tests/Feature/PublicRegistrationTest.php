@@ -86,4 +86,22 @@ class PublicRegistrationTest extends TestCase
         $this->post(route('public.registration.store', $event), $this->data($category))->assertSessionHasErrors('error');
         $this->assertDatabaseCount('registrations', 1);
     }
+
+    public function test_invalid_payload_to_unavailable_event_is_404_not_validation_redirect(): void
+    {
+        foreach ([
+            ['is_public' => false],
+            ['status' => EventStatus::Draft],
+            ['status' => EventStatus::RegistrationClosed],
+            ['registration_form_enabled' => false],
+        ] as $change) {
+            $event = Event::factory()->registrationOpen()->create($change);
+            Category::factory()->for($event)->create();
+
+            $this->post(route('public.registration.store', $event), [])->assertNotFound();
+        }
+
+        $this->assertDatabaseCount('registrations', 0);
+        $this->assertDatabaseCount('competitors', 0);
+    }
 }

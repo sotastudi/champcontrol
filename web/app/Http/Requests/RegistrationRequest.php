@@ -10,7 +10,7 @@ class RegistrationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // La propiedad se comprueba en el middleware can:manage,event.
+        return true; // Panel: la propiedad la comprueba can:manage,event. Público: PublicRegistrationRequest exige inscripción abierta.
     }
 
     public function rules(): array
