@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PublicRegistrationRequest;
+use App\Models\Competitor;
 use App\Models\Event;
 use App\Registrations\RegistrationException;
 use App\Registrations\RegistrationService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Arr;
 use Illuminate\View\View;
 
 class PublicRegistrationController extends Controller
@@ -18,7 +20,6 @@ class PublicRegistrationController extends Controller
         return view('public.registration', [
             'event' => $event,
             'categories' => $event->categories()->orderBy('name')->get(),
-            'minAge' => config('champcontrol.public_form_min_age'),
         ]);
     }
 
@@ -28,6 +29,11 @@ class PublicRegistrationController extends Controller
 
         // Solo se usan los campos validados: cualquier `status` enviado se descarta.
         $data = $request->validated();
+
+        // Los datos del representante solo se guardan si el competidor es menor en la fecha del evento.
+        if (! (new Competitor(['birth_date' => $data['birth_date']]))->isMinorOn($event->starts_on)) {
+            $data = Arr::except($data, ['guardian_name', 'guardian_contact', 'guardian_consent']);
+        }
 
         try {
             $service->register($event->categories()->findOrFail($data['category_id']), $data);

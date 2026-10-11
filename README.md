@@ -44,7 +44,7 @@ Pagos de inscripción, marcadores en directo, tatamis simultáneos, calendarios 
 | Organizador | Crear y gestionar solo sus eventos, inscripciones, cuadros, combates y publicaciones. |
 | Administrador de plataforma | Gestionar incidencias y cuentas. Puede añadirse más adelante si se necesita. |
 
-Los competidores no necesitan cuenta para la primera versión. Si se admiten inscripciones de menores, el formulario deberá recoger el consentimiento y los datos de contacto del representante que exija la normativa aplicable, sin publicarlos.
+Los competidores no necesitan cuenta para la primera versión. El formulario público admite menores (menos de `ADULT_AGE` años, 18 por defecto, en la fecha del evento) solo si se aportan los datos del representante legal y su consentimiento; esos datos son privados y nunca se publican. Los textos legales siguen pendientes de revisión: ver [docs/menores.md](docs/menores.md).
 
 ## Modelo de datos orientativo
 

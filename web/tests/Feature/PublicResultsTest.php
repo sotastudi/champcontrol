@@ -135,7 +135,41 @@ class PublicResultsTest extends TestCase
 
         $csv = $this->actingAs($category->event->user)->get(route('panel.exports.standings', $category->event))->streamedContent();
 
-        $this->assertStringNotContainsString($loser->competitor->last_name, $csv);
+        $row = implode(';', [$category->name, $loser->competitor->last_name, $loser->competitor->first_name]);
+        $this->assertStringNotContainsString($row, str_replace('"', '', $csv));
         $this->assertStringContainsString('Puesto', $csv);
+    }
+
+    public function test_a_withdrawn_finalist_keeps_the_podium_place_without_revealing_the_withdrawal(): void
+    {
+        $category = $this->playedCategory();
+        $category->forceFill(['is_published' => true])->save();
+        $final = $category->bouts()->where('is_bronze', false)->orderByDesc('round')->first();
+        $loser = Registration::with('competitor')->find($final->loserId());
+        $loser->forceFill(['withdrawal_type' => WithdrawalType::Withdrawn, 'withdrawn_at' => now()])->save();
+
+        $html = $this->get(route('public.categories.show', [$category->event, $category]))->assertOk()
+            ->assertSee($loser->competitor->displayName())->getContent();
+
+        foreach (['(retirado)', 'retirad', 'descalific'] as $word) {
+            $this->assertStringNotContainsStringIgnoringCase($word, $html);
+        }
+    }
+
+    public function test_guardian_data_never_appears_on_public_pages(): void
+    {
+        $category = $this->playedCategory();
+        $category->forceFill(['is_published' => true])->save();
+        Competitor::query()->where('event_id', $category->event_id)->get()->each(fn ($c, $i) => $c->forceFill([
+            'guardian_name' => "Tutor Reconocible{$i}", 'guardian_contact' => "tutor{$i}@familia.test 677000{$i}11",
+            'guardian_consent_at' => now(),
+        ])->save());
+
+        foreach ([route('home'), route('public.events.show', $category->event), route('public.categories.show', [$category->event, $category])] as $url) {
+            $html = $this->get($url)->assertOk()->getContent();
+            foreach (['Tutor Reconocible', '@familia.test', '677000', 'guardian', 'representante'] as $secret) {
+                $this->assertStringNotContainsStringIgnoringCase($secret, $html, "{$url} expone {$secret}");
+            }
+        }
     }
 }

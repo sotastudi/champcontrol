@@ -62,7 +62,9 @@ final class ResultRecorder
         foreach ($this->dependents($bout) as [$id]) {
             $target = Bout::findOrFail($id);
             if ($target->isCompleted() && ! $target->isBye()) {
-                throw new TournamentException('Hay combates posteriores con resultado: corrígelos primero.');
+                throw new TournamentException($target->isWalkover()
+                    ? 'Un combate posterior se resolvió por incomparecencia y no puede corregirse.'
+                    : 'Hay combates posteriores con resultado: corrígelos primero.');
             }
         }
     }

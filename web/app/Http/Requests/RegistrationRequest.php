@@ -25,6 +25,9 @@ class RegistrationRequest extends FormRequest
             'level' => ['nullable', 'string', 'max:100'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
+            'guardian_name' => ['nullable', 'string', 'max:150'],
+            'guardian_contact' => ['nullable', 'string', 'max:255'],
+            'guardian_consent' => ['nullable', 'boolean'],
             'category_id' => ['required', Rule::exists('categories', 'id')->where('event_id', $this->route('event')->id)],
         ];
     }

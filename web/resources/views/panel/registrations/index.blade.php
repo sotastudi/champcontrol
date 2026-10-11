@@ -48,6 +48,12 @@
                 <tr>
                     <td>
                         {{ $registration->competitor->last_name }}, {{ $registration->competitor->first_name }}
+                        @if ($registration->competitor->isMinorOn($event->starts_on))
+                            <span class="badge text-bg-info">Menor</span>
+                            @unless ($registration->competitor->hasGuardianData())
+                                <span class="badge text-bg-warning">Menor sin datos de representante</span>
+                            @endunless
+                        @endif
                         @foreach ($warnings as $warning)
                             <div><span class="badge text-bg-warning">{{ $warning }}</span></div>
                         @endforeach

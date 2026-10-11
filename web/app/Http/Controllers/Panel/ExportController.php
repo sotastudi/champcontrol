@@ -22,11 +22,13 @@ class ExportController extends Controller
             $r->category->name, $r->competitor->last_name, $r->competitor->first_name, $r->competitor->club,
             $r->competitor->birth_date->format('d/m/Y'), $r->competitor->sex?->label(), $r->competitor->weight,
             $r->competitor->email, $r->competitor->phone, $r->status->label(),
+            $r->competitor->isMinorOn($event->starts_on) ? 'Sí' : 'No',
+            $r->competitor->guardian_name, $r->competitor->guardian_contact, $r->competitor->guardian_consent_at?->format('d/m/Y H:i'),
         ]);
 
         return Csv::download(
             'inscritos-'.$event->slug.'.csv',
-            ['Categoría', 'Apellidos', 'Nombre', 'Club', 'Fecha de nacimiento', 'Sexo', 'Peso', 'Email', 'Teléfono', 'Estado'],
+            ['Categoría', 'Apellidos', 'Nombre', 'Club', 'Fecha de nacimiento', 'Sexo', 'Peso', 'Email', 'Teléfono', 'Estado', 'Menor', 'Representante', 'Contacto representante', 'Consentimiento'],
             $rows,
         );
     }

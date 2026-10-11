@@ -9,6 +9,9 @@
     @csrf
     <x-select name="category_id" label="Categoría" :options="$categories" placeholder="Selecciona una categoría" required />
     @include('panel.competitors._fields')
+    <h2 class="h6">Representante legal (si es menor)</h2>
+    @include('panel.competitors._guardian')
+    <x-check name="guardian_consent" label="El representante ha dado su consentimiento" help="Solo se registra si indicas el nombre del representante. Eres responsable de haberlo obtenido." />
     <x-select name="status" label="Estado" :options="[\App\Enums\RegistrationStatus::Pending->value => 'Pendiente', \App\Enums\RegistrationStatus::Confirmed->value => 'Confirmada']" value="confirmed" required />
     <x-textarea name="notes" label="Notas" />
     <button type="submit" class="btn btn-primary">Registrar</button>

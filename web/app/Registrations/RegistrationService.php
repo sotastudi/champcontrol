@@ -65,9 +65,19 @@ final class RegistrationService
             ->first(fn (Competitor $c) => Competitor::normalizeName($c->first_name) === $first
                 && Competitor::normalizeName($c->last_name) === $last);
 
-        return $existing ?? $event->competitors()->create(array_merge(Arr::only($data, Competitor::FIELDS), [
+        if ($existing) {
+            return $existing; // los datos de un competidor existente no se sobrescriben
+        }
+
+        $competitor = $event->competitors()->create(array_merge(Arr::only($data, Competitor::FIELDS), [
             'first_name' => Str::squish($data['first_name']),
             'last_name' => Str::squish($data['last_name']),
         ]));
+
+        if (! empty($data['guardian_consent']) && filled($data['guardian_name'] ?? null)) {
+            $competitor->forceFill(['guardian_consent_at' => now()])->save();
+        }
+
+        return $competitor;
     }
 }

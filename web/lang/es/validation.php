@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'accepted' => 'Debes aceptar :attribute.',
     'boolean' => 'El campo :attribute debe ser verdadero o falso.',
     'before_or_equal' => ':Attribute no puede ser una fecha futura.',
     'between' => ['numeric' => ':Attribute debe estar entre :min y :max.'],
@@ -33,6 +34,7 @@ return [
         'max_weight' => 'el peso máximo', 'level' => 'el nivel', 'bronze_rule' => 'la regla del bronce',
         'first_name' => 'el nombre', 'last_name' => 'los apellidos', 'club' => 'el club',
         'birth_date' => 'la fecha de nacimiento', 'weight' => 'el peso', 'phone' => 'el teléfono',
-        'category_id' => 'la categoría', 'notes' => 'las notas', 'winner_id' => 'el ganador',
+        'guardian_name' => 'el nombre del representante', 'guardian_contact' => 'el contacto del representante',
+        'guardian_consent' => 'el consentimiento del representante', 'category_id' => 'la categoría', 'notes' => 'las notas', 'winner_id' => 'el ganador',
     ],
 ];

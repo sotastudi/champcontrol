@@ -6,6 +6,8 @@
     @csrf
     @method('PUT')
     @include('panel.competitors._fields')
+    <h2 class="h6">Representante legal (si es menor)</h2>
+    @include('panel.competitors._guardian')
     <x-textarea name="notes" label="Notas" :value="$competitor->notes" />
     <button type="submit" class="btn btn-primary">Guardar</button>
     <a href="{{ route('panel.registrations.index', $event) }}" class="btn btn-link">Cancelar</a>

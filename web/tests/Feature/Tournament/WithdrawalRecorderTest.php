@@ -177,6 +177,24 @@ class WithdrawalRecorderTest extends TestCase
         }
     }
 
+    public function test_correcting_a_bout_blocked_by_a_later_walkover_explains_why(): void
+    {
+        $category = $this->generated(4);
+        $s1 = $this->bout($category, 1, 1);
+        $s2 = $this->bout($category, 1, 2);
+        $this->win(1, 1, $category, $s1->slot_a_id);
+        $this->withdraw($s1->slot_a_id);              // el ganador de s1 se retira antes de la final
+        $this->win(1, 2, $category, $s2->slot_a_id);  // la final se resuelve por walkover
+        $this->assertTrue($this->bout($category, 2, 1)->isWalkover());
+
+        try {
+            app(ResultRecorder::class)->record($s1->fresh(), $s1->slot_b_id);
+            $this->fail('No se puede corregir con una final por walkover.');
+        } catch (TournamentException $e) {
+            $this->assertSame('Un combate posterior se resolvió por incomparecencia y no puede corregirse.', $e->getMessage());
+        }
+    }
+
     public function test_walkover_cascades_to_the_next_round(): void
     {
         $category = $this->generated(8);

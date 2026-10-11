@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Competitor;
-use Illuminate\Validation\Validator;
+use Illuminate\Support\Carbon;
 
 class PublicRegistrationRequest extends RegistrationRequest
 {
@@ -15,17 +15,33 @@ class PublicRegistrationRequest extends RegistrationRequest
         return true;
     }
 
-    public function after(): array
+    public function rules(): array
     {
-        return [function (Validator $validator) {
-            if ($validator->errors()->has('birth_date') || ! $this->filled('birth_date')) {
-                return;
-            }
+        $rules = parent::rules();
 
-            $competitor = new Competitor(['birth_date' => $this->input('birth_date')]);
-            if ($competitor->ageOn($this->route('event')->starts_on) < config('champcontrol.public_form_min_age')) {
-                $validator->errors()->add('birth_date', 'Este formulario no admite menores de edad. Contacta con el organizador.');
-            }
-        }];
+        if ($this->isMinorOnEventDate()) {
+            $rules['guardian_name'] = ['required', 'string', 'max:150'];
+            $rules['guardian_contact'] = ['required', 'string', 'max:255'];
+            $rules['guardian_consent'] = ['accepted'];
+        }
+
+        return $rules;
+    }
+
+    /** Menor en la fecha del evento; una fecha de nacimiento no válida no cuenta (la rechaza su propia regla). */
+    private function isMinorOnEventDate(): bool
+    {
+        $birth = $this->input('birth_date');
+        if (! is_string($birth) || $birth === '') {
+            return false;
+        }
+
+        try {
+            Carbon::parse($birth);
+        } catch (\Throwable) {
+            return false;
+        }
+
+        return (new Competitor(['birth_date' => $birth]))->isMinorOn($this->route('event')->starts_on);
     }
 }

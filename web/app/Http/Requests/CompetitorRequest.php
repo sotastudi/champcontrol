@@ -27,6 +27,8 @@ class CompetitorRequest extends FormRequest
             'level' => ['nullable', 'string', 'max:100'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
+            'guardian_name' => ['nullable', 'string', 'max:150'],
+            'guardian_contact' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }

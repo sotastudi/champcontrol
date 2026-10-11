@@ -12,14 +12,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
-#[Fillable(['first_name', 'last_name', 'club', 'birth_date', 'sex', 'weight', 'level', 'email', 'phone', 'notes'])]
+#[Fillable(['first_name', 'last_name', 'club', 'birth_date', 'sex', 'weight', 'level', 'email', 'phone', 'notes', 'guardian_name', 'guardian_contact'])]
 class Competitor extends Model
 {
     /** @use HasFactory<CompetitorFactory> */
     use HasFactory;
 
     /** Campos de datos personales que se copian de un formulario. */
-    public const FIELDS = ['first_name', 'last_name', 'club', 'birth_date', 'sex', 'weight', 'level', 'email', 'phone', 'notes'];
+    public const FIELDS = ['first_name', 'last_name', 'club', 'birth_date', 'sex', 'weight', 'level', 'email', 'phone', 'notes', 'guardian_name', 'guardian_contact'];
 
     protected function casts(): array
     {
@@ -27,6 +27,7 @@ class Competitor extends Model
             'birth_date' => 'date',
             'sex' => Sex::class,
             'weight' => 'float',
+            'guardian_consent_at' => 'datetime',
         ];
     }
 
@@ -61,5 +62,16 @@ class Competitor extends Model
         }
 
         return $age;
+    }
+
+    /** Menor de edad en $date (según `champcontrol.adult_age`). */
+    public function isMinorOn(CarbonInterface $date): bool
+    {
+        return $this->ageOn($date) < config('champcontrol.adult_age');
+    }
+
+    public function hasGuardianData(): bool
+    {
+        return filled(trim((string) $this->guardian_name)) && filled(trim((string) $this->guardian_contact));
     }
 }
