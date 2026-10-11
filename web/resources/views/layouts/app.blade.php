@@ -40,6 +40,10 @@
         <path d="M12 3.5 22 20.5H2L12 3.5z" fill="currentColor"/>
         <path d="M12 9.5v5M12 17.5h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
     </symbol>
+    <symbol id="user" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+        <path d="M4 20a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
     <symbol id="bulb-on" viewBox="0 0 24 24">
         <path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
         <path d="M9.5 21h5M10 18v0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -63,8 +67,9 @@
             <img src="{{ asset('img/brand/light-icon-logo.svg') }}" alt="ChampControl" height="36" class="brand-logo brand-icon brand-light">
             <img src="{{ asset('img/brand/dark-icon-logo.svg') }}" alt="" height="36" class="brand-logo brand-icon brand-dark" aria-hidden="true">
         </a>
+        <div class="d-flex align-items-center gap-2 ms-auto order-md-last nav-actions">
         @auth
-            <button type="button" id="sync-indicator" class="btn btn-sm btn-link text-decoration-none ms-auto me-2 d-flex align-items-center gap-1 sync-indicator" data-sync-state="synced" aria-live="polite" title="Todo guardado en el servidor">
+            <button type="button" id="sync-indicator" class="btn btn-sm btn-link text-decoration-none d-flex align-items-center gap-1 sync-indicator" data-sync-state="synced" aria-live="polite" title="Todo guardado en el servidor">
                 <svg class="sync-cloud-ok text-success" width="22" height="22" aria-hidden="true"><use href="#cloud-check"/></svg>
                 <span class="sync-pending d-none align-items-center gap-1 text-warning-emphasis">
                     <svg class="text-warning" width="18" height="18" aria-hidden="true"><use href="#warn"/></svg>
@@ -75,23 +80,27 @@
             </button>
             <div id="sync-panel" class="card shadow-sm d-none no-print" role="dialog" aria-label="Resultados pendientes de sincronizar"></div>
         @endauth
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Menú">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" id="theme-menu" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tema de color">
+                    <svg class="theme-icon theme-icon-light" width="18" height="18" aria-hidden="true"><use href="#bulb-on"/></svg>
+                    <svg class="theme-icon theme-icon-dark" width="18" height="18" aria-hidden="true"><use href="#bulb-off"/></svg>
+                    <svg class="theme-icon theme-icon-auto" width="18" height="18" aria-hidden="true"><use href="#bulb-half"/></svg>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-menu">
+                    <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="light"><svg width="18" height="18" aria-hidden="true"><use href="#bulb-on"/></svg> Claro</button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="dark"><svg width="18" height="18" aria-hidden="true"><use href="#bulb-off"/></svg> Oscuro</button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="auto"><svg width="18" height="18" aria-hidden="true"><use href="#bulb-half"/></svg> Automático (sistema)</button></li>
+                </ul>
+            </div>
+            <a class="btn btn-outline-secondary btn-sm d-md-none d-flex align-items-center" href="{{ auth()->check() ? route('panel.events.index') : route('login') }}" aria-label="{{ auth()->check() ? 'Mi panel' : 'Iniciar sesión' }}" title="{{ auth()->check() ? 'Mi panel' : 'Iniciar sesión' }}">
+                <svg width="18" height="18" aria-hidden="true"><use href="#user"/></svg>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Menú">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
         <div class="collapse navbar-collapse" id="nav">
             <ul class="navbar-nav ms-auto align-items-md-center gap-md-2">
-                <li class="nav-item dropdown">
-                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" id="theme-menu" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tema de color">
-                        <svg class="theme-icon theme-icon-light" width="18" height="18" aria-hidden="true"><use href="#bulb-on"/></svg>
-                        <svg class="theme-icon theme-icon-dark" width="18" height="18" aria-hidden="true"><use href="#bulb-off"/></svg>
-                        <svg class="theme-icon theme-icon-auto" width="18" height="18" aria-hidden="true"><use href="#bulb-half"/></svg>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-menu">
-                        <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="light"><svg width="18" height="18" aria-hidden="true"><use href="#bulb-on"/></svg> Claro</button></li>
-                        <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="dark"><svg width="18" height="18" aria-hidden="true"><use href="#bulb-off"/></svg> Oscuro</button></li>
-                        <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="auto"><svg width="18" height="18" aria-hidden="true"><use href="#bulb-half"/></svg> Automático (sistema)</button></li>
-                    </ul>
-                </li>
                 @auth
                     <li class="nav-item"><a class="nav-link" href="{{ route('panel.events.index') }}">{{ auth()->user()->isTatamiAccount() ? 'Mis tatamis' : 'Mis eventos' }}</a></li>
                     <li class="nav-item">

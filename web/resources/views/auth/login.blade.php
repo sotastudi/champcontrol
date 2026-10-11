@@ -9,6 +9,7 @@
         <x-check name="remember" label="Mantener la sesión iniciada" />
         <button class="btn btn-primary w-100">Entrar</button>
     </form>
-    <p class="mt-3 mb-0"><a href="{{ route('password.request') }}">¿Olvidaste tu contraseña?</a> · <a href="{{ route('register') }}">Crear cuenta</a></p>
+    <p class="mt-3 mb-1"><a href="{{ route('password.request') }}">¿Olvidaste tu contraseña?</a></p>
+    <p class="mb-0">¿No tienes cuenta? <a href="{{ route('register') }}" class="fw-semibold">Registrarse (crear cuenta)</a></p>
 </div>
 @endsection
