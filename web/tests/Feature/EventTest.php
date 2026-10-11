@@ -2,7 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Enums\BronzeRule;
+use App\Enums\DisqualifiedPodiumRule;
 use App\Enums\EventStatus;
+use App\Enums\PreResultsWithdrawalRule;
+use App\Enums\UnfoughtWithdrawalRule;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -72,5 +76,71 @@ class EventTest extends TestCase
         $event = Event::factory()->create(['name' => '!!!']);
 
         $this->assertMatchesRegularExpression('/^evento-[a-z0-9]{6}$/', $event->slug);
+    }
+
+    private function rulesPayload(array $o = []): array
+    {
+        return array_merge([
+            'dq_podium_rule' => 'shift_up', 'unfought_withdrawal_rule' => 'no_place',
+            'default_bronze_rule' => 'shared_bronze', 'withdrawal_before_results_rule' => 'allow_walkover',
+        ], $o);
+    }
+
+    public function test_event_is_created_and_updated_with_the_four_rules(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('panel.events.store'), $this->payload($this->rulesPayload()))->assertRedirect();
+
+        $event = Event::firstOrFail();
+        $this->assertSame(DisqualifiedPodiumRule::ShiftUp, $event->dqPodiumRule());
+        $this->assertSame(UnfoughtWithdrawalRule::NoPlace, $event->unfoughtWithdrawalRule());
+        $this->assertSame(BronzeRule::SharedBronze, $event->defaultBronzeRule());
+        $this->assertSame(PreResultsWithdrawalRule::AllowWalkover, $event->preResultsWithdrawalRule());
+
+        $this->actingAs($user)->put(route('panel.events.update', $event), $this->payload($this->rulesPayload([
+            'dq_podium_rule' => 'vacant', 'default_bronze_rule' => 'bronze_match',
+        ])))->assertRedirect();
+
+        $event->refresh();
+        $this->assertSame(DisqualifiedPodiumRule::Vacant, $event->dqPodiumRule());
+        $this->assertSame(BronzeRule::BronzeMatch, $event->defaultBronzeRule());
+        $this->assertSame(UnfoughtWithdrawalRule::NoPlace, $event->unfoughtWithdrawalRule());
+    }
+
+    public function test_invalid_rule_values_are_rejected(): void
+    {
+        foreach (['dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule'] as $field) {
+            $this->actingAs(User::factory()->create())
+                ->post(route('panel.events.store'), $this->payload($this->rulesPayload([$field => 'nope'])))
+                ->assertSessionHasErrors($field);
+        }
+        $this->assertSame(0, Event::count());
+    }
+
+    public function test_event_without_rules_gets_the_defaults(): void
+    {
+        $this->actingAs(User::factory()->create())->post(route('panel.events.store'), $this->payload())->assertRedirect();
+
+        $event = Event::firstOrFail()->fresh();
+        $this->assertSame('vacant', $event->getRawOriginal('dq_podium_rule'));
+        $this->assertSame('keep_place', $event->getRawOriginal('unfought_withdrawal_rule'));
+        $this->assertSame('bronze_match', $event->getRawOriginal('default_bronze_rule'));
+        $this->assertSame('cancel_and_regenerate', $event->getRawOriginal('withdrawal_before_results_rule'));
+        $this->assertSame(DisqualifiedPodiumRule::Vacant, $event->dqPodiumRule());
+    }
+
+    public function test_edit_form_shows_the_four_selects_with_the_saved_values(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create($this->rulesPayload());
+
+        $html = $this->actingAs($user)->get(route('panel.events.edit', $event))->assertOk()
+            ->assertSee('Reglas del campeonato')->getContent();
+
+        foreach (['dq_podium_rule' => 'shift_up', 'unfought_withdrawal_rule' => 'no_place', 'default_bronze_rule' => 'shared_bronze', 'withdrawal_before_results_rule' => 'allow_walkover'] as $name => $value) {
+            $this->assertMatchesRegularExpression('/<select id="'.$name.'" name="'.$name.'".*?<option value="'.$value.'" selected/s', $html);
+        }
+        $this->actingAs($user)->get(route('panel.events.create'))->assertOk()->assertSee('name="dq_podium_rule"', false);
     }
 }

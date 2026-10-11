@@ -13,7 +13,7 @@ class CategoryController extends Controller
 {
     public function create(Event $event): View
     {
-        return view('panel.categories.create', compact('event'));
+        return view('panel.categories.create', ['event' => $event, 'defaultBronzeRule' => $event->defaultBronzeRule()->value]);
     }
 
     public function store(CategoryRequest $request, Event $event): RedirectResponse

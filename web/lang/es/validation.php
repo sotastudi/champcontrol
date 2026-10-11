@@ -36,5 +36,7 @@ return [
         'birth_date' => 'la fecha de nacimiento', 'weight' => 'el peso', 'phone' => 'el teléfono',
         'guardian_name' => 'el nombre del representante', 'guardian_contact' => 'el contacto del representante',
         'guardian_consent' => 'el consentimiento del representante', 'category_id' => 'la categoría', 'notes' => 'las notas', 'winner_id' => 'el ganador',
+        'dq_podium_rule' => 'la regla de descalificación', 'unfought_withdrawal_rule' => 'la regla de retirados sin combatir',
+        'default_bronze_rule' => 'la regla del bronce por defecto', 'withdrawal_before_results_rule' => 'la regla de bajas antes de los resultados',
     ],
 ];

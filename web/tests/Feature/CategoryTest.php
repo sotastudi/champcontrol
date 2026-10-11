@@ -118,4 +118,27 @@ class CategoryTest extends TestCase
         $this->actingAs($event->user)->put(route('panel.categories.update', [$event, $category]), $this->payload(['name' => $category->name, 'bronze_rule' => 'shared_bronze']))
             ->assertSessionHasErrors('bronze_rule');
     }
+
+    public function test_create_form_preloads_the_event_default_bronze_rule_and_edit_keeps_the_saved_one(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create(['default_bronze_rule' => 'shared_bronze']);
+
+        $html = $this->actingAs($user)->get(route('panel.categories.create', $event))->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/<option value="shared_bronze" selected/', $html);
+
+        $category = Category::factory()->for($event)->create(['bronze_rule' => BronzeRule::BronzeMatch]);
+        $html = $this->actingAs($user)->get(route('panel.categories.edit', [$event, $category]))->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/<option value="bronze_match" selected/', $html);
+        $this->assertDoesNotMatchRegularExpression('/<option value="shared_bronze" selected/', $html);
+    }
+
+    public function test_create_form_defaults_to_bronze_match_for_events_without_the_rule(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+
+        $this->actingAs($user)->get(route('panel.categories.create', $event))->assertOk()
+            ->assertSee('<option value="bronze_match" selected', false);
+    }
 }

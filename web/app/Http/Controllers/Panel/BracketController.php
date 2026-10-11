@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Panel;
 
+use App\Enums\PreResultsWithdrawalRule;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Event;
@@ -31,6 +32,8 @@ class BracketController extends Controller
             'confirmedCount' => $category->registrations()->where('status', 'confirmed')->count(),
             'stale' => $stale,
             'hasResults' => $hasResults,
+            'canWithdraw' => $bouts->isNotEmpty()
+                && ($hasResults || $event->preResultsWithdrawalRule() === PreResultsWithdrawalRule::AllowWalkover),
             'canRecord' => $hasResults || ! $stale,
         ]);
     }

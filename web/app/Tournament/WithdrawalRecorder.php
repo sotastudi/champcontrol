@@ -3,6 +3,7 @@
 namespace App\Tournament;
 
 use App\Enums\EventStatus;
+use App\Enums\PreResultsWithdrawalRule;
 use App\Enums\RegistrationStatus;
 use App\Enums\WithdrawalType;
 use App\Models\Registration;
@@ -27,7 +28,7 @@ final class WithdrawalRecorder
         if ($registration->status !== RegistrationStatus::Confirmed || ! $registration->isInBracket()) {
             throw new TournamentException('Solo se puede dar de baja a un inscrito confirmado que esté en el cuadro.');
         }
-        if (! $category->hasResults()) {
+        if (! $category->hasResults() && $category->event->preResultsWithdrawalRule() === PreResultsWithdrawalRule::CancelAndRegenerate) {
             throw new TournamentException('Aún no hay resultados: cancela la inscripción y regenera el cuadro.');
         }
 

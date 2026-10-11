@@ -2,7 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\BronzeRule;
+use App\Enums\DisqualifiedPodiumRule;
 use App\Enums\EventStatus;
+use App\Enums\PreResultsWithdrawalRule;
+use App\Enums\UnfoughtWithdrawalRule;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,7 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'discipline', 'description', 'starts_on', 'venue', 'status', 'is_public', 'registration_form_enabled'])]
+#[Fillable(['name', 'discipline', 'description', 'starts_on', 'venue', 'status', 'is_public', 'registration_form_enabled',
+    'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
@@ -26,6 +31,10 @@ class Event extends Model
             'status' => EventStatus::class,
             'is_public' => 'boolean',
             'registration_form_enabled' => 'boolean',
+            'dq_podium_rule' => DisqualifiedPodiumRule::class,
+            'unfought_withdrawal_rule' => UnfoughtWithdrawalRule::class,
+            'default_bronze_rule' => BronzeRule::class,
+            'withdrawal_before_results_rule' => PreResultsWithdrawalRule::class,
         ];
     }
 
@@ -71,5 +80,26 @@ class Event extends Model
         return $this->isListed()
             && $this->registration_form_enabled
             && $this->status === EventStatus::RegistrationOpen;
+    }
+
+    /** Reglas del campeonato: nunca null (tras create() el atributo puede estar sin refrescar y la BD aplica el DEFAULT). */
+    public function dqPodiumRule(): DisqualifiedPodiumRule
+    {
+        return $this->dq_podium_rule ?? DisqualifiedPodiumRule::Vacant;
+    }
+
+    public function unfoughtWithdrawalRule(): UnfoughtWithdrawalRule
+    {
+        return $this->unfought_withdrawal_rule ?? UnfoughtWithdrawalRule::KeepPlace;
+    }
+
+    public function defaultBronzeRule(): BronzeRule
+    {
+        return $this->default_bronze_rule ?? BronzeRule::BronzeMatch;
+    }
+
+    public function preResultsWithdrawalRule(): PreResultsWithdrawalRule
+    {
+        return $this->withdrawal_before_results_rule ?? PreResultsWithdrawalRule::CancelAndRegenerate;
     }
 }

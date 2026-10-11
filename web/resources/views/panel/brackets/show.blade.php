@@ -91,7 +91,7 @@
         </div>
     </section>
 
-    @if ($hasResults)
+    @if ($canWithdraw)
         @php
             $alive = $participants->reject(fn ($r) => $r->isWithdrawn());
             $withdrawals = $participants->filter(fn ($r) => $r->isWithdrawn())->sortBy('withdrawn_at');
