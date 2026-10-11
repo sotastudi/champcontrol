@@ -63,7 +63,7 @@ class BoutScorePanelTest extends TestCase
         $this->assertStringNotContainsString('<strong class="me-1"', $html, 'sin filas con la etiqueta de texto AKA (rojo)/SHIRO (blanco)');
         $this->assertStringContainsString('Juez 3', $html);
         $this->assertStringNotContainsString('Juez 4', $html);
-        $this->assertStringContainsString('Hikiwake, empate: blanca y roja', $html);
+        $this->assertStringContainsString('Empate: bandera partida, blanca y roja', $html);
         $this->assertStringContainsString('name="judge_votes[2]"', $html);
         $this->assertStringContainsString('flag-hikiwake', $html);
         $this->assertStringNotContainsString('<select name="judge_votes', $html);
@@ -77,9 +77,12 @@ class BoutScorePanelTest extends TestCase
         ]);
         auth()->logout();
 
-        $this->get(route('public.categories.show', [$event, $category]))
-            ->assertOk()->assertSee('W:1')->assertSee('Jueces: 🟥 2 · ⬜ 1 · hikiwake 0')
-            ->assertSee('W:1')->assertDontSee('F:4')->assertDontSee('Falta')->assertDontSee('name="a_warnings"', false);
+        $html = $this->get(route('public.categories.show', [$event, $category]))
+            ->assertOk()->assertSee('W:1')->assertDontSee('F:4')->assertDontSee('Falta')->assertDontSee('name="a_warnings"', false)->getContent();
+
+        // Votos de los jueces con banderas (sin la palabra «hikiwake»): roja 2, blanca 1, partida 0.
+        $this->assertMatchesRegularExpression('#Jueces:\s*<span class="flag flag-aka[^>]*></span>\s*2 ·\s*<span class="flag flag-shiro[^>]*></span>\s*1 ·\s*<span class="flag flag-hikiwake[^>]*></span>\s*0#', $html);
+        $this->assertStringNotContainsString('hikiwake 0', $html);
     }
 
     public function test_participant_box_shows_w_i_and_f_marks_only_f_for_the_organizer(): void
@@ -131,7 +134,7 @@ class BoutScorePanelTest extends TestCase
         $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
 
         $this->assertStringContainsString('data-bs-target="#score-help-'.$bout->id.'"', $html);
-        $this->assertMatchesRegularExpression('#<div class="collapse" id="score-help-'.$bout->id.'">\s*<p class="text-muted mb-0">Jueces: bandera blanca = SHIRO#', $html);
+        $this->assertMatchesRegularExpression('#<div class="collapse" id="score-help-'.$bout->id.'">\s*<p class="text-muted mb-0">Jueces: bandera blanca <span class="flag flag-shiro#', $html);
         $this->assertStringContainsString('2 wazari = 1 ippon', $html);
         $this->assertDoesNotMatchRegularExpression('#<p class="text-muted mb-2">Jueces#', $html, 'la ayuda ya no se muestra siempre');
     }

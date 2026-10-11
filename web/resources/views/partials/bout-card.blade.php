@@ -75,19 +75,25 @@
     @php
         $notes = [];
         if ($bout->abandoned_slot) { $notes[] = 'Abandona '.($bout->abandoned_slot === 'a' ? '🟥' : '⬜'); }
-        if ($bout->judge_votes) {
-            $tally = array_count_values(array_filter($bout->judge_votes, fn ($v) => $v !== null));
-            $notes[] = 'Jueces: 🟥 '.($tally['aka'] ?? 0).' · ⬜ '.($tally['shiro'] ?? 0).' · hikiwake '.($tally['hikiwake'] ?? 0);
-        }
+        $tally = $bout->judge_votes ? array_count_values(array_filter($bout->judge_votes, fn ($v) => $v !== null)) : [];
     @endphp
     @if ($notes)
         <div class="small text-muted px-2 pb-1">{{ implode(' · ', $notes) }}</div>
+    @endif
+    @if ($tally)
+        {{-- Votos de los jueces con las mismas banderas de los botones: roja (AKA), blanca (SHIRO) y blanca y roja partida (empate). --}}
+        <div class="small text-muted px-2 pb-1" title="Votos de los jueces: bandera roja, blanca y partida (empate)">
+            Jueces:
+            <span class="flag flag-aka flag-sm" aria-label="AKA"></span> {{ $tally['aka'] ?? 0 }} ·
+            <span class="flag flag-shiro flag-sm" aria-label="SHIRO"></span> {{ $tally['shiro'] ?? 0 }} ·
+            <span class="flag flag-hikiwake flag-sm" aria-label="Empate"></span> {{ $tally['hikiwake'] ?? 0 }}
+        </div>
     @endif
     @if ($scorable)
         @php
             $judges = in_array((int) $category->referees, [2, 3, 5], true) ? (int) $category->referees : 3;
             $votes = $bout->judge_votes ?? [];
-            $voteOptions = [['shiro', 'flag-shiro', 'SHIRO: bandera blanca'], ['aka', 'flag-aka', 'AKA: bandera roja'], ['hikiwake', 'flag-hikiwake', 'Hikiwake, empate: blanca y roja']];
+            $voteOptions = [['shiro', 'flag-shiro', 'SHIRO: bandera blanca'], ['aka', 'flag-aka', 'AKA: bandera roja'], ['hikiwake', 'flag-hikiwake', 'Empate: bandera partida, blanca y roja']];
         @endphp
         <div class="px-2 pb-2 no-print">
             <button type="button" class="btn btn-link btn-sm p-0 small" data-bs-toggle="collapse" data-bs-target=".{{ $scorePanel }}" aria-expanded="false">Puntuación</button>
@@ -119,7 +125,7 @@
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle fw-bold score-help-toggle" data-bs-toggle="collapse" data-bs-target="#score-help-{{ $bout->id }}" aria-expanded="false" aria-controls="score-help-{{ $bout->id }}" title="Más información" aria-label="Más información sobre la puntuación">?</button>
                 </div>
                 <div class="collapse" id="score-help-{{ $bout->id }}">
-                    <p class="text-muted mb-0">Jueces: bandera blanca = SHIRO (⬜), roja = AKA (🟥), blanca y roja = hikiwake (pulsa otra vez para quitar el voto). 2 wazari = 1 ippon. El ippon gana al instante; si no, decide la mayoría de jueces (el hikiwake no suma) y, sin jueces, la ventaja de wazari. Las faltas (F) solo se registran y solo las ve el organizador. En el cuadro: W = wazari, I = ippon, F = faltas.</p>
+                    <p class="text-muted mb-0">Jueces: bandera blanca <span class="flag flag-shiro flag-sm" aria-label="blanca"></span> = SHIRO, roja <span class="flag flag-aka flag-sm" aria-label="roja"></span> = AKA, bandera partida <span class="flag flag-hikiwake flag-sm" aria-label="empate"></span> = empate (pulsa otra vez para quitar el voto). 2 wazari = 1 ippon. El ippon gana al instante; si no, decide la mayoría de jueces (el empate no suma) y, sin jueces, la ventaja de wazari. Las faltas (F) solo se registran y solo las ve el organizador. En el cuadro: W = wazari, I = ippon, F = faltas.</p>
                 </div>
             </form>
         </div>

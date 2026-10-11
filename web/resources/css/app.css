@@ -111,6 +111,7 @@
 
 /* Votos de los jueces: banderas dentro de botones pegados. */
 .flag { display: inline-block; width: 1.25rem; height: 1.25rem; border: 1px solid #6c757d; border-radius: 0; background-clip: padding-box; vertical-align: middle; }
+.flag-sm { width: .85rem; height: .85rem; vertical-align: -.1rem; }
 .flag-shiro { background-color: #fff; }
 .flag-aka { background-color: #d11a2a; }
 /* Cuadrado partido en diagonal (triángulo blanco arriba a la izquierda, rojo abajo a la derecha), con bordes rectos. */
