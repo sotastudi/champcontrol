@@ -1,5 +1,6 @@
 @php
     $editable ??= false;
+    $canRecord ??= true;
     $names = [
         'a' => $bout->slotA?->competitor->displayName(),
         'b' => $bout->slotB?->competitor->displayName(),
@@ -19,7 +20,7 @@
                     <small class="text-muted">({{ $registration->competitor->club }})</small>
                 @endif
             </span>
-            @if ($editable && $bout->filledSlots() === 2 && ! $bout->isBye())
+            @if ($editable && $canRecord && $bout->filledSlots() === 2 && ! $bout->isBye())
                 <form method="POST" action="{{ route('panel.bouts.result', [$event, $category, $bout]) }}" class="no-print">
                     @csrf @method('PUT')
                     <input type="hidden" name="winner_id" value="{{ $registrationId }}">

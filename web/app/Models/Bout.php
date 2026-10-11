@@ -14,7 +14,14 @@ class Bout extends Model
 {
     protected function casts(): array
     {
-        return ['is_bronze' => 'boolean'];
+        return [
+            'is_bronze' => 'boolean',
+            'slot_a_id' => 'integer',
+            'slot_b_id' => 'integer',
+            'winner_id' => 'integer',
+            'next_bout_id' => 'integer',
+            'loser_next_bout_id' => 'integer',
+        ];
     }
 
     public function category(): BelongsTo

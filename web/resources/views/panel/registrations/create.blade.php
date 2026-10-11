@@ -2,7 +2,6 @@
 @section('title', 'Nueva inscripción')
 @section('content')
 <h1 class="h3 mb-3">Nueva inscripción</h1>
-@error('error')<div class="alert alert-danger">{{ $message }}</div>@enderror
 @if (empty($categories))
     <div class="alert alert-info">Primero crea alguna categoría en el evento.</div>
 @endif

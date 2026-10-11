@@ -83,7 +83,11 @@ class PublicRegistrationTest extends TestCase
         $this->post(route('public.registration.store', $event), $this->data($foreign))->assertSessionHasErrors('category_id');
 
         $this->post(route('public.registration.store', $event), $this->data($category));
-        $this->post(route('public.registration.store', $event), $this->data($category))->assertSessionHasErrors('error');
+        $response = $this->from(route('public.registration.create', $event))
+            ->followingRedirects()
+            ->post(route('public.registration.store', $event), $this->data($category))
+            ->assertDontSee('ya está inscrito');
+        $this->assertSame(1, substr_count($response->getContent(), 'No hemos podido completar la inscripción'));
         $this->assertDatabaseCount('registrations', 1);
     }
 

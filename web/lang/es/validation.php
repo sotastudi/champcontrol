@@ -2,7 +2,7 @@
 
 return [
     'boolean' => 'El campo :attribute debe ser verdadero o falso.',
-    'before_or_equal' => ':Attribute debe ser una fecha anterior o igual a :date.',
+    'before_or_equal' => ':Attribute no puede ser una fecha futura.',
     'between' => ['numeric' => ':Attribute debe estar entre :min y :max.'],
     'confirmed' => 'La confirmación de :attribute no coincide.',
     'date' => ':Attribute no es una fecha válida.',
@@ -22,7 +22,7 @@ return [
     ],
     'numeric' => ':Attribute debe ser un número.',
     'password' => ['min' => ':Attribute debe tener al menos :min caracteres.'],
-    'required' => 'El campo :attribute es obligatorio.',
+    'required' => 'Debes indicar :attribute.',
     'string' => ':Attribute debe ser texto.',
     'unique' => ':Attribute ya está en uso.',
     'attributes' => [

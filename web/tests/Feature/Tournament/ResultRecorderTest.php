@@ -4,6 +4,7 @@ namespace Tests\Feature\Tournament;
 
 use App\Enums\EventStatus;
 use App\Models\Registration;
+use App\Tournament\BracketGenerator;
 use App\Tournament\ResultRecorder;
 use App\Tournament\TournamentException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -65,6 +66,41 @@ class ResultRecorderTest extends TestCase
 
         $this->assertNull($semi->fresh()->winner_id);
         $this->assertNull($this->bout($category, 2, 1)->slot_a_id);
+    }
+
+    public function test_stale_bracket_without_results_refuses_the_first_result_until_regenerated(): void
+    {
+        $category = $this->generated(4);
+        $semi = $this->bout($category, 1, 1);
+        Registration::find($semi->slot_b_id)->update(['status' => 'cancelled']);
+
+        try {
+            $this->recorder()->record($semi, $semi->slot_a_id);
+            $this->fail('Debió rechazar el resultado en un cuadro desactualizado.');
+        } catch (TournamentException $e) {
+            $this->assertStringContainsString('desactualizado', $e->getMessage());
+        }
+        $this->assertNull($semi->fresh()->winner_id);
+        $this->assertFalse($category->hasResults());
+
+        app(BracketGenerator::class)->generate($category->fresh());
+        $real = $category->bouts()->where('round', 1)->where('required_participants', 2)->first();
+        $this->recorder()->record($real, $real->slot_a_id);
+        $this->assertTrue($category->fresh()->hasResults());
+    }
+
+    public function test_stale_bracket_with_results_still_records(): void
+    {
+        $category = $this->generated(4);
+        $one = $this->bout($category, 1, 1);
+        $this->recorder()->record($one, $one->slot_a_id);
+        Registration::factory()->confirmed()->forCategory($category)->create();
+        $this->assertTrue($category->fresh()->bracketIsStale());
+
+        $two = $this->bout($category, 1, 2);
+        $this->recorder()->record($two, $two->slot_a_id);
+
+        $this->assertSame($two->slot_a_id, $two->fresh()->winner_id);
     }
 
     public function test_recording_the_same_winner_twice_is_idempotent(): void

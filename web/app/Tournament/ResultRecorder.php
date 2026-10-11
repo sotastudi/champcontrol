@@ -30,6 +30,10 @@ final class ResultRecorder
         if ($bout->winner_id === $winnerRegistrationId) {
             return; // idempotente
         }
+        $category = $bout->category;
+        if (! $category->hasResults() && $category->bracketIsStale()) {
+            throw new TournamentException('El cuadro está desactualizado respecto a las inscripciones confirmadas: regéneralo antes de anotar el primer resultado.');
+        }
 
         DB::transaction(function () use ($bout, $winnerRegistrationId) {
             if ($bout->isCompleted()) {

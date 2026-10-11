@@ -16,7 +16,7 @@ class PublicCategoryController extends Controller
         return view('public.categories.show', [
             'event' => $event,
             'category' => $category,
-            'bouts' => $category->bouts()->with(['slotA.competitor', 'slotB.competitor', 'winner'])->get(),
+            'bouts' => $category->bouts()->with(['slotA.competitor', 'slotB.competitor', 'winner.competitor'])->get(),
             'placements' => $podium->for($category),
             'editable' => false,
         ]);

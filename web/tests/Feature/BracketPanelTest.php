@@ -130,4 +130,20 @@ class BracketPanelTest extends TestCase
         $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))
             ->assertSee('resuélvelos manualmente')->assertDontSee('desactualizado')->assertDontSee('Regenerar cuadro');
     }
+
+    public function test_stale_without_results_rejects_results_and_hides_gana_buttons(): void
+    {
+        [$user, $event, $category] = $this->owned(4);
+        $this->actingAs($user)->post(route('panel.brackets.store', [$event, $category]));
+        $semi = $category->bouts()->where('round', 1)->orderBy('position')->first();
+        Registration::find($semi->slot_b_id)->update(['status' => 'cancelled']);
+
+        $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))
+            ->assertOk()->assertSee('desactualizado')->assertDontSee('Gana');
+
+        $this->actingAs($user)->put(route('panel.bouts.result', [$event, $category, $semi]), ['winner_id' => $semi->slot_a_id])
+            ->assertSessionHasErrors('error');
+        $this->assertNull($semi->fresh()->winner_id);
+        $this->assertFalse($category->hasResults());
+    }
 }

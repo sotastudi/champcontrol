@@ -13,7 +13,6 @@
     </div>
 </div>
 <h1 class="h4 d-none d-print-block">{{ $event->name }} — Inscritos</h1>
-@error('error')<div class="alert alert-danger">{{ $message }}</div>@enderror
 @error('status')<div class="alert alert-danger">{{ $message }}</div>@enderror
 
 <form method="GET" action="{{ route('panel.registrations.index', $event) }}" class="row g-2 mb-3 no-print">

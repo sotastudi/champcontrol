@@ -19,14 +19,18 @@ class BracketController extends Controller
     {
         $bouts = $category->bouts()->with(['slotA.competitor', 'slotB.competitor', 'winner'])->get();
 
+        $stale = $category->bracketIsStale();
+        $hasResults = $category->hasResults();
+
         return view('panel.brackets.show', [
             'event' => $event,
             'category' => $category,
             'bouts' => $bouts,
             'placements' => $podium->for($category),
             'confirmedCount' => $category->registrations()->where('status', 'confirmed')->count(),
-            'stale' => $category->bracketIsStale(),
-            'hasResults' => $category->hasResults(),
+            'stale' => $stale,
+            'hasResults' => $hasResults,
+            'canRecord' => $hasResults || ! $stale,
         ]);
     }
 
