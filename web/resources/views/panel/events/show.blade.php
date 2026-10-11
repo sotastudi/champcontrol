@@ -36,7 +36,7 @@
             <table class="table align-middle">
                 <thead><tr><th>Nombre</th><th>Criterios</th><th></th></tr></thead>
                 <tbody>
-                @foreach ($event->categories->sortBy('name') as $category)
+                @foreach ($event->categories as $category)
                     <tr>
                         <td>{{ $category->name }}</td>
                         <td class="text-muted small">

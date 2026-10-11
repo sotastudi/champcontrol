@@ -52,6 +52,28 @@ class CategoryTest extends TestCase
         ]))->assertSessionHasErrors(['name', 'max_age', 'max_weight', 'bronze_rule']);
     }
 
+    public function test_open_ended_categories_with_only_min_or_only_max_are_accepted(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+
+        $this->actingAs($user)->post(route('panel.categories.store', $event), $this->payload([
+            'name' => 'Sub-18', 'min_age' => '', 'max_age' => 17, 'min_weight' => '', 'max_weight' => 60,
+        ]))->assertSessionHasNoErrors();
+        $this->actingAs($user)->post(route('panel.categories.store', $event), $this->payload([
+            'name' => '+80 kg', 'min_age' => 18, 'max_age' => '', 'min_weight' => 80, 'max_weight' => '',
+        ]))->assertSessionHasNoErrors();
+
+        $max = $event->categories()->where('name', 'Sub-18')->firstOrFail();
+        $this->assertNull($max->min_age);
+        $this->assertSame(17, $max->max_age);
+        $this->assertSame(60.0, $max->max_weight);
+        $min = $event->categories()->where('name', '+80 kg')->firstOrFail();
+        $this->assertSame(18, $min->min_age);
+        $this->assertNull($min->max_age);
+        $this->assertSame(80.0, $min->min_weight);
+    }
+
     public function test_fourth_place_is_ignored_with_shared_bronze(): void
     {
         $user = User::factory()->create();
