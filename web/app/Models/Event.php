@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 #[Fillable(['name', 'discipline', 'description', 'starts_on', 'venue', 'status', 'is_public', 'registration_form_enabled',
-    'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule', 'draw_criteria', 'registration_opens_at', 'registration_closes_at', 'tatami_count'])]
+    'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule', 'draw_criteria', 'registration_opens_at', 'registration_closes_at', 'tatami_count', 'rules_text'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
@@ -112,6 +112,11 @@ class Event extends Model
     public function tatamiCount(): int
     {
         return max(1, (int) ($this->tatami_count ?? 1));
+    }
+
+    public function hasRulesPdf(): bool
+    {
+        return filled($this->rules_pdf_path) && Storage::disk('local')->exists($this->rules_pdf_path);
     }
 
     public function hasPoster(): bool

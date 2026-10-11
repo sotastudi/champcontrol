@@ -31,7 +31,7 @@ return [
         'discipline' => 'la disciplina', 'description' => 'la descripción', 'starts_on' => 'la fecha',
         'venue' => 'el lugar', 'status' => 'el estado', 'modality' => 'la modalidad', 'sex' => 'el sexo',
         'min_age' => 'la edad mínima', 'max_age' => 'la edad máxima', 'min_weight' => 'el peso mínimo',
-        'max_weight' => 'el peso máximo', 'level' => 'el nivel', 'tatami_count' => 'el número de tatamis', 'tatami' => 'el tatami', 'referees' => 'el número de árbitros', 'registration_opens_at' => 'el inicio de inscripciones', 'registration_closes_at' => 'el cierre de inscripciones', 'bronze_rule' => 'la regla del bronce',
+        'max_weight' => 'el peso máximo', 'level' => 'el nivel', 'rules_text' => 'las normas', 'rules_pdf' => 'el PDF de normas', 'tatami_count' => 'el número de tatamis', 'tatami' => 'el tatami', 'referees' => 'el número de árbitros', 'registration_opens_at' => 'el inicio de inscripciones', 'registration_closes_at' => 'el cierre de inscripciones', 'bronze_rule' => 'la regla del bronce',
         'first_name' => 'el nombre', 'last_name' => 'los apellidos', 'club' => 'el club',
         'birth_date' => 'la fecha de nacimiento', 'weight' => 'el peso', 'phone' => 'el teléfono',
         'guardian_name' => 'el nombre del representante', 'guardian_contact' => 'el contacto del representante',

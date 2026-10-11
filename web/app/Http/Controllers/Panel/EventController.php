@@ -9,6 +9,7 @@ use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -28,7 +29,7 @@ class EventController extends Controller
 
     public function store(EventRequest $request): RedirectResponse
     {
-        $event = $request->user()->events()->create($request->safe()->except(['poster', 'remove_poster']));
+        $event = $request->user()->events()->create($request->safe()->except(['poster', 'remove_poster', 'rules_pdf', 'remove_rules_pdf']));
         $this->savePoster($request, $event);
 
         return redirect()->route('panel.events.show', $event)->with('status', 'Evento creado.');
@@ -48,7 +49,7 @@ class EventController extends Controller
 
     public function update(EventRequest $request, Event $event): RedirectResponse
     {
-        $event->update($request->safe()->except(['poster', 'remove_poster']));
+        $event->update($request->safe()->except(['poster', 'remove_poster', 'rules_pdf', 'remove_rules_pdf']));
         $this->savePoster($request, $event);
 
         return redirect()->route('panel.events.show', $event)->with('status', 'Evento actualizado.');
@@ -57,6 +58,7 @@ class EventController extends Controller
     public function destroy(Event $event): RedirectResponse
     {
         $this->deletePoster($event);
+        $this->deleteRulesPdf($event);
         $event->competitors()->whereNotNull('photo_path')->pluck('photo_path')->each(fn ($path) => Storage::disk('local')->delete($path));
         $event->delete();
 
@@ -79,6 +81,32 @@ class EventController extends Controller
         } elseif ($request->boolean('remove_poster')) {
             $this->deletePoster($event);
             $event->forceFill(['poster_path' => null])->save();
+        }
+
+        if ($request->hasFile('rules_pdf')) {
+            $this->deleteRulesPdf($event);
+            $file = $request->file('rules_pdf');
+            $event->forceFill([
+                'rules_pdf_path' => $file->store('rules', 'local'),
+                'rules_pdf_name' => Str::limit(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), 100, '').'.pdf',
+            ])->save();
+        } elseif ($request->boolean('remove_rules_pdf')) {
+            $this->deleteRulesPdf($event);
+            $event->forceFill(['rules_pdf_path' => null, 'rules_pdf_name' => null])->save();
+        }
+    }
+
+    public function rules(Event $event): StreamedResponse
+    {
+        abort_unless($event->hasRulesPdf(), 404);
+
+        return Storage::disk('local')->download($event->rules_pdf_path, $event->rules_pdf_name ?: 'normas.pdf', ['X-Content-Type-Options' => 'nosniff']);
+    }
+
+    private function deleteRulesPdf(Event $event): void
+    {
+        if (filled($event->rules_pdf_path)) {
+            Storage::disk('local')->delete($event->rules_pdf_path);
         }
     }
 

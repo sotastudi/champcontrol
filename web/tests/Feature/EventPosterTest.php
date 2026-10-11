@@ -106,4 +106,42 @@ class EventPosterTest extends TestCase
             ->assertDontSee(route('public.registration.create', $closed), false)
             ->assertSee('Ver evento');
     }
+
+    public function test_rules_text_and_pdf_are_saved_downloadable_and_removable(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+        $pdf = UploadedFile::fake()->createWithContent('Normas Open 2026.pdf', "%PDF-1.4\n%fake\n");
+
+        $this->actingAs($user)->post(route('panel.events.store'), $this->payload(['rules_text' => "Peso: 1 kg\nSin golpes al rostro", 'rules_pdf' => $pdf]))
+            ->assertSessionHasNoErrors();
+        $event = $user->events()->firstOrFail();
+        Storage::disk('local')->assertExists($event->rules_pdf_path);
+        $this->assertStringEndsWith('.pdf', $event->rules_pdf_name);
+
+        $this->actingAs($user)->get(route('public.events.rules', $event))->assertOk()
+            ->assertHeader('content-disposition');
+        $this->get(route('public.events.show', $event))
+            ->assertSee('Descargar normas (PDF)')->assertSee('Sin golpes al rostro')->assertSee(route('public.events.rules', $event), false);
+        $this->get(route('public.events.rules', $event))->assertOk();
+
+        $this->actingAs($user)->put(route('panel.events.update', $event), $this->payload(['remove_rules_pdf' => '1']));
+        $this->assertNull($event->fresh()->rules_pdf_path);
+        $this->get(route('public.events.rules', $event))->assertNotFound();
+    }
+
+    public function test_rules_pdf_must_be_a_pdf_and_private_events_do_not_serve_it(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('panel.events.store'), $this->payload(['rules_pdf' => UploadedFile::fake()->image('x.jpg')]))
+            ->assertSessionHasErrors('rules_pdf');
+        $this->actingAs($user)->post(route('panel.events.store'), $this->payload(['is_public' => '0', 'rules_pdf' => UploadedFile::fake()->createWithContent('n.pdf', "%PDF-1.4\n")]));
+        $event = $user->events()->firstOrFail();
+
+        auth()->logout();
+        $this->get(route('public.events.rules', $event))->assertNotFound();
+        $this->actingAs(User::factory()->create())->get(route('panel.events.rules', $event))->assertForbidden();
+    }
 }

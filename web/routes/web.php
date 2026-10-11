@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', HomeController::class)->name('home');
 Route::get('eventos/{event:slug}', [PublicEventController::class, 'show'])->name('public.events.show');
 Route::get('eventos/{event:slug}/poster', [PublicEventController::class, 'poster'])->name('public.events.poster');
+Route::get('eventos/{event:slug}/normas.pdf', [PublicEventController::class, 'rules'])->name('public.events.rules');
 Route::get('eventos/{event:slug}/inscripcion', [PublicRegistrationController::class, 'create'])->name('public.registration.create');
 Route::get('eventos/{event:slug}/categorias/{category}', [PublicCategoryController::class, 'show'])
     ->scopeBindings()->name('public.categories.show');
@@ -50,6 +51,7 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
     // Todo lo que cuelga de un evento exige ser su propietario; scopeBindings impide mezclar recursos de otro evento.
     Route::middleware('can:manage,event')->scopeBindings()->prefix('eventos/{event}')->group(function () {
         Route::get('/', [EventController::class, 'show'])->name('events.show');
+        Route::get('normas.pdf', [EventController::class, 'rules'])->name('events.rules');
         Route::get('poster', [EventController::class, 'poster'])->name('events.poster');
         Route::get('editar', [EventController::class, 'edit'])->name('events.edit');
         Route::put('/', [EventController::class, 'update'])->name('events.update');

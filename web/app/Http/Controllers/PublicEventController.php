@@ -48,4 +48,11 @@ class PublicEventController extends Controller
 
         return Storage::disk('local')->response($event->poster_path, null, ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'public, max-age=3600']);
     }
+
+    public function rules(Event $event): StreamedResponse
+    {
+        abort_unless($event->isListed() && $event->hasRulesPdf(), 404);
+
+        return Storage::disk('local')->download($event->rules_pdf_path, $event->rules_pdf_name ?: 'normas.pdf', ['X-Content-Type-Options' => 'nosniff']);
+    }
 }

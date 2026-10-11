@@ -41,6 +41,9 @@ class EventRequest extends FormRequest
                     $fail("Hay categorías asignadas al tatami {$max}: reasígnalas antes de reducir el número de tatamis.");
                 }
             }],
+            'rules_text' => ['nullable', 'string', 'max:20000'],
+            'rules_pdf' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+            'remove_rules_pdf' => ['boolean'],
             'poster' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'remove_poster' => ['boolean'],
             'draw_criteria' => ['sometimes', 'required', Rule::enum(DrawCriteria::class)],

@@ -16,6 +16,19 @@
         <x-check name="remove_poster" label="Quitar el póster actual" :checked="false" />
     @endif
 </div>
+<x-textarea name="rules_text" label="Normas del campeonato (texto)" :value="$event?->rules_text" :rows="6" />
+<div class="mb-3">
+    <label for="rules_pdf" class="form-label">Normas en PDF (descargable)</label>
+    @if ($event?->hasRulesPdf())
+        <div class="mb-2"><a href="{{ route('panel.events.rules', $event) }}">{{ $event->rules_pdf_name }}</a></div>
+    @endif
+    <input type="file" id="rules_pdf" name="rules_pdf" accept="application/pdf" class="form-control @error('rules_pdf') is-invalid @enderror">
+    <div class="form-text">Solo PDF, máximo 10 MB. Se ofrece para descargar en la página pública del evento.</div>
+    @error('rules_pdf')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    @if ($event?->hasRulesPdf())
+        <x-check name="remove_rules_pdf" label="Quitar el PDF actual" :checked="false" />
+    @endif
+</div>
 <x-select name="status" label="Estado" :options="\App\Enums\EventStatus::options()" :value="$event?->status?->value ?? 'draft'" required />
 <x-check name="is_public" label="Evento público" :checked="$event?->is_public ?? false"
          help="Un evento público y no en borrador aparece en la portada y tiene página pública." />
