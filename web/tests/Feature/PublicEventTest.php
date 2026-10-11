@@ -144,4 +144,17 @@ class PublicEventTest extends TestCase
         $this->assertStringNotContainsString('event-poster', $without);
         $this->assertStringNotContainsString('col-md-7 col-lg-8', $without);
     }
+
+    public function test_rules_text_sits_under_the_description_in_the_data_column(): void
+    {
+        $event = Event::factory()->create(['is_public' => true, 'status' => EventStatus::InProgress, 'description' => 'Texto descriptivo del evento', 'rules_text' => "Norma 1: sin golpes al rostro\nNorma 2: casco obligatorio"]);
+
+        $html = $this->get(route('public.events.show', $event))->assertOk()->getContent();
+
+        $this->assertStringContainsString('Norma 2: casco obligatorio', $html);
+        $this->assertLessThan(strpos($html, 'Norma 1'), strpos($html, 'Texto descriptivo del evento'), 'las normas van debajo de la descripción');
+        $this->assertLessThan(strpos($html, 'event-rules'), strpos($html, 'event-info'), 'dentro de la columna de datos');
+        $this->assertSame(1, substr_count($html, 'Norma 1'), 'ya no se repiten más abajo');
+        $this->assertLessThan(strpos($html, 'Resultados'), strpos($html, 'Norma 2'));
+    }
 }

@@ -109,6 +109,7 @@
 @media (hover: hover) { .side-chip:hover .side-text { max-width: 3.5rem; padding: 0 .3rem; } }
 .event-poster { max-height: 34rem; object-fit: contain; background: var(--bs-secondary-bg); }
 .event-info .display-6 { line-height: 1.15; }
+.event-rules { border-left: .25rem solid var(--bs-border-color); padding-left: .85rem; }
 .btn-icon { display: inline-flex; align-items: center; gap: .3rem; }
 /* En móvil, los botones «compactos» muestran solo el icono (el texto sigue en title/aria-label). */
 @media (max-width: 767.98px) {

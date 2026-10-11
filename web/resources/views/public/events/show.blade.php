@@ -39,6 +39,13 @@
 
         @if ($event->description)<p class="mb-3" style="white-space: pre-line">{{ $event->description }}</p>@endif
 
+        @if ($event->rules_text)
+            <div class="event-rules mb-3">
+                <h2 class="h6 text-uppercase text-muted mb-1">Normas</h2>
+                <p class="mb-0" style="white-space: pre-line">{{ $event->rules_text }}</p>
+            </div>
+        @endif
+
         <div class="d-flex flex-wrap align-items-center gap-3">
             @if ($event->acceptsPublicRegistrations())
                 <div>
@@ -54,10 +61,6 @@
         </div>
     </div>
 </section>
-@if ($event->rules_text)
-    <h2 class="h5 mt-4">Normas</h2>
-    <p style="white-space: pre-line">{{ $event->rules_text }}</p>
-@endif
 @unless ($canSeeResults)
     <div class="card mt-4">
         <div class="card-body">
