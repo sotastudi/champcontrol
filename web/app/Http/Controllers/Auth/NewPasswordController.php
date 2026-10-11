@@ -35,8 +35,11 @@ class NewPasswordController extends Controller
             }
         );
 
-        return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('status', __($status))
-            : back()->withInput($request->only('email'))->withErrors(['email' => __($status)]);
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()->route('login')->with('status', __($status));
+        }
+
+        // Email inexistente y token inválido dan el mismo mensaje: no se revela qué correos están registrados.
+        return back()->withInput($request->only('email'))->withErrors(['email' => __(Password::INVALID_TOKEN)]);
     }
 }

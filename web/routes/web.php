@@ -36,7 +36,7 @@ Route::middleware('guest')->group(function () {
     Route::get('recuperar-contrasena', [PasswordResetLinkController::class, 'create'])->name('password.request');
     Route::post('recuperar-contrasena', [PasswordResetLinkController::class, 'store'])->middleware('throttle:6,1')->name('password.email');
     Route::get('restablecer-contrasena/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-    Route::post('restablecer-contrasena', [NewPasswordController::class, 'store'])->name('password.update');
+    Route::post('restablecer-contrasena', [NewPasswordController::class, 'store'])->middleware('throttle:6,1')->name('password.update');
 });
 
 Route::post('salir', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');

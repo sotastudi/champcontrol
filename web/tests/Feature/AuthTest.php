@@ -74,4 +74,29 @@ class AuthTest extends TestCase
         $this->post('/acceso', ['email' => $user->email, 'password' => 'nueva-clave-123']);
         $this->assertAuthenticatedAs($user);
     }
+
+    public function test_reset_does_not_reveal_whether_the_email_exists(): void
+    {
+        User::factory()->create(['email' => 'real@example.com']);
+        $payload = ['token' => 'token-falso', 'password' => 'nueva-clave-123', 'password_confirmation' => 'nueva-clave-123'];
+
+        $unknown = $this->post(route('password.update'), $payload + ['email' => 'nadie@example.com']);
+        $known = $this->post(route('password.update'), $payload + ['email' => 'real@example.com']);
+
+        $unknown->assertSessionHasErrors('email');
+        $this->assertSame(
+            $unknown->getSession()->get('errors')->first('email'),
+            $known->getSession()->get('errors')->first('email'),
+        );
+    }
+
+    public function test_password_update_is_throttled(): void
+    {
+        $payload = ['token' => 't', 'email' => 'x@example.com', 'password' => 'nueva-clave-123', 'password_confirmation' => 'nueva-clave-123'];
+        for ($i = 0; $i < 6; $i++) {
+            $this->post(route('password.update'), $payload);
+        }
+
+        $this->post(route('password.update'), $payload)->assertStatus(429);
+    }
 }
