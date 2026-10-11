@@ -10,10 +10,14 @@ use App\Http\Controllers\Panel\CompetitorController;
 use App\Http\Controllers\Panel\EventController;
 use App\Http\Controllers\Panel\RegistrationController;
 use App\Http\Controllers\PublicEventController;
+use App\Http\Controllers\PublicRegistrationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('eventos/{event:slug}', [PublicEventController::class, 'show'])->name('public.events.show');
+Route::get('eventos/{event:slug}/inscripcion', [PublicRegistrationController::class, 'create'])->name('public.registration.create');
+Route::post('eventos/{event:slug}/inscripcion', [PublicRegistrationController::class, 'store'])
+    ->middleware('throttle:10,1')->name('public.registration.store');
 
 Route::middleware('guest')->group(function () {
     Route::get('registro', [RegisterController::class, 'create'])->name('register');
