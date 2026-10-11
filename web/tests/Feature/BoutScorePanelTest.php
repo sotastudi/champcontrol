@@ -31,12 +31,12 @@ class BoutScorePanelTest extends TestCase
 
         $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), [
             'a_wazari' => 1, 'b_wazari' => 0, 'a_ippon' => 0, 'b_ippon' => 1, 'a_warnings' => 1, 'b_warnings' => 0,
-            'abandoned_slot' => '', 'judge_votes' => ['aka', '', 'shiro'],
+            'abandoned_slot' => '', 'judge_votes' => [0 => 'aka', 2 => 'shiro'],
         ])->assertSessionHasNoErrors()->assertSessionHas('status');
 
         $bout->refresh();
         $this->assertSame($bout->slot_b_id, $bout->winner_id);
-        $this->assertSame(['aka', 'shiro'], $bout->judge_votes);
+        $this->assertSame(['aka', null, 'shiro'], $bout->judge_votes, 'se conserva la posición de cada juez');
         $this->assertSame(1, $bout->a_warnings);
     }
 
@@ -61,7 +61,10 @@ class BoutScorePanelTest extends TestCase
         $this->assertStringContainsString('AKA (rojo)', $html);
         $this->assertStringContainsString('Juez 3', $html);
         $this->assertStringNotContainsString('Juez 4', $html);
-        $this->assertStringContainsString('Hikiwake (empate)', $html);
+        $this->assertStringContainsString('Hikiwake, empate: blanca y roja', $html);
+        $this->assertStringContainsString('name="judge_votes[2]"', $html);
+        $this->assertStringContainsString('flag-hikiwake', $html);
+        $this->assertStringNotContainsString('<select name="judge_votes', $html);
     }
 
     public function test_public_page_shows_points_and_judges_but_never_the_warnings(): void

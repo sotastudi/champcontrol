@@ -48,7 +48,7 @@
         }
         if ($bout->abandoned_slot) { $notes[] = 'Abandona '.($bout->abandoned_slot === 'a' ? 'AKA' : 'SHIRO'); }
         if ($bout->judge_votes) {
-            $tally = array_count_values($bout->judge_votes);
+            $tally = array_count_values(array_filter($bout->judge_votes, fn ($v) => $v !== null));
             $notes[] = 'Jueces: AKA '.($tally['aka'] ?? 0).' · SHIRO '.($tally['shiro'] ?? 0).' · hikiwake '.($tally['hikiwake'] ?? 0);
         }
     @endphp
@@ -56,7 +56,11 @@
         <div class="small text-muted px-2 pb-1">{{ implode(' · ', $notes) }}</div>
     @endif
     @if ($editable && $canRecord && $bout->filledSlots() === 2 && ! $bout->isBye() && ! $bout->isWalkover())
-        @php $judges = max(1, min(9, (int) ($category->referees ?: 3))); $votes = $bout->judge_votes ?? []; @endphp
+        @php
+            $judges = in_array((int) $category->referees, [2, 3, 5], true) ? (int) $category->referees : 3;
+            $votes = $bout->judge_votes ?? [];
+            $voteOptions = [['shiro', 'flag-shiro', 'SHIRO: bandera blanca'], ['aka', 'flag-aka', 'AKA: bandera roja'], ['hikiwake', 'flag-hikiwake', 'Hikiwake, empate: blanca y roja']];
+        @endphp
         <details class="px-2 pb-2 no-print">
             <summary class="small text-primary" style="cursor: pointer">Puntuación</summary>
             <form method="POST" action="{{ route('panel.bouts.score', [$event, $category, $bout]) }}" class="small mt-2">
@@ -86,18 +90,18 @@
                     </label>
                 </div>
                 @for ($j = 0; $j < $judges; $j++)
-                    <div class="mb-1">
-                        <label>Juez {{ $j + 1 }}
-                            <select name="judge_votes[]" class="form-select form-select-sm d-inline-block w-auto">
-                                <option value="">—</option>
-                                @foreach (\App\Enums\JudgeVote::cases() as $vote)
-                                    <option value="{{ $vote->value }}" @selected(($votes[$j] ?? null) === $vote->value)>{{ $vote->label() }}</option>
-                                @endforeach
-                            </select>
-                        </label>
+                    @php $current = $votes[$j] ?? null; @endphp
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span style="min-width: 4.5rem">Juez {{ $j + 1 }}</span>
+                        <div class="btn-group btn-group-sm judge-votes" role="group" aria-label="Voto del juez {{ $j + 1 }}" data-judge-group>
+                            @foreach ($voteOptions as [$value, $flag, $label])
+                                <input type="radio" class="btn-check" name="judge_votes[{{ $j }}]" id="vote-{{ $bout->id }}-{{ $j }}-{{ $value }}" value="{{ $value }}" autocomplete="off" @checked($current === $value)>
+                                <label class="btn btn-outline-secondary" for="vote-{{ $bout->id }}-{{ $j }}-{{ $value }}" title="{{ $label }}"><span class="flag {{ $flag }}" aria-hidden="true"></span><span class="visually-hidden">{{ $label }}</span></label>
+                            @endforeach
+                        </div>
                     </div>
                 @endfor
-                <p class="text-muted mb-2">2 wazari = 1 ippon. El ippon gana al instante; si no, decide la mayoría de jueces (el hikiwake no suma) y, sin jueces, la ventaja de wazari. Las amonestaciones solo se registran.</p>
+                <p class="text-muted mb-2">Jueces: bandera blanca = SHIRO, roja = AKA, blanca y roja = hikiwake (pulsa otra vez para quitar el voto). 2 wazari = 1 ippon. El ippon gana al instante; si no, decide la mayoría de jueces (el hikiwake no suma) y, sin jueces, la ventaja de wazari. Las amonestaciones solo se registran.</p>
                 <button type="submit" class="btn btn-sm btn-outline-primary">Guardar puntuación</button>
             </form>
         </details>

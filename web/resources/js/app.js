@@ -1,6 +1,7 @@
 import * as bootstrap from 'bootstrap';
 
 import './registration-form';
+import './judge-votes';
 
 window.bootstrap = bootstrap;
 

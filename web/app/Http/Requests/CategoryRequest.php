@@ -36,7 +36,7 @@ class CategoryRequest extends FormRequest
             }],
             'show_fourth' => ['boolean'],
             'tatami' => ['nullable', 'integer', 'min:1', 'max:'.$this->route('event')->tatamiCount()],
-            'referees' => ['nullable', 'integer', 'min:1', 'max:20'],
+            'referees' => ['nullable', 'integer', Rule::in([2, 3, 5])],
             'draw_criteria' => ['nullable', Rule::enum(DrawCriteria::class)],
         ];
     }

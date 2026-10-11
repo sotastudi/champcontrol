@@ -35,11 +35,16 @@ class TatamiAndProgressTest extends TestCase
 
         $base = ['name' => 'Cat', 'bronze_rule' => 'bronze_match'];
         $this->actingAs($user)->post(route('panel.categories.store', $event), $base + ['tatami' => 4])->assertSessionHasErrors('tatami');
+        foreach ([1, 4, 6, 9] as $bad) {
+            $this->actingAs($user)->post(route('panel.categories.store', $event), $base + ['referees' => $bad])->assertSessionHasErrors('referees');
+        }
+        $this->actingAs($user)->get(route('panel.categories.create', $event))
+            ->assertSee('2 jueces (2 centrales)')->assertSee('3 jueces (2 + 1 central)')->assertSee('5 jueces (4 esquinas + 1 central)');
         $this->actingAs($user)->post(route('panel.categories.store', $event), $base + ['tatami' => 3, 'referees' => 5])->assertSessionHasNoErrors();
         $category = $event->categories()->firstOrFail();
         $this->assertSame([3, 5], [$category->tatami, $category->referees]);
 
-        $this->actingAs($user)->get(route('panel.events.show', $event))->assertSee('Tatami 3 (5 árbitros)');
+        $this->actingAs($user)->get(route('panel.events.show', $event))->assertSee('Tatami 3 (5 jueces)');
         $this->actingAs($user)->put(route('panel.events.update', $event), $this->payload(['tatami_count' => 2]))->assertSessionHasErrors('tatami_count');
         $this->actingAs($user)->put(route('panel.events.update', $event), $this->payload(['tatami_count' => 3]))->assertSessionHasNoErrors();
     }

@@ -70,11 +70,15 @@ final class ScoreRecorder
         }
         $data['abandoned_slot'] = $abandoned === '' ? null : $abandoned;
 
-        $votes = array_values($score['judge_votes'] ?? []);
+        // Cada posición es un juez; un juez que no ha votado queda en null (se conserva su posición).
+        $votes = array_values(array_map(fn ($v) => $v === '' ? null : $v, $score['judge_votes'] ?? []));
         foreach ($votes as $vote) {
-            if (JudgeVote::tryFrom((string) $vote) === null) {
+            if ($vote !== null && JudgeVote::tryFrom((string) $vote) === null) {
                 throw new TournamentException('Voto de juez no válido.');
             }
+        }
+        while ($votes !== [] && end($votes) === null) {
+            array_pop($votes);
         }
         $data['judge_votes'] = $votes === [] ? null : $votes;
 
@@ -98,7 +102,7 @@ final class ScoreRecorder
             return $data['a_ippon'] ? 'a' : 'b';
         }
 
-        $votes = array_count_values($data['judge_votes'] ?? []);
+        $votes = array_count_values(array_filter($data['judge_votes'] ?? [], fn ($v) => $v !== null));
         $aka = $votes[JudgeVote::Aka->value] ?? 0;
         $shiro = $votes[JudgeVote::Shiro->value] ?? 0;
         if ($aka !== $shiro) {

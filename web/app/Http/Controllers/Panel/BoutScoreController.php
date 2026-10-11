@@ -28,7 +28,13 @@ class BoutScoreController extends Controller
             'judge_votes' => ['nullable', 'array', 'max:9'],
             'judge_votes.*' => ['nullable', Rule::enum(JudgeVote::class)],
         ]);
-        $data['judge_votes'] = array_values(array_filter($data['judge_votes'] ?? [], fn ($v) => $v !== null && $v !== ''));
+        // judge_votes[i]: i = posición del juez; los que no votan no se envían.
+        $votes = [];
+        foreach ($data['judge_votes'] ?? [] as $i => $vote) {
+            $votes[(int) $i] = $vote;
+        }
+        ksort($votes);
+        $data['judge_votes'] = $votes === [] ? [] : array_map(fn ($i) => $votes[$i] ?? null, range(0, max(array_keys($votes))));
 
         try {
             $winner = $scores->record($bout, $data);
