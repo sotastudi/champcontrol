@@ -319,4 +319,29 @@ class TatamiOperatorTest extends TestCase
         $score($b1->fresh(), ['b_ippon' => 1])->assertSessionHasErrors('error');
         $this->assertSame($b1->fresh()->slot_a_id, $b1->fresh()->winner_id);
     }
+
+    public function test_the_create_form_is_hidden_behind_a_button_and_reopens_only_after_its_own_errors(): void
+    {
+        [$owner, $event] = $this->setUpEvent();
+
+        $html = $this->actingAs($owner)->get(route('panel.events.show', $event))->getContent();
+        $this->assertMatchesRegularExpression('#data-bs-target="\#create-operator" aria-expanded="false"[^>]*>.*?Crear controlador#s', $html);
+        $this->assertMatchesRegularExpression('#<form[^>]*class="collapse  row[^"]*"[^>]*id="create-operator"#', $html, 'el formulario empieza plegado');
+        $this->assertMatchesRegularExpression('#data-bs-target="\#create-operator">Cancelar</button>#', $html);
+
+        // Un error al crear lo deja desplegado con lo escrito.
+        $this->actingAs($owner)->from(route('panel.events.show', $event))
+            ->post(route('panel.operators.store', $event), ['_form' => 'create', 'username' => 'ab', 'tatamis' => [1]])->assertSessionHasErrors('username');
+        $open = $this->actingAs($owner)->get(route('panel.events.show', $event))->getContent();
+        $this->assertMatchesRegularExpression('#<form[^>]*class="collapse show row[^"]*"[^>]*id="create-operator"#', $open);
+        $this->assertStringContainsString('value="ab"', $open);
+
+        // Un error en la edición de un controlador no despliega el formulario de crear.
+        $this->actingAs($owner)->post(route('panel.operators.store', $event), ['_form' => 'create', 'username' => 'juez', 'password' => 'clave-123', 'tatamis' => [1]]);
+        $operator = $event->operators()->firstOrFail();
+        $this->actingAs($owner)->from(route('panel.events.show', $event))
+            ->put(route('panel.operators.update', [$event, $operator]), ['_form' => 'edit', 'username' => 'juez', 'tatamis' => [9]])->assertSessionHasErrors('tatamis.0');
+        $afterEdit = $this->actingAs($owner)->get(route('panel.events.show', $event))->getContent();
+        $this->assertMatchesRegularExpression('#<form[^>]*class="collapse  row[^"]*"[^>]*id="create-operator"#', $afterEdit);
+    }
 }

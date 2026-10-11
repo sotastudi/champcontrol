@@ -166,7 +166,10 @@
 </section>
 
 <section id="controladores" class="mb-4">
-    <h2 class="h5 mb-2">Controladores de tatami</h2>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <h2 class="h5 mb-0">Controladores de tatami</h2>
+        <button type="button" class="btn btn-primary btn-sm btn-icon" data-bs-toggle="collapse" data-bs-target="#create-operator" aria-expanded="{{ old('_form') === 'create' ? 'true' : 'false' }}" aria-controls="create-operator"><svg width="16" height="16" aria-hidden="true"><use href="#plus"/></svg> Crear controlador</button>
+    </div>
     <p class="text-muted small">Pueden puntuar el combate actual de los tatamis que se les asignen y no ven nada más del evento. Les creas un usuario y una contraseña (el correo es opcional) y se lo entregas tú; pueden tener acceso a varios tatamis.</p>
     @php $operatorsByUser = $event->operators->groupBy('user_id'); @endphp
     @if ($operatorsByUser->isNotEmpty())
@@ -228,8 +231,9 @@
             @endforeach
         </ul>
     @endif
-    <form method="POST" action="{{ route('panel.operators.store', $event) }}" class="row g-2 align-items-start">
+    <form method="POST" action="{{ route('panel.operators.store', $event) }}" class="collapse {{ old('_form') === 'create' ? 'show' : '' }} row g-2 align-items-start card card-body" id="create-operator">
         @csrf
+        <input type="hidden" name="_form" value="create">
         <div class="col-12 col-md-3"><x-field name="username" label="Usuario" :value="old('username')" required autocomplete="off" help="Letras minúsculas, números, . - _" /></div>
         <div class="col-12 col-md-3">
             <label for="password" class="form-label">Contraseña</label>
@@ -255,6 +259,7 @@
             </div>
             @error('tatamis')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
             <button type="submit" class="btn btn-outline-primary">Añadir controlador</button>
+            <button type="button" class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#create-operator">Cancelar</button>
         </div>
     </form>
 </section>
