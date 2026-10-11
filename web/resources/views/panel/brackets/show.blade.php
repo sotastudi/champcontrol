@@ -34,7 +34,7 @@
             </form>
         @endif
         @if ($category->is_published && $event->isListed())
-            <a href="{{ route('public.categories.show', [$event, $category]) }}" class="btn btn-outline-secondary">Ver página pública</a>
+            <a href="{{ route('public.categories.show', [$event, $category]) }}" class="btn btn-outline-secondary btn-icon" title="Ver página pública" aria-label="Ver página pública"><svg width="16" height="16" aria-hidden="true"><use href="#eye"/></svg> Ver</a>
         @endif
         <a href="{{ route('panel.exports.standings', $event) }}" class="btn btn-outline-secondary">Exportar clasificación (CSV)</a>
         <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Imprimir</button>

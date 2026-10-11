@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\EventStatus;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\Registration;
@@ -137,5 +138,21 @@ class TatamiOrderTest extends TestCase
         foreach (['pencil', 'sitemap', 'trash', 'share'] as $icon) {
             $this->assertStringContainsString('<symbol id="'.$icon.'"', $html);
         }
+    }
+
+    public function test_public_page_buttons_are_an_eye_icon_with_the_text_ver(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create(['is_public' => true, 'status' => EventStatus::InProgress]);
+        $category = Category::factory()->for($event)->create(['is_published' => true]);
+        Registration::factory()->count(2)->confirmed()->forCategory($category)->create();
+        app(BracketGenerator::class)->generate($category, fn ($ids) => $ids->values());
+
+        foreach ([route('panel.events.show', $event), route('panel.brackets.show', [$event, $category])] as $url) {
+            $html = $this->actingAs($user)->get($url)->getContent();
+            $this->assertMatchesRegularExpression('#<a href="[^"]*"[^>]*title="Ver página pública" aria-label="Ver página pública"><svg[^>]*><use href="\#eye"/></svg> Ver</a>#', $html, $url);
+            $this->assertStringNotContainsString('>Ver página pública<', $html);
+        }
+        $this->assertSame(2, substr_count($this->actingAs($user)->get(route('panel.events.show', $event))->getContent(), 'href="#eye"'), 'evento y categoría');
     }
 }

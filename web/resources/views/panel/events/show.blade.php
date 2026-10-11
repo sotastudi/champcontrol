@@ -20,7 +20,7 @@
         <a href="{{ route('panel.exports.standings', $event) }}" class="btn btn-outline-secondary">Exportar clasificación (CSV)</a>
         <a href="{{ route('panel.events.edit', $event) }}" class="btn btn-outline-primary">Editar</a>
         @if ($event->isListed())
-            <a href="{{ route('public.events.show', $event) }}" class="btn btn-outline-secondary">Ver página pública</a>
+            <a href="{{ route('public.events.show', $event) }}" class="btn btn-outline-secondary btn-icon" title="Ver página pública" aria-label="Ver página pública"><svg width="16" height="16" aria-hidden="true"><use href="#eye"/></svg> Ver</a>
         @endif
         <form method="POST" action="{{ route('panel.events.destroy', $event) }}" onsubmit="return confirm('¿Eliminar el evento y todos sus datos?')">
             @csrf
@@ -72,7 +72,7 @@
                         <td class="text-end">
                             <a href="{{ route('panel.brackets.show', [$event, $category]) }}" class="btn btn-blue btn-sm btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#sitemap"/></svg> Cuadro</a>
                             @if ($category->is_published && $event->isListed())
-                                <a href="{{ route('public.categories.show', [$event, $category]) }}" class="btn btn-outline-secondary btn-sm">Ver página pública</a>
+                                <a href="{{ route('public.categories.show', [$event, $category]) }}" class="btn btn-outline-secondary btn-sm btn-icon" title="Ver página pública" aria-label="Ver página pública"><svg width="16" height="16" aria-hidden="true"><use href="#eye"/></svg> Ver</a>
                             @endif
                             <form method="POST" action="{{ route('panel.categories.publication', [$event, $category]) }}" class="d-inline">
                                 @csrf
