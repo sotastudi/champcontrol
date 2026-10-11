@@ -30,6 +30,20 @@ class ScoreRecorderTest extends TestCase
         $this->assertSame($bout->slot_a_id, $bout->winner_id);
         $this->assertTrue($bout->a_ippon);
         $this->assertSame($bout->slot_a_id, $this->bout($category, 2, 1)->slot_a_id, 'el ganador avanza');
+        $this->assertSame(['aka', 'aka', 'aka'], $bout->judge_votes, 'el ippon se lleva la bandera de todos los jueces (aunque se enviaran otras)');
+    }
+
+    public function test_ippon_of_shiro_and_two_wazari_set_all_judges_to_that_colour_with_the_category_judges(): void
+    {
+        $category = $this->generated(4);
+        $category->forceFill(['referees' => 5])->save();
+        $scores = app(ScoreRecorder::class);
+
+        $scores->record($this->bout($category, 1, 1), ['b_ippon' => true]);
+        $this->assertSame(array_fill(0, 5, 'shiro'), $this->bout($category, 1, 1)->judge_votes);
+
+        $scores->record($this->bout($category, 1, 2), ['a_wazari' => 2]);
+        $this->assertSame(array_fill(0, 5, 'aka'), $this->bout($category, 1, 2)->judge_votes);
     }
 
     public function test_two_wazari_make_an_ippon(): void
@@ -41,14 +55,49 @@ class ScoreRecorderTest extends TestCase
         $this->assertSame(2, $bout->b_wazari);
     }
 
-    public function test_one_wazari_alone_decides_only_without_judges(): void
+    public function test_without_ippon_or_abandonment_every_judge_must_vote(): void
     {
-        [$bout, $winner] = $this->score(['a_wazari' => 1]);
-        $this->assertSame($bout->slot_a_id, $winner);
-        $this->assertFalse($bout->a_ippon);
+        $category = $this->generated(4);
+        $bout = $this->bout($category, 1, 1);
+        $scores = app(ScoreRecorder::class);
 
-        [$bout, $winner] = $this->score(['a_wazari' => 1, 'judge_votes' => ['shiro', 'shiro', 'aka']]);
-        $this->assertSame($bout->slot_b_id, $winner, 'los jueces mandan sobre un wazari');
+        foreach ([[], ['a_wazari' => 1], ['judge_votes' => ['aka', 'aka']], ['judge_votes' => ['aka', null, 'aka']]] as $incomplete) {
+            try {
+                $scores->record($bout, $incomplete);
+                $this->fail('debió exigir los votos de los jueces');
+            } catch (TournamentException $e) {
+                $this->assertStringContainsString('Faltan los votos de los jueces', $e->getMessage());
+                $this->assertNull($bout->fresh()->winner_id);
+            }
+        }
+
+        // Con los 3 votos (la categoría usa 3 jueces por defecto) se guarda; un wazari solo no decide.
+        $winner = $scores->record($bout->fresh(), ['a_wazari' => 1, 'judge_votes' => ['shiro', 'shiro', 'aka']]);
+        $this->assertSame($bout->fresh()->slot_b_id, $winner, 'los jueces mandan sobre un wazari');
+    }
+
+    public function test_the_number_of_required_votes_follows_the_category_judges(): void
+    {
+        $category = $this->generated(4);
+        $category->forceFill(['referees' => 5])->save();
+        $bout = $this->bout($category, 1, 1);
+        $scores = app(ScoreRecorder::class);
+
+        $this->expectException(TournamentException::class);
+        try {
+            $scores->record($bout, ['judge_votes' => ['aka', 'aka', 'aka']]);
+        } finally {
+            $this->assertNull($bout->fresh()->winner_id);
+        }
+    }
+
+    public function test_ippon_and_abandonment_need_no_judges(): void
+    {
+        $category = $this->generated(4);
+        $scores = app(ScoreRecorder::class);
+
+        $this->assertSame($this->bout($category, 1, 1)->slot_a_id, $scores->record($this->bout($category, 1, 1), ['a_ippon' => true]));
+        $this->assertSame($this->bout($category, 1, 2)->slot_b_id, $scores->record($this->bout($category, 1, 2), ['abandoned_slot' => 'a']));
     }
 
     public function test_judge_majority_with_hikiwake_not_counting(): void

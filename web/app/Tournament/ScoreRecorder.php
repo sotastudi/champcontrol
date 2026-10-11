@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\DB;
  * Puntuación de un combate: wazari/ippon, abandono, votos de los jueces y faltas (1-4).
  * Las faltas solo se registran (no cambian el resultado). El ganador se deduce, por orden:
  * abandono (gana el otro) > ippon (2 wazari = 1 ippon; gana al instante) > mayoría de los jueces
- * (AKA = primer participante, SHIRO = segundo; el hikiwake no suma) > ventaja de wazari.
- * Si no se puede deducir (empate), el combate queda sin ganador para resolverlo a mano.
+ * (AKA = primer participante, SHIRO = segundo; el empate no suma). Sin ippon ni abandono es obligatorio el voto de todos
+ * los jueces de la categoría (2, 3 o 5; 3 si no se indica). Si los jueces empatan, el combate queda sin ganador para resolverlo a mano.
  */
 final class ScoreRecorder
 {
@@ -38,6 +38,8 @@ final class ScoreRecorder
         }
 
         $data = $this->normalise($score);
+        $data = $this->applyIpponVotes($bout, $data);
+        $this->assertJudgesVoted($bout, $data);
         $winnerSlot = $this->winnerSlot($data);
         $winnerId = $winnerSlot === null ? null : ($winnerSlot === 'a' ? $bout->slot_a_id : $bout->slot_b_id);
 
@@ -108,14 +110,37 @@ final class ScoreRecorder
         if ($aka !== $shiro) {
             return $aka > $shiro ? 'a' : 'b';
         }
-        if ($votes !== []) {
-            return null; // jueces empatados (o solo hikiwake): se resuelve a mano
+
+        return null; // jueces empatados (o todo empate): se resuelve a mano
+    }
+
+    /** Sin ippon ni abandono deciden los jueces: han de haber votado todos. */
+    private function assertJudgesVoted(Bout $bout, array $data): void
+    {
+        if ($data['abandoned_slot'] !== null || $data['a_ippon'] || $data['b_ippon']) {
+            return;
         }
 
-        if ($data['a_wazari'] !== $data['b_wazari']) {
-            return $data['a_wazari'] > $data['b_wazari'] ? 'a' : 'b';
+        $judges = $this->judgesFor($bout);
+        $voted = count(array_filter($data['judge_votes'] ?? [], fn ($v) => $v !== null));
+
+        if ($voted < $judges) {
+            throw new TournamentException("Faltan los votos de los jueces: marca la bandera de cada uno de los {$judges} jueces ({$voted} de {$judges}).");
+        }
+    }
+
+    /** Quien gana por ippon se lleva el voto de todos los jueces (AKA = bandera roja, SHIRO = bandera blanca). */
+    private function applyIpponVotes(Bout $bout, array $data): array
+    {
+        if ($data['abandoned_slot'] === null && ($data['a_ippon'] xor $data['b_ippon'])) {
+            $data['judge_votes'] = array_fill(0, $this->judgesFor($bout), $data['a_ippon'] ? JudgeVote::Aka->value : JudgeVote::Shiro->value);
         }
 
-        return null;
+        return $data;
+    }
+
+    private function judgesFor(Bout $bout): int
+    {
+        return in_array((int) $bout->category->referees, [2, 3, 5], true) ? (int) $bout->category->referees : 3;
     }
 }

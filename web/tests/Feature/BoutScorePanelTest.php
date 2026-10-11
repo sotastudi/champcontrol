@@ -29,6 +29,7 @@ class BoutScorePanelTest extends TestCase
     {
         [$user, $event, $category, $bout] = $this->setUpBracket();
 
+        // Con ippon gana al instante y todos los jueces quedan con su color.
         $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), [
             'a_wazari' => 1, 'b_wazari' => 0, 'a_ippon' => 0, 'b_ippon' => 1, 'a_warnings' => 1, 'b_warnings' => 0,
             'abandoned_slot' => '', 'judge_votes' => [0 => 'aka', 2 => 'shiro'],
@@ -36,8 +37,21 @@ class BoutScorePanelTest extends TestCase
 
         $bout->refresh();
         $this->assertSame($bout->slot_b_id, $bout->winner_id);
-        $this->assertSame(['aka', null, 'shiro'], $bout->judge_votes, 'se conserva la posición de cada juez');
+        $this->assertSame(['shiro', 'shiro', 'shiro'], $bout->judge_votes);
         $this->assertSame(1, $bout->a_warnings);
+    }
+
+    public function test_partial_judge_positions_are_kept_when_an_abandonment_decides(): void
+    {
+        [$user, $event, $category, $bout] = $this->setUpBracket();
+
+        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), [
+            'abandoned_slot' => 'b', 'judge_votes' => [0 => 'aka', 2 => 'shiro'],
+        ])->assertSessionHasNoErrors();
+
+        $bout->refresh();
+        $this->assertSame($bout->slot_a_id, $bout->winner_id);
+        $this->assertSame(['aka', null, 'shiro'], $bout->judge_votes, 'se conserva la posición de cada juez');
     }
 
     public function test_invalid_input_and_contradictions_show_an_error(): void
@@ -58,7 +72,8 @@ class BoutScorePanelTest extends TestCase
         $this->actingAs(User::factory()->create())->put(route('panel.bouts.score', [$event, $category, $bout]), [])->assertForbidden();
 
         $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
-        $this->assertStringContainsString('name="a_wazari" form="score-form-'.$bout->id.'"', $html, 'controles de W/I/F bajo cada participante');
+        $this->assertStringContainsString('name="a_wazari" id="score-form-'.$bout->id.'-a-w2" value="2" form="score-form-'.$bout->id.'"', $html, 'wazari 0-1-2 como botones bajo cada participante');
+        $this->assertStringNotContainsString('<select name="a_wazari"', $html, 'wazari ya no es un selector');
         $this->assertStringContainsString('class="collapse score-panel-'.$bout->id.' no-print small mt-1"', $html);
         $this->assertStringNotContainsString('<strong class="me-1"', $html, 'sin filas con la etiqueta de texto AKA (rojo)/SHIRO (blanco)');
         $this->assertStringContainsString('Juez 3', $html);
@@ -109,7 +124,7 @@ class BoutScorePanelTest extends TestCase
     {
         [$user, $event, $category, $bout] = $this->setUpBracket();
         $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_warnings' => 5])->assertSessionHasErrors('a_warnings');
-        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_warnings' => 4])->assertSessionHasNoErrors();
+        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_warnings' => 4, 'judge_votes' => ['aka', 'aka', 'shiro']])->assertSessionHasNoErrors();
     }
 
     public function test_aka_and_shiro_are_colour_chips_with_hidden_text_inside_the_box(): void
@@ -145,6 +160,7 @@ class BoutScorePanelTest extends TestCase
 
         $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
         $this->assertMatchesRegularExpression('#name="a_wazari".*?data-ippon-for=.*?name="a_warnings"#s', $html, 'orden W, I, F');
+        $this->assertStringContainsString('data-score-save', $html);
         $this->assertStringContainsString('data-wazari-for="score-form-'.$bout->id.'-a"', $html);
         $this->assertStringContainsString('data-ippon-for="score-form-'.$bout->id.'-a"', $html);
 
@@ -168,7 +184,7 @@ class BoutScorePanelTest extends TestCase
         $html = $show();
         $this->assertMatchesRegularExpression('#data-ippon-for="score-form-'.$bout->id.'-b"[^>]*disabled#', $html, 'ippon del rival bloqueado');
         $this->assertDoesNotMatchRegularExpression('#data-ippon-for="score-form-'.$bout->id.'-a"[^>]*disabled#', $html);
-        $this->assertMatchesRegularExpression('#name="b_wazari".*?<option value="2"[^>]*disabled#s', $html, '2 wazari del rival bloqueado');
+        $this->assertMatchesRegularExpression('#name="b_wazari" id="score-form-'.$bout->id.'-b-w2" value="2"[^>]*disabled#', $html, '2 wazari del rival bloqueado');
 
         // El servidor también lo impide aunque se manipule el formulario.
         $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_ippon' => 1, 'b_wazari' => 2])->assertSessionHasErrors('error');
@@ -176,7 +192,23 @@ class BoutScorePanelTest extends TestCase
         $this->assertSame(0, $bout->fresh()->b_wazari);
 
         // Rectificando al primero se desbloquea al otro.
-        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_ippon' => 0])->assertSessionHasNoErrors();
+        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_ippon' => 0, 'judge_votes' => ['aka', 'aka', 'aka']])->assertSessionHasNoErrors();
         $this->assertDoesNotMatchRegularExpression('#data-ippon-for="score-form-'.$bout->id.'-[ab]"[^>]*disabled#', $show());
+    }
+
+    public function test_saving_requires_every_judge_flag_unless_ippon_or_abandonment_decide(): void
+    {
+        [$user, $event, $category, $bout] = $this->setUpBracket();
+        $url = route('panel.bouts.score', [$event, $category, $bout]);
+
+        $this->actingAs($user)->put($url, ['a_wazari' => 1, 'judge_votes' => ['aka', 'aka']])->assertSessionHasErrors('error');
+        $this->assertSame(0, $bout->fresh()->a_wazari, 'no se guarda nada sin los votos');
+
+        $this->actingAs($user)->put($url, ['judge_votes' => ['aka', 'aka', 'shiro']])->assertSessionHasNoErrors();
+        $this->assertSame($bout->fresh()->slot_a_id, $bout->fresh()->winner_id);
+
+        $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
+        $this->assertStringContainsString('data-score-hint', $html);
+        $this->assertStringContainsString('Marca la bandera de cada juez', $html);
     }
 }

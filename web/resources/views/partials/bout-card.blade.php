@@ -44,11 +44,15 @@
                     {{-- Controles de wazari, ippon y falta de este participante: viven en el formulario de puntuación (atributo form). --}}
                     <div class="collapse {{ $scorePanel }} no-print small mt-1">
                         <div class="score-controls d-flex flex-column gap-1 align-items-start">
-                            <label>W
-                                <select name="{{ $slot }}_wazari" form="{{ $scoreForm }}" class="form-select form-select-sm d-inline-block w-auto" aria-label="Wazari" data-wazari-for="{{ $scoreForm }}-{{ $slot }}">
-                                    @foreach ([0, 1, 2] as $n)<option value="{{ $n }}" @selected($bout->{$slot.'_wazari'} === $n) @disabled($n === 2 && $opponentIppon)>{{ $n === 0 ? '—' : $n }}</option>@endforeach
-                                </select>
-                            </label>
+                            <div class="d-flex align-items-center gap-2">
+                                <span>W</span>
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Wazari">
+                                    @foreach ([0, 1, 2] as $n)
+                                        <input type="radio" class="btn-check" name="{{ $slot }}_wazari" id="{{ $scoreForm }}-{{ $slot }}-w{{ $n }}" value="{{ $n }}" form="{{ $scoreForm }}" data-wazari-for="{{ $scoreForm }}-{{ $slot }}" autocomplete="off" @checked($bout->{$slot.'_wazari'} === $n) @disabled($n === 2 && $opponentIppon)>
+                                        <label class="btn btn-outline-secondary" for="{{ $scoreForm }}-{{ $slot }}-w{{ $n }}">{{ $n }}</label>
+                                    @endforeach
+                                </div>
+                            </div>
                             <input type="hidden" name="{{ $slot }}_ippon" value="0" form="{{ $scoreForm }}">
                             <label class="form-check-label"><input type="checkbox" class="form-check-input" name="{{ $slot }}_ippon" value="1" form="{{ $scoreForm }}" id="{{ $scoreForm }}-{{ $slot }}-ippon" data-ippon-for="{{ $scoreForm }}-{{ $slot }}" @checked($bout->{$slot.'_ippon'}) @disabled($opponentIppon)> I (ippon)</label>
                             <label>F
@@ -97,7 +101,7 @@
         @endphp
         <div class="px-2 pb-2 no-print">
             <button type="button" class="btn btn-link btn-sm p-0 small" data-bs-toggle="collapse" data-bs-target=".{{ $scorePanel }}" aria-expanded="false">Puntuación</button>
-            <form id="{{ $scoreForm }}" method="POST" action="{{ route('panel.bouts.score', [$event, $category, $bout]) }}" class="collapse {{ $scorePanel }} small mt-2">
+            <form id="{{ $scoreForm }}" data-score-form method="POST" action="{{ route('panel.bouts.score', [$event, $category, $bout]) }}" class="collapse {{ $scorePanel }} small mt-2">
                 @csrf @method('PUT')
                 <div class="mb-1">
                     <label>Abandona
@@ -121,11 +125,12 @@
                     </div>
                 @endfor
                 <div class="d-flex align-items-center gap-2 mb-2">
-                    <button type="submit" class="btn btn-sm btn-outline-primary">Guardar puntuación</button>
+                    <button type="submit" class="btn btn-sm btn-outline-primary" data-score-save>Guardar puntuación</button>
+                    <small class="text-danger d-none" data-score-hint>Marca la bandera de cada juez (o ippon / abandono).</small>
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle fw-bold score-help-toggle" data-bs-toggle="collapse" data-bs-target="#score-help-{{ $bout->id }}" aria-expanded="false" aria-controls="score-help-{{ $bout->id }}" title="Más información" aria-label="Más información sobre la puntuación">?</button>
                 </div>
                 <div class="collapse" id="score-help-{{ $bout->id }}">
-                    <p class="text-muted mb-0">Jueces: bandera blanca <span class="flag flag-shiro flag-sm" aria-label="blanca"></span> = SHIRO, roja <span class="flag flag-aka flag-sm" aria-label="roja"></span> = AKA, bandera partida <span class="flag flag-hikiwake flag-sm" aria-label="empate"></span> = empate (pulsa otra vez para quitar el voto). 2 wazari = 1 ippon. El ippon gana al instante; si no, decide la mayoría de jueces (el empate no suma) y, sin jueces, la ventaja de wazari. Las faltas (F) solo se registran y solo las ve el organizador. En el cuadro: W = wazari, I = ippon, F = faltas.</p>
+                    <p class="text-muted mb-0">Jueces: bandera blanca <span class="flag flag-shiro flag-sm" aria-label="blanca"></span> = SHIRO, roja <span class="flag flag-aka flag-sm" aria-label="roja"></span> = AKA, bandera partida <span class="flag flag-hikiwake flag-sm" aria-label="empate"></span> = empate (pulsa otra vez para quitar el voto). 2 wazari = 1 ippon. El ippon gana al instante; si no, decide la mayoría de jueces (el empate no suma) y es obligatorio marcar la bandera de todos los jueces salvo con ippon o abandono. Las faltas (F) solo se registran y solo las ve el organizador. En el cuadro: W = wazari, I = ippon, F = faltas.</p>
                 </div>
             </form>
         </div>
