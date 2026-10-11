@@ -108,9 +108,12 @@
 .side-chip.is-open .side-text { max-width: 3.5rem; padding: 0 .3rem; }
 @media (hover: hover) { .side-chip:hover .side-text { max-width: 3.5rem; padding: 0 .3rem; } }
 .btn-icon { display: inline-flex; align-items: center; gap: .3rem; }
-/* El color principal es rojo: el azul y el amarillo de las acciones de la tabla de categorías se definen aparte. */
-.btn-blue { --bs-btn-color: #fff; --bs-btn-bg: #1f6feb; --bs-btn-border-color: #1f6feb; --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #1a5fcb; --bs-btn-hover-border-color: #1857be; --bs-btn-active-color: #fff; --bs-btn-active-bg: #1857be; --bs-btn-active-border-color: #154fad; --bs-btn-focus-shadow-rgb: 31, 111, 235; }
-.btn-yellow { --bs-btn-color: #3d3200; --bs-btn-bg: #f4d03f; --bs-btn-border-color: #e9c52e; --bs-btn-hover-color: #3d3200; --bs-btn-hover-bg: #efc425; --bs-btn-hover-border-color: #e0b81c; --bs-btn-active-color: #3d3200; --bs-btn-active-bg: #e0b81c; --bs-btn-active-border-color: #d1aa10; --bs-btn-focus-shadow-rgb: 244, 208, 63; }
+/* El color principal es rojo: el azul y el amarillo de las acciones de la tabla de categorías se definen aparte.
+   Como el resto de botones «outline»: fondo transparente, texto y borde de color; el relleno solo al pasar el cursor, pulsar o enfocar. */
+:root { --action-blue: #1f6feb; --action-blue-hover: #1a5fcb; --action-yellow: #a87b00; --action-yellow-fill: #f4d03f; }
+[data-bs-theme="dark"] { --action-blue: #5b9dff; --action-blue-hover: #3f86f5; --action-yellow: #f4d03f; --action-yellow-fill: #f4d03f; }
+.btn-blue { --bs-btn-color: var(--action-blue); --bs-btn-bg: transparent; --bs-btn-border-color: var(--action-blue); --bs-btn-hover-color: #fff; --bs-btn-hover-bg: var(--action-blue-hover); --bs-btn-hover-border-color: var(--action-blue-hover); --bs-btn-active-color: #fff; --bs-btn-active-bg: var(--action-blue-hover); --bs-btn-active-border-color: var(--action-blue-hover); --bs-btn-focus-shadow-rgb: 31, 111, 235; --bs-btn-disabled-color: var(--action-blue); --bs-btn-disabled-bg: transparent; --bs-btn-disabled-border-color: var(--action-blue); }
+.btn-yellow { --bs-btn-color: var(--action-yellow); --bs-btn-bg: transparent; --bs-btn-border-color: var(--action-yellow); --bs-btn-hover-color: #3d3200; --bs-btn-hover-bg: var(--action-yellow-fill); --bs-btn-hover-border-color: var(--action-yellow-fill); --bs-btn-active-color: #3d3200; --bs-btn-active-bg: var(--action-yellow-fill); --bs-btn-active-border-color: var(--action-yellow-fill); --bs-btn-focus-shadow-rgb: 244, 208, 63; --bs-btn-disabled-color: var(--action-yellow); --bs-btn-disabled-bg: transparent; --bs-btn-disabled-border-color: var(--action-yellow); }
 .tatami-order { position: relative; z-index: 2; } /* por encima del enlace extendido del bloque del tatami */
 .tatami-order.is-reordering li { cursor: grab; border: 1px dashed var(--bs-border-color); border-radius: .25rem; padding: .15rem .35rem; background: var(--bs-body-bg); }
 .tatami-order.is-reordering li.dragging { opacity: .45; }
