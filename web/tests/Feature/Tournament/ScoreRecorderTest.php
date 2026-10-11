@@ -78,8 +78,8 @@ class ScoreRecorderTest extends TestCase
         $this->assertSame($bout->slot_b_id, $winner);
         $this->assertSame(3, $bout->a_warnings);
 
-        [$bout, $winner] = $this->score(['a_warnings' => 9, 'judge_votes' => ['aka', 'aka', 'shiro']]);
-        $this->assertSame($bout->slot_a_id, $winner, 'las amonestaciones no cambian el ganador');
+        [$bout, $winner] = $this->score(['a_warnings' => 4, 'judge_votes' => ['aka', 'aka', 'shiro']]);
+        $this->assertSame($bout->slot_a_id, $winner, 'las faltas no cambian el ganador');
     }
 
     public function test_invalid_combinations_and_bouts_are_rejected(): void

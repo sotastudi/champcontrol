@@ -8,8 +8,8 @@ use App\Models\Bout;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Puntuación de un combate: wazari/ippon, abandono, votos de los jueces y amonestaciones.
- * Las amonestaciones solo se registran (no cambian el resultado). El ganador se deduce, por orden:
+ * Puntuación de un combate: wazari/ippon, abandono, votos de los jueces y faltas (1-4).
+ * Las faltas solo se registran (no cambian el resultado). El ganador se deduce, por orden:
  * abandono (gana el otro) > ippon (2 wazari = 1 ippon; gana al instante) > mayoría de los jueces
  * (AKA = primer participante, SHIRO = segundo; el hikiwake no suma) > ventaja de wazari.
  * Si no se puede deducir (empate), el combate queda sin ganador para resolverlo a mano.
@@ -61,7 +61,7 @@ final class ScoreRecorder
             $data["{$side}_wazari"] = $wazari;
             // 2 wazari = 1 ippon.
             $data["{$side}_ippon"] = (bool) ($score["{$side}_ippon"] ?? false) || $wazari >= self::MAX_WAZARI;
-            $data["{$side}_warnings"] = min(9, max(0, (int) ($score["{$side}_warnings"] ?? 0)));
+            $data["{$side}_warnings"] = min(4, max(0, (int) ($score["{$side}_warnings"] ?? 0)));
         }
 
         $abandoned = $score['abandoned_slot'] ?? null;

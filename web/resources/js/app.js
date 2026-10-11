@@ -5,6 +5,9 @@ import './judge-votes';
 
 window.bootstrap = bootstrap;
 
+// Colores AKA/SHIRO sin texto: el nombre aparece al pasar el cursor o al tocar (también con el teclado).
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => new bootstrap.Tooltip(el, { trigger: 'hover focus' }));
+
 const root = document.documentElement;
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 

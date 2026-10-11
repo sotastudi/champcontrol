@@ -67,7 +67,7 @@ class BoutScorePanelTest extends TestCase
         $this->assertStringNotContainsString('<select name="judge_votes', $html);
     }
 
-    public function test_public_page_shows_points_and_judges_but_never_the_warnings(): void
+    public function test_public_page_shows_points_and_judges_but_never_the_faltas(): void
     {
         [$user, $event, $category, $bout] = $this->setUpBracket();
         $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), [
@@ -76,7 +76,47 @@ class BoutScorePanelTest extends TestCase
         auth()->logout();
 
         $this->get(route('public.categories.show', [$event, $category]))
-            ->assertOk()->assertSee('Wazari AKA ×1')->assertSee('Jueces: AKA 2 · SHIRO 1 · hikiwake 0')
-            ->assertDontSee('amonest')->assertDontSee('name="a_warnings"', false);
+            ->assertOk()->assertSee('W:1')->assertSee('Jueces: AKA 2 · SHIRO 1 · hikiwake 0')
+            ->assertSee('W:1')->assertDontSee('F:4')->assertDontSee('Falta')->assertDontSee('name="a_warnings"', false);
+    }
+
+    public function test_participant_box_shows_w_i_and_f_marks_only_f_for_the_organizer(): void
+    {
+        [$user, $event, $category, $bout] = $this->setUpBracket();
+        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), [
+            'a_wazari' => 1, 'a_warnings' => 3, 'b_ippon' => 1, 'b_warnings' => 0, 'judge_votes' => [],
+        ])->assertSessionHasNoErrors();
+
+        $panel = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
+        $this->assertStringContainsString('W:1 F:3', $panel);
+        $this->assertMatchesRegularExpression('#score-marks">I</small>#', $panel);
+        $this->assertStringContainsString('<label>Falta', $panel);
+        $this->assertStringNotContainsString('Amonest', $panel);
+
+        auth()->logout();
+        $public = $this->get(route('public.categories.show', [$event, $category]))->getContent();
+        $this->assertStringContainsString('W:1', $public);
+        $this->assertStringNotContainsString('F:3', $public);
+        $this->assertMatchesRegularExpression('#score-marks">I</small>#', $public);
+    }
+
+    public function test_faltas_accept_only_0_to_4(): void
+    {
+        [$user, $event, $category, $bout] = $this->setUpBracket();
+        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_warnings' => 5])->assertSessionHasErrors('a_warnings');
+        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_warnings' => 4])->assertSessionHasNoErrors();
+    }
+
+    public function test_aka_and_shiro_are_colour_chips_with_a_tooltip_and_no_visible_text(): void
+    {
+        [$user, $event, $category] = $this->setUpBracket();
+
+        $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
+
+        $this->assertStringContainsString('class="side-chip side-aka"', $html);
+        $this->assertStringContainsString('class="side-chip side-shiro"', $html);
+        $this->assertStringContainsString('data-bs-title="AKA (rojo)"', $html);
+        $this->assertStringContainsString('data-bs-title="SHIRO (blanco)"', $html);
+        $this->assertDoesNotMatchRegularExpression('#class="badge[^"]*"[^>]*>\s*(AKA|SHIRO)\s*<#', $html, 'sin etiqueta de texto AKA/SHIRO');
     }
 }

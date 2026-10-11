@@ -16,7 +16,7 @@
         <div class="slot d-flex justify-content-between gap-2 {{ $registrationId && $registrationId === $bout->winner_id ? 'winner' : '' }}">
             <span class="{{ $registrationId ? '' : 'text-muted fst-italic' }}">
                 @if (! $bout->isBye())
-                    <span class="badge {{ $slot === 'a' ? 'text-bg-danger' : 'bg-light text-dark border' }}">{{ $slot === 'a' ? 'AKA' : 'SHIRO' }}</span>
+                    <span class="side-chip {{ $slot === 'a' ? 'side-aka' : 'side-shiro' }}" tabindex="0" role="img" data-bs-toggle="tooltip" data-bs-title="{{ $slot === 'a' ? 'AKA (rojo)' : 'SHIRO (blanco)' }}" aria-label="{{ $slot === 'a' ? 'AKA (rojo)' : 'SHIRO (blanco)' }}"></span>
                 @endif
                 @if ($registration?->competitor->bib_number)<small class="text-muted">{{ $registration->competitor->bibLabel() }}</small>@endif
                 {{ $names[$slot] ?? $empty }}
@@ -25,6 +25,16 @@
                 @endif
                 @if ($registration?->competitor->club)
                     <small class="d-block text-muted">{{ $registration->competitor->club }}</small>
+                @endif
+                @php
+                    // W: wazari (1-2), I: ippon, F: faltas (1-4, solo en el panel).
+                    $marks = [];
+                    if ($bout->{$slot.'_wazari'} > 0) { $marks[] = 'W:'.$bout->{$slot.'_wazari'}; }
+                    if ($bout->{$slot.'_ippon'}) { $marks[] = 'I'; }
+                    if ($editable && $bout->{$slot.'_warnings'} > 0) { $marks[] = 'F:'.$bout->{$slot.'_warnings'}; }
+                @endphp
+                @if ($marks)
+                    <small class="d-block fw-semibold score-marks">{{ implode(' ', $marks) }}</small>
                 @endif
             </span>
             @if ($editable && $canRecord && $bout->filledSlots() === 2 && ! $bout->isBye() && ! $bout->isWalkover())
@@ -41,11 +51,6 @@
     @endif
     @php
         $notes = [];
-        foreach (['a' => 'AKA', 'b' => 'SHIRO'] as $side => $label) {
-            if ($bout->{$side.'_ippon'}) { $notes[] = 'Ippon '.$label; }
-            elseif ($bout->{$side.'_wazari'} > 0) { $notes[] = 'Wazari '.$label.' ×'.$bout->{$side.'_wazari'}; }
-            if ($editable && $bout->{$side.'_warnings'} > 0) { $notes[] = '⚠ '.$bout->{$side.'_warnings'}.' amonest. '.$label; }
-        }
         if ($bout->abandoned_slot) { $notes[] = 'Abandona '.($bout->abandoned_slot === 'a' ? 'AKA' : 'SHIRO'); }
         if ($bout->judge_votes) {
             $tally = array_count_values(array_filter($bout->judge_votes, fn ($v) => $v !== null));
@@ -75,8 +80,10 @@
                         </label>
                         <input type="hidden" name="{{ $side }}_ippon" value="0">
                         <label class="form-check-label"><input type="checkbox" class="form-check-input" name="{{ $side }}_ippon" value="1" @checked($bout->{$side.'_ippon'})> Ippon</label>
-                        <label>Amonest.
-                            <input type="number" min="0" max="9" name="{{ $side }}_warnings" value="{{ $bout->{$side.'_warnings'} }}" class="form-control form-control-sm d-inline-block" style="width: 4rem">
+                        <label>Falta
+                            <select name="{{ $side }}_warnings" class="form-select form-select-sm d-inline-block w-auto">
+                                @foreach ([0, 1, 2, 3, 4] as $n)<option value="{{ $n }}" @selected($bout->{$side.'_warnings'} === $n)>{{ $n === 0 ? '—' : $n }}</option>@endforeach
+                            </select>
                         </label>
                     </div>
                 @endforeach
@@ -101,7 +108,7 @@
                         </div>
                     </div>
                 @endfor
-                <p class="text-muted mb-2">Jueces: bandera blanca = SHIRO, roja = AKA, blanca y roja = hikiwake (pulsa otra vez para quitar el voto). 2 wazari = 1 ippon. El ippon gana al instante; si no, decide la mayoría de jueces (el hikiwake no suma) y, sin jueces, la ventaja de wazari. Las amonestaciones solo se registran.</p>
+                <p class="text-muted mb-2">Jueces: bandera blanca = SHIRO, roja = AKA, blanca y roja = hikiwake (pulsa otra vez para quitar el voto). 2 wazari = 1 ippon. El ippon gana al instante; si no, decide la mayoría de jueces (el hikiwake no suma) y, sin jueces, la ventaja de wazari. Las faltas (F) solo se registran y solo las ve el organizador. En el cuadro: W = wazari, I = ippon, F = faltas.</p>
                 <button type="submit" class="btn btn-sm btn-outline-primary">Guardar puntuación</button>
             </form>
         </details>
