@@ -39,7 +39,7 @@
     <div class="alert alert-warning">Hay cambios posteriores en las inscripciones: resuélvelos manualmente según el reglamento.</div>
 @endif
 
-<div class="alert alert-info">Regla del bronce: <strong>DECISIÓN PENDIENTE</strong> (configurada: {{ $category->bronze_rule->label() }})</div>
+<div class="alert alert-info">Regla del bronce: {{ $category->bronze_rule->label() }}</div>
 
 @if ($confirmedCount === 1)
     <div class="alert alert-secondary">Solo hay un inscrito confirmado: la clasificación se resuelve manualmente según el reglamento.</div>

@@ -2,7 +2,7 @@
 
 Aplicación web ligera para organizar campeonatos de artes marciales: crear eventos y categorías, inscribir competidores, generar cuadros de eliminación, anotar combates y publicar clasificaciones.
 
-**Estado:** primera versión implementada en `web/`. Las funciones descritas abajo están implementadas, salvo las decisiones pendientes de confirmar: ver [docs/decisiones-pendientes.md](docs/decisiones-pendientes.md) (retiradas y descalificaciones, regla del bronce, etc.) y [docs/menores.md](docs/menores.md) (inscripción de menores).
+**Estado:** primera versión implementada en `web/`. Las funciones descritas abajo están implementadas, salvo las decisiones pendientes de confirmar: ver [docs/decisiones-pendientes.md](docs/decisiones-pendientes.md) (retiradas y descalificaciones, etc.; la regla del bronce está aprobada) y [docs/menores.md](docs/menores.md) (inscripción de menores).
 
 ## Objetivo y alcance
 
@@ -19,7 +19,7 @@ La primera versión cubre un flujo completo: **crear evento → definir categor�
 - **Listas:** inscritos por evento/categoría, pendientes, orden de combates y resultados; filtros, impresión desde el navegador y exportación CSV de inscritos y clasificaciones.
 - **Cuadros o diagramas:** eliminación directa por categoría, con emparejamiento aleatorio inicial, posibilidad de ajustar emparejamientos antes de empezar, rondas, pases automáticos (*byes*) y vista imprimible. El organizador confirma la generación; si cambian las inscripciones, puede regenerar el cuadro mientras no haya resultados.
 - **Combates:** número/orden, ronda, dos participantes y ganador. Se registran resultados uno a uno; el vencedor avanza automáticamente al siguiente combate. Una corrección exige editar el combate afectado y revisar los resultados dependientes antes de continuar.
-- **Clasificación y podio:** puestos 1.º, 2.º y 3.º; opción de mostrar también el 4.º. Para distinguir 3.º y 4.º se disputa un combate por el bronce entre quienes perdieron las semifinales. Si se elige un podio de tres puestos, se muestra solo el ganador de ese combate. Esta regla es una **propuesta inicial** y debe confirmarse según el reglamento de los campeonatos reales.
+- **Clasificación y podio:** puestos 1.º, 2.º y 3.º; opción de mostrar también el 4.º. Para distinguir 3.º y 4.º se disputa un combate por el bronce entre quienes perdieron las semifinales. Si se elige un podio de tres puestos, se muestra solo el ganador de ese combate. Esta regla está **aprobada**; por categoría puede elegirse también la alternativa de dos terceros sin combate.
 - **Publicación:** página pública de categorías, cuadros y resultados, controlada por el organizador. Un evento puede permanecer privado mientras se prepara.
 
 ### Fuera de la primera versión

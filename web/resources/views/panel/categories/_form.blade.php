@@ -12,6 +12,5 @@
 </div>
 <x-field name="level" label="Nivel" :value="$category?->level" />
 <x-select name="bronze_rule" label="Regla del bronce" :options="\App\Enums\BronzeRule::options()" :value="$category?->bronze_rule?->value ?? 'bronze_match'" required />
-<div class="alert alert-warning">La regla del bronce es una decisión pendiente: confírmala con el reglamento antes de generar el cuadro.</div>
 <x-check name="show_fourth" label="Mostrar también el 4.º puesto" :checked="$category?->show_fourth ?? false"
          help="Solo aplica con combate por el bronce." />
