@@ -121,9 +121,9 @@
 .tatami-order.is-reordering li.dragging { opacity: .45; }
 .tatami-order.is-reordering li.drop-target { border-style: solid; border-color: var(--bs-primary); }
 .tatami-order.is-reordering .reorder-handle, .tatami-order.is-reordering .reorder-buttons { display: inline-flex !important; }
-.user-chip .user-chip-text { max-width: 0; overflow: hidden; white-space: nowrap; transition: max-width .15s ease, margin .15s ease; }
-.user-chip.is-open .user-chip-text, .user-chip:focus-visible .user-chip-text { max-width: 9rem; margin-left: .4rem; }
-@media (hover: hover) { .user-chip:hover .user-chip-text { max-width: 9rem; margin-left: .4rem; } }
+.user-chip .user-chip-text { max-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; transition: max-width .15s ease, margin .15s ease; }
+.user-chip.is-open .user-chip-text, .user-chip:focus-visible .user-chip-text { max-width: 12rem; margin-left: .4rem; }
+@media (hover: hover) { .user-chip:hover .user-chip-text { max-width: 12rem; margin-left: .4rem; } }
 .sync-indicator { min-height: 2.25rem; }
 #sync-panel { position: fixed; top: 4rem; right: 1rem; z-index: 1080; max-width: 22rem; }
 .score-help-toggle { width: 1.6rem; height: 1.6rem; padding: 0; line-height: 1; font-size: .8rem; }

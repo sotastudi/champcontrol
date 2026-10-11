@@ -130,9 +130,9 @@
                 </ul>
             </div>
             {{-- Usuario: solo el icono; el texto aparece al pasar el cursor o al tocar (en tablet, un primer toque lo muestra y el segundo entra). --}}
-            <a class="btn btn-outline-secondary btn-sm d-flex align-items-center user-chip" href="{{ auth()->check() ? route('panel.events.index') : route('login') }}" aria-label="{{ auth()->check() ? 'Mi panel' : 'Iniciar sesión' }}" data-user-chip>
+            <a class="btn btn-outline-secondary btn-sm d-flex align-items-center user-chip" href="{{ auth()->check() ? route('panel.events.index') : route('login') }}" aria-label="{{ auth()->check() ? 'Mi panel ('.auth()->user()->name.')' : 'Iniciar sesión' }}" title="{{ auth()->check() ? 'Mi panel' : 'Iniciar sesión' }}" data-user-chip>
                 <svg width="18" height="18" aria-hidden="true"><use href="#user"/></svg>
-                <span class="user-chip-text">{{ auth()->check() ? 'Mi panel' : 'Iniciar sesión' }}</span>
+                <span class="user-chip-text">{{ auth()->check() ? auth()->user()->name : 'Iniciar sesión' }}</span>
             </a>
             @auth
                 {{-- Salir: icono; el texto aparece al pasar el cursor y, en pantallas táctiles, el primer toque lo muestra y el segundo sale. --}}
