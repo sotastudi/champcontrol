@@ -107,6 +107,8 @@
 .side-chip .side-text { max-width: 0; overflow: hidden; white-space: nowrap; font-size: .65rem; font-weight: 700; line-height: 1; transition: max-width .15s ease, padding .15s ease; }
 .side-chip.is-open .side-text { max-width: 3.5rem; padding: 0 .3rem; }
 @media (hover: hover) { .side-chip:hover .side-text { max-width: 3.5rem; padding: 0 .3rem; } }
+.event-poster { max-height: 34rem; object-fit: contain; background: var(--bs-secondary-bg); }
+.event-info .display-6 { line-height: 1.15; }
 .btn-icon { display: inline-flex; align-items: center; gap: .3rem; }
 /* En móvil, los botones «compactos» muestran solo el icono (el texto sigue en title/aria-label). */
 @media (max-width: 767.98px) {

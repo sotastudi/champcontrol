@@ -1,29 +1,59 @@
 @extends('layouts.app')
 @section('title', $event->name)
 @section('content')
-@if ($event->hasPoster())
-    <img src="{{ route('public.events.poster', $event) }}" alt="Póster de {{ $event->name }}" class="img-fluid rounded mb-3" style="max-height: 400px">
-@endif
-<h1 class="h3">{{ $event->name }}</h1>
-<p class="text-muted">{{ $event->discipline }} · {{ $event->starts_on->translatedFormat('j \d\e F \d\e Y') }} · {{ $event->venue }}</p>
-<span class="badge text-bg-secondary mb-3">{{ $event->status->label() }}</span>
-@if ($event->hasRulesPdf())
-    <p><a class="btn btn-outline-secondary btn-sm" href="{{ route('public.events.rules', $event) }}">Descargar normas (PDF)</a></p>
-@endif
-@if ($event->description)<p style="white-space: pre-line">{{ $event->description }}</p>@endif
-@if ($event->registration_opens_at || $event->registration_closes_at)
-    <p class="small text-muted mb-2">
-        Inscripciones
-        @if ($event->registration_opens_at)desde el {{ $event->registration_opens_at->translatedFormat('j \d\e F \d\e Y, H:i') }}@endif
-        @if ($event->registration_closes_at)hasta el {{ $event->registration_closes_at->translatedFormat('j \d\e F \d\e Y, H:i') }}@endif
-    </p>
-@endif
-@if ($event->acceptsPublicRegistrations())
-    <a class="btn btn-primary" href="{{ route('public.registration.create', $event) }}">Inscribirse</a>
-    @if (! empty($event->registrationDateNote()['countdown']))
-        <div style="max-width: 16rem">@include('partials.registration-countdown', ['closesAt' => $event->registration_closes_at])</div>
+<section class="event-hero row g-4 align-items-start mb-4">
+    @if ($event->hasPoster())
+        <div class="col-12 col-md-5 col-lg-4">
+            <img src="{{ route('public.events.poster', $event) }}" alt="Póster de {{ $event->name }}" class="img-fluid rounded shadow-sm w-100 event-poster">
+        </div>
     @endif
-@endif
+    <div class="col-12 {{ $event->hasPoster() ? 'col-md-7 col-lg-8' : '' }} event-info">
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            <span class="badge text-bg-dark">{{ $event->discipline }}</span>
+            <span class="badge text-bg-secondary">{{ $event->status->label() }}</span>
+        </div>
+        <h1 class="display-6 fw-bold mb-3">{{ $event->name }}</h1>
+
+        <ul class="list-unstyled event-facts mb-3">
+            <li class="d-flex align-items-start gap-2 mb-2">
+                <svg width="22" height="22" class="flex-shrink-0 text-body-secondary" aria-hidden="true"><use href="#calendar"/></svg>
+                <span><span class="d-block small text-uppercase text-muted">Fecha</span><strong>{{ $event->starts_on->translatedFormat('l, j \d\e F \d\e Y') }}</strong></span>
+            </li>
+            <li class="d-flex align-items-start gap-2 mb-2">
+                <svg width="22" height="22" class="flex-shrink-0 text-body-secondary" aria-hidden="true"><use href="#pin"/></svg>
+                <span><span class="d-block small text-uppercase text-muted">Lugar</span><strong>{{ $event->venue }}</strong></span>
+            </li>
+            @if ($event->registration_opens_at || $event->registration_closes_at)
+                <li class="d-flex align-items-start gap-2 mb-2">
+                    <svg width="22" height="22" class="flex-shrink-0 text-body-secondary" aria-hidden="true"><use href="#clock"/></svg>
+                    <span>
+                        <span class="d-block small text-uppercase text-muted">Inscripciones</span>
+                        <strong>
+                            @if ($event->registration_opens_at)desde el {{ $event->registration_opens_at->translatedFormat('j \d\e F \d\e Y, H:i') }}@endif
+                            @if ($event->registration_closes_at)hasta el {{ $event->registration_closes_at->translatedFormat('j \d\e F \d\e Y, H:i') }}@endif
+                        </strong>
+                    </span>
+                </li>
+            @endif
+        </ul>
+
+        @if ($event->description)<p class="mb-3" style="white-space: pre-line">{{ $event->description }}</p>@endif
+
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            @if ($event->acceptsPublicRegistrations())
+                <div>
+                    <a class="btn btn-primary btn-lg" href="{{ route('public.registration.create', $event) }}">Inscribirse</a>
+                    @if (! empty($event->registrationDateNote()['countdown']))
+                        @include('partials.registration-countdown', ['closesAt' => $event->registration_closes_at])
+                    @endif
+                </div>
+            @endif
+            @if ($event->hasRulesPdf())
+                <a class="btn btn-outline-secondary btn-icon" href="{{ route('public.events.rules', $event) }}"><svg width="16" height="16" aria-hidden="true"><use href="#download"/></svg> Descargar normas (PDF)</a>
+            @endif
+        </div>
+    </div>
+</section>
 @if ($event->rules_text)
     <h2 class="h5 mt-4">Normas</h2>
     <p style="white-space: pre-line">{{ $event->rules_text }}</p>

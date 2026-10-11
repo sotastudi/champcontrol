@@ -3,9 +3,14 @@
 namespace Tests\Feature;
 
 use App\Enums\EventStatus;
+use App\Models\Category;
 use App\Models\Event;
+use App\Models\Registration;
+use App\Tournament\BracketGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PublicEventTest extends TestCase
@@ -108,5 +113,35 @@ class PublicEventTest extends TestCase
 
         $this->get(route('public.events.show', $soon))->assertSee('Cierra en', false);
         $this->get(route('public.events.show', $far))->assertDontSee('Cierra en', false);
+    }
+
+    public function test_public_event_page_has_poster_left_data_right_then_tatamis_then_categories(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('posters/p.jpg', UploadedFile::fake()->image('p.jpg')->getContent());
+        $event = Event::factory()->create(['is_public' => true, 'status' => EventStatus::InProgress, 'name' => 'Copa Hero', 'venue' => 'Pabellón Norte', 'tatami_count' => 1]);
+        $event->forceFill(['poster_path' => 'posters/p.jpg'])->save();
+        $category = Category::factory()->for($event)->create(['name' => 'Cat Hero', 'tatami' => 1, 'is_published' => true]);
+        Registration::factory()->count(2)->confirmed()->forCategory($category)->create();
+        app(BracketGenerator::class)->generate($category);
+
+        $html = $this->seeResults($event)->get(route('public.events.show', $event))->assertOk()->getContent();
+
+        // Dos columnas: el póster primero (izquierda) y los datos después (derecha); en móvil se apilan.
+        $this->assertMatchesRegularExpression('#event-hero row.*?col-12 col-md-5 col-lg-4">\s*<img[^>]*event-poster.*?col-12 col-md-7 col-lg-8 event-info#s', $html);
+        foreach (['Fecha', 'Lugar'] as $label) {
+            $this->assertStringContainsString('text-uppercase text-muted">'.$label.'</span>', $html);
+        }
+        $this->assertStringContainsString('Pabellón Norte', $html);
+
+        // Debajo, primero los tatamis y luego las categorías.
+        $this->assertLessThan(strpos($html, 'Tatamis ahora'), strpos($html, 'event-info'));
+        $this->assertLessThan(strpos($html, 'Cuadros y resultados'), strpos($html, 'Tatamis ahora'));
+
+        // Sin póster, los datos ocupan todo el ancho.
+        $event->forceFill(['poster_path' => null])->save();
+        $without = $this->seeResults($event)->get(route('public.events.show', $event))->getContent();
+        $this->assertStringNotContainsString('event-poster', $without);
+        $this->assertStringNotContainsString('col-md-7 col-lg-8', $without);
     }
 }
