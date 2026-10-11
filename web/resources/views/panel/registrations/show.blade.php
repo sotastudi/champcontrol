@@ -76,6 +76,6 @@
         @endif
     @endforeach
     <a href="{{ route('panel.competitors.edit', [$event, $competitor]) }}" class="btn btn-yellow btn-icon btn-compact" title="Editar" aria-label="Editar"><svg width="16" height="16" aria-hidden="true"><use href="#pencil"/></svg> <span class="btn-label">Editar</span></a>
-    <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Imprimir</button>
+    <button type="button" class="btn btn-outline-secondary btn-icon" onclick="window.print()"><svg width="16" height="16" aria-hidden="true"><use href="#printer"/></svg> Imprimir</button>
 </div>
 @endsection

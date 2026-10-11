@@ -291,4 +291,18 @@ class RegistrationTest extends TestCase
             $this->assertStringContainsString('<symbol id="'.$icon.'"', $card);
         }
     }
+
+    public function test_print_buttons_have_a_printer_icon(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+        $category = Category::factory()->for($event)->create();
+        $registration = Registration::factory()->forCategory($category)->create();
+
+        foreach ([route('panel.registrations.index', $event), route('panel.registrations.show', [$event, $registration])] as $url) {
+            $html = $this->actingAs($user)->get($url)->getContent();
+            $this->assertMatchesRegularExpression('#class="btn btn-outline-secondary btn-icon" onclick="window.print\(\)"><svg[^>]*><use href="\#printer"/></svg> Imprimir</button>#', $html, $url);
+            $this->assertStringContainsString('<symbol id="printer"', $html);
+        }
+    }
 }

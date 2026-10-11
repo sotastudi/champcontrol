@@ -8,7 +8,7 @@
     </div>
     <div class="d-flex gap-2 no-print">
         <a href="{{ route('panel.exports.registrations', ['event' => $event] + $filters) }}" class="btn btn-outline-secondary">Exportar CSV</a>
-        <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Imprimir</button>
+        <button type="button" class="btn btn-outline-secondary btn-icon" onclick="window.print()"><svg width="16" height="16" aria-hidden="true"><use href="#printer"/></svg> Imprimir</button>
         <a href="{{ route('panel.registrations.create', $event) }}" class="btn btn-primary">Nueva inscripción</a>
     </div>
 </div>

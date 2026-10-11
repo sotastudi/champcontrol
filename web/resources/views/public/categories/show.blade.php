@@ -9,7 +9,7 @@
         @if ($category->tatami)<div class="mb-1"><span class="badge text-bg-secondary">Tatami {{ $category->tatami }}</span></div>@endif
         <div class="text-muted">{{ $event->name }}</div>
     </div>
-    <button type="button" class="btn btn-outline-secondary no-print" onclick="window.print()">Imprimir</button>
+    <button type="button" class="btn btn-outline-secondary btn-icon no-print" onclick="window.print()"><svg width="16" height="16" aria-hidden="true"><use href="#printer"/></svg> Imprimir</button>
 </div>
 
 @if (count($placements))

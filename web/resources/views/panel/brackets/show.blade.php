@@ -44,7 +44,7 @@
                     data-reset-message="Se borrarán los resultados y la puntuación de {{ $withResults }} {{ $withResults === 1 ? 'combate' : 'combates' }} de esta categoría y se retirará de las rondas siguientes a quienes avanzaron. El cuadro y los emparejamientos de la primera ronda se conservan."><svg width="16" height="16" aria-hidden="true"><use href="#undo"/></svg> Reiniciar resultados</button>
         @endif
         <a href="{{ route('panel.exports.standings', $event) }}" class="btn btn-outline-secondary">Exportar clasificación (CSV)</a>
-        <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Imprimir</button>
+        <button type="button" class="btn btn-outline-secondary btn-icon" onclick="window.print()"><svg width="16" height="16" aria-hidden="true"><use href="#printer"/></svg> Imprimir</button>
         @if ($bouts->isNotEmpty())
             <a href="{{ route('panel.brackets.pdf', [$event, $category]) }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-icon" title="Descargar el cuadro en PDF (A4 horizontal) para rellenar a mano" aria-label="Descargar el cuadro en PDF para rellenar a mano"><svg width="16" height="16" aria-hidden="true"><use href="#download"/></svg> PDF</a>
         @endif
