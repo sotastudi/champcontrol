@@ -67,6 +67,22 @@ window.addEventListener('afterprint', () => root.setAttribute('data-bs-theme', r
 
 // 2 wazari = 1 ippon y el ippon gana al instante: al elegir 2 wazari se marca el ippon y, con ippon marcado, se guarda la puntuación,
 // con lo que el participante queda como ganador. Al bajar de 2 wazari se desmarca el ippon si lo había marcado el propio selector.
+// Dos participantes que se enfrentan no pueden tener ambos ippon (ni 2 wazari): con ippon en uno, se bloquean ippon y 2 wazari del otro hasta que se rectifique.
+const syncIppon = (key) => {
+    const [base, side] = [key.slice(0, -2), key.slice(-1)];
+    const other = side === 'a' ? 'b' : 'a';
+    const mine = document.querySelector(`[data-ippon-for="${base}-${side}"]`);
+    const theirs = document.querySelector(`[data-ippon-for="${base}-${other}"]`);
+    const theirWazari = document.querySelector(`[data-wazari-for="${base}-${other}"]`);
+    if (!mine || !theirs) return;
+    const blockOther = mine.checked;
+    theirs.disabled = blockOther;
+    if (theirWazari) {
+        const two = [...theirWazari.options].find((o) => o.value === '2');
+        if (two) two.disabled = blockOther;
+    }
+};
+
 const submitScore = (control) => {
     const form = document.getElementById(control.getAttribute('form'));
     if (form && !form.dataset.submitting) {
@@ -83,16 +99,19 @@ document.addEventListener('change', (event) => {
         if (select.value === '2') {
             if (!ippon.checked) ippon.dataset.auto = '1';
             ippon.checked = true;
+            syncIppon(select.dataset.wazariFor);
             submitScore(select);
         } else if (ippon.dataset.auto === '1') {
             ippon.checked = false;
             ippon.dataset.auto = '';
+            syncIppon(select.dataset.wazariFor);
         }
         return;
     }
 
     const ippon = event.target.closest('[data-ippon-for]');
-    if (ippon && ippon.checked) {
-        submitScore(ippon);
+    if (ippon) {
+        syncIppon(ippon.dataset.ipponFor);
+        if (ippon.checked) submitScore(ippon);
     }
 });

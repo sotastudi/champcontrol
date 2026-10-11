@@ -39,17 +39,18 @@
                 @if ($marks)
                     <small class="d-block fw-semibold score-marks">{{ implode(' ', $marks) }}</small>
                 @endif
+                @php $opponentIppon = (bool) $bout->{($slot === 'a' ? 'b' : 'a').'_ippon'}; @endphp
                 @if ($scorable)
                     {{-- Controles de wazari, ippon y falta de este participante: viven en el formulario de puntuación (atributo form). --}}
                     <div class="collapse {{ $scorePanel }} no-print small mt-1">
                         <div class="score-controls d-flex flex-column gap-1 align-items-start">
                             <label>W
                                 <select name="{{ $slot }}_wazari" form="{{ $scoreForm }}" class="form-select form-select-sm d-inline-block w-auto" aria-label="Wazari" data-wazari-for="{{ $scoreForm }}-{{ $slot }}">
-                                    @foreach ([0, 1, 2] as $n)<option value="{{ $n }}" @selected($bout->{$slot.'_wazari'} === $n)>{{ $n === 0 ? '—' : $n }}</option>@endforeach
+                                    @foreach ([0, 1, 2] as $n)<option value="{{ $n }}" @selected($bout->{$slot.'_wazari'} === $n) @disabled($n === 2 && $opponentIppon)>{{ $n === 0 ? '—' : $n }}</option>@endforeach
                                 </select>
                             </label>
                             <input type="hidden" name="{{ $slot }}_ippon" value="0" form="{{ $scoreForm }}">
-                            <label class="form-check-label"><input type="checkbox" class="form-check-input" name="{{ $slot }}_ippon" value="1" form="{{ $scoreForm }}" id="{{ $scoreForm }}-{{ $slot }}-ippon" data-ippon-for="{{ $scoreForm }}-{{ $slot }}" @checked($bout->{$slot.'_ippon'})> I (ippon)</label>
+                            <label class="form-check-label"><input type="checkbox" class="form-check-input" name="{{ $slot }}_ippon" value="1" form="{{ $scoreForm }}" id="{{ $scoreForm }}-{{ $slot }}-ippon" data-ippon-for="{{ $scoreForm }}-{{ $slot }}" @checked($bout->{$slot.'_ippon'}) @disabled($opponentIppon)> I (ippon)</label>
                             <label>F
                                 <select name="{{ $slot }}_warnings" form="{{ $scoreForm }}" class="form-select form-select-sm d-inline-block w-auto" aria-label="Falta">
                                     @foreach ([0, 1, 2, 3, 4] as $n)<option value="{{ $n }}" @selected($bout->{$slot.'_warnings'} === $n)>{{ $n === 0 ? '—' : $n }}</option>@endforeach

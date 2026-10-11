@@ -151,4 +151,29 @@ class BoutScorePanelTest extends TestCase
         $this->assertTrue($bout->b_ippon);
         $this->assertSame($bout->slot_b_id, $bout->winner_id);
     }
+
+    public function test_when_one_participant_has_ippon_the_opponents_ippon_and_two_wazari_are_blocked(): void
+    {
+        [$user, $event, $category, $bout] = $this->setUpBracket();
+        $show = fn () => $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
+
+        // Sin ippon: nada bloqueado en este combate.
+        $html = $show();
+        $this->assertDoesNotMatchRegularExpression('#data-ippon-for="score-form-'.$bout->id.'-[ab]"[^>]*disabled#', $html);
+
+        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_ippon' => 1])->assertSessionHasNoErrors();
+        $html = $show();
+        $this->assertMatchesRegularExpression('#data-ippon-for="score-form-'.$bout->id.'-b"[^>]*disabled#', $html, 'ippon del rival bloqueado');
+        $this->assertDoesNotMatchRegularExpression('#data-ippon-for="score-form-'.$bout->id.'-a"[^>]*disabled#', $html);
+        $this->assertMatchesRegularExpression('#name="b_wazari".*?<option value="2"[^>]*disabled#s', $html, '2 wazari del rival bloqueado');
+
+        // El servidor también lo impide aunque se manipule el formulario.
+        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_ippon' => 1, 'b_wazari' => 2])->assertSessionHasErrors('error');
+        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_wazari' => 2, 'b_ippon' => 1])->assertSessionHasErrors('error');
+        $this->assertSame(0, $bout->fresh()->b_wazari);
+
+        // Rectificando al primero se desbloquea al otro.
+        $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_ippon' => 0])->assertSessionHasNoErrors();
+        $this->assertDoesNotMatchRegularExpression('#data-ippon-for="score-form-'.$bout->id.'-[ab]"[^>]*disabled#', $show());
+    }
 }
