@@ -68,4 +68,30 @@ class Category extends Model
 
         return $problems;
     }
+
+    public function bouts(): HasMany
+    {
+        return $this->hasMany(Bout::class);
+    }
+
+    /** Resultados reales (los pases automáticos no cuentan). */
+    public function hasResults(): bool
+    {
+        return $this->bouts()->where('required_participants', 2)->whereNotNull('winner_id')->exists();
+    }
+
+    /** El cuadro ya no refleja las inscripciones confirmadas (o la regla del bronce): hay que regenerarlo. */
+    public function bracketIsStale(): bool
+    {
+        $bouts = $this->bouts()->get();
+        if ($bouts->isEmpty()) {
+            return false;
+        }
+
+        $inBracket = $bouts->where('round', 1)->flatMap(fn (Bout $b) => [$b->slot_a_id, $b->slot_b_id])->filter()->sort()->values()->all();
+        $confirmed = $this->registrations()->where('status', 'confirmed')->orderBy('id')->pluck('id')->all();
+        $expectsBronze = $this->bronze_rule === BronzeRule::BronzeMatch && $bouts->max('round') >= 2;
+
+        return $inBracket !== $confirmed || $bouts->contains('is_bronze', true) !== $expectsBronze;
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Bout;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\Registration;
@@ -71,8 +72,10 @@ class OrganizerIsolationTest extends TestCase
 
         $registration = Registration::factory()->forCategory($category)->create();
 
+        $bout = Bout::create(['category_id' => $category->id, 'round' => 1, 'position' => 1]);
+
         return [
-            'event' => $event->id, 'category' => $category->id,
+            'event' => $event->id, 'category' => $category->id, 'bout' => $bout->id,
             'registration' => $registration->id, 'competitor' => $registration->competitor_id,
         ];
     }

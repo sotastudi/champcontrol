@@ -46,6 +46,12 @@ final class RegistrationService
 
     public function changeStatus(Registration $registration, RegistrationStatus $status): void
     {
+        if ($status !== RegistrationStatus::Confirmed
+            && $registration->category->hasResults()
+            && $registration->isInBracket()) {
+            throw new RegistrationException('El cuadro ya tiene resultados: la baja de este participante debe resolverse manualmente según el reglamento.');
+        }
+
         $registration->update(['status' => $status]);
     }
 

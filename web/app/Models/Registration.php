@@ -31,6 +31,11 @@ class Registration extends Model
         return $this->belongsTo(Competitor::class);
     }
 
+    public function isInBracket(): bool
+    {
+        return Bout::where(fn ($q) => $q->where('slot_a_id', $this->id)->orWhere('slot_b_id', $this->id))->exists();
+    }
+
     public function scopeFilter(Builder $query, array $filters): void
     {
         $query
