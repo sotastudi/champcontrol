@@ -58,11 +58,11 @@ Los competidores no necesitan cuenta para la primera versión. El formulario pú
 | Entidad | Datos principales | Relación |
 | --- | --- | --- |
 | `users` | nombre, email, contraseña | Organizador propietario de eventos. |
-| `events` | `user_id`, nombre, disciplina, fecha, lugar, estado, visibilidad | Tiene categorías. |
-| `categories` | `event_id`, nombre, criterios, tipo de podio, estado del cuadro | Pertenece a un evento. |
-| `competitors` | nombre, apellidos, club, datos privados mínimos | Puede inscribirse en varios eventos. |
+| `events` | `user_id`, nombre, disciplina, fecha, lugar, estado, visibilidad, reglas del campeonato, criterio de sorteo, tatamis, ventana de inscripción, póster, normas (texto y PDF) | Tiene categorías. |
+| `categories` | `event_id`, nombre, criterios, tipo de podio, criterio de sorteo propio, tatami, jueces, estado del cuadro | Pertenece a un evento. |
+| `competitors` | nombre, apellidos, club, sexo, nivel, número de competidor, foto y datos privados mínimos (incluido el representante legal) | Puede inscribirse en varios eventos. |
 | `registrations` | `event_id`, `category_id`, `competitor_id`, estado | Inscripción única por competidor, evento y categoría. |
-| `matches` | `category_id`, ronda, posición, participante A/B, ganador, estado | Modela el cuadro y el avance entre rondas. |
+| `bouts` (combates) | `category_id`, ronda, posición, participante A (AKA) / B (SHIRO), ganador, wazari/ippon, abandono, votos de jueces, amonestaciones | Modela el cuadro y el avance entre rondas. |
 
 Los resultados y asignaciones de combate deben persistirse en base de datos; no deben depender del HTML del diagrama. Las relaciones entre combates (destino del ganador y, cuando proceda, de los perdedores de semifinal) se definirán explícitamente al implementar el generador. Se usarán migraciones, índices y claves foráneas. Las autorizaciones se comprobarán en cada operación sobre recursos de un evento, no solo al mostrar botones.
 
