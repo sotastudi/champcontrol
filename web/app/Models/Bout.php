@@ -21,6 +21,9 @@ class Bout extends Model
             'winner_id' => 'integer',
             'next_bout_id' => 'integer',
             'loser_next_bout_id' => 'integer',
+            'a_ippon' => 'boolean',
+            'b_ippon' => 'boolean',
+            'judge_votes' => 'array',
         ];
     }
 

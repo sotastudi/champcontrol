@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Panel\BoutResultController;
+use App\Http\Controllers\Panel\BoutScoreController;
 use App\Http\Controllers\Panel\BracketController;
 use App\Http\Controllers\Panel\CategoryController;
 use App\Http\Controllers\Panel\CompetitorController;
@@ -71,6 +72,7 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::post('categorias/{category}/cuadro', [BracketController::class, 'store'])->name('brackets.store');
         Route::post('categorias/{category}/cuadro/intercambio', [BracketController::class, 'swap'])->name('brackets.swap');
         Route::put('categorias/{category}/combates/{bout}/resultado', [BoutResultController::class, 'update'])->name('bouts.result');
+        Route::put('categorias/{category}/combates/{bout}/puntuacion', [BoutScoreController::class, 'update'])->name('bouts.score');
         Route::post('categorias/{category}/bajas', [WithdrawalController::class, 'store'])->name('withdrawals.store');
         Route::patch('categorias/{category}/publicacion', [PublicationController::class, 'toggle'])->name('categories.publication');
         Route::get('exportar/clasificacion.csv', [ExportController::class, 'standings'])->name('exports.standings');
