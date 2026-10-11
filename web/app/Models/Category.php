@@ -82,6 +82,15 @@ class Category extends Model
         return $problems;
     }
 
+    /** Criterios que el formulario de inscripción comprueba en el navegador (mismos que mismatchesFor). */
+    public function fitRules(): array
+    {
+        return [
+            'min_age' => $this->min_age, 'max_age' => $this->max_age, 'sex' => $this->sex?->value,
+            'min_weight' => $this->min_weight, 'max_weight' => $this->max_weight,
+        ];
+    }
+
     public function bouts(): HasMany
     {
         return $this->hasMany(Bout::class);

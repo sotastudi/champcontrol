@@ -46,6 +46,7 @@ class RegistrationController extends Controller
         return view('panel.registrations.create', [
             'event' => $event,
             'categories' => $event->categories()->orderBy('name')->pluck('name', 'id')->all(),
+            'categoryModels' => $event->categories()->get(),
         ]);
     }
 

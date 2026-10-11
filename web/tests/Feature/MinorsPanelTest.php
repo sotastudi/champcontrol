@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\EventStatus;
 use App\Models\Category;
 use App\Models\Competitor;
 use App\Models\Event;
@@ -134,5 +135,27 @@ class MinorsPanelTest extends TestCase
         $competitor = new Competitor(['birth_date' => '2030-01-01']);
 
         $this->assertSame(['Fecha de nacimiento posterior a la fecha del evento'], $category->mismatchesFor($competitor));
+    }
+
+    public function test_forms_expose_data_for_the_guardian_toggle_and_category_fit_check(): void
+    {
+        [$user, $event, $category] = $this->setUpEvent();
+        $category->forceFill(['min_age' => 8, 'max_age' => 12, 'min_weight' => 30, 'max_weight' => 40])->save();
+        $competitor = Competitor::factory()->for($event)->create();
+
+        $create = $this->actingAs($user)->get(route('panel.registrations.create', $event));
+        $create->assertSee('data-registration-form', false)
+            ->assertSee('data-event-date="2026-11-20"', false)
+            ->assertSee('data-adult-age="18"', false)
+            ->assertSee('data-guardian-section', false)
+            ->assertSee('data-category-fit', false)
+            ->assertSee('&quot;min_age&quot;:8', false);
+
+        $this->actingAs($user)->get(route('panel.competitors.edit', [$event, $competitor]))
+            ->assertSee('data-registration-form', false)->assertSee('data-guardian-section', false);
+
+        $event->forceFill(['is_public' => true, 'registration_form_enabled' => true, 'status' => EventStatus::RegistrationOpen])->save();
+        $this->get(route('public.registration.create', $event))
+            ->assertSee('data-guardian-section', false)->assertSee('&quot;max_weight&quot;:40', false);
     }
 }

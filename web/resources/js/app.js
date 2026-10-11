@@ -1,5 +1,7 @@
 import * as bootstrap from 'bootstrap';
 
+import './registration-form';
+
 window.bootstrap = bootstrap;
 
 const root = document.documentElement;
