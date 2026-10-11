@@ -22,11 +22,17 @@ La primera versión cubre un flujo completo: **crear evento → definir categor�
 - **Clasificación y podio:** puestos 1.º, 2.º y 3.º; opción de mostrar también el 4.º. Para distinguir 3.º y 4.º se disputa un combate por el bronce entre quienes perdieron las semifinales. Si se elige un podio de tres puestos, se muestra solo el ganador de ese combate. Esta regla está **aprobada**; por categoría puede elegirse también la alternativa de dos terceros sin combate.
 - **Retiradas y descalificaciones:** con el campeonato en marcha (ya hay resultados), el organizador registra una baja con motivo privado. Los combates pendientes del participante se dan por ganados al rival por incomparecencia. El retirado conserva su puesto; el descalificado sale del podio y del CSV y el puesto queda vacante para resolver según el reglamento.
 - **Reglas del campeonato por evento:** en el formulario del evento se eligen cuatro reglas dudosas (puesto vacante o no del descalificado, puesto del retirado que no llegó a combatir, regla del bronce por defecto y si se admite la baja antes de los resultados). Los valores por defecto reproducen el comportamiento descrito arriba. Ver [docs/decisiones-pendientes.md](docs/decisiones-pendientes.md).
+- **Puntuación del combate:** cada combate admite wazari (2 wazari = 1 ippon), ippon (gana al instante), abandono (gana el otro), el voto de cada juez con tres botones de bandera (blanca = SHIRO, roja = AKA, blanca y roja = hikiwake/empate) y amonestaciones (faltas graves). El ganador se deduce, por orden: abandono, ippon, mayoría de jueces y ventaja de wazari; si los jueces empatan, queda sin ganador para resolverlo a mano con «Gana». AKA es el primer participante del combate y SHIRO el segundo. Las amonestaciones solo se registran y son privadas.
+- **Tatamis y jueces:** el evento define cuántos tatamis hay; cada categoría se asigna a un tatami y a una configuración de jueces (2, 3 o 5; máximo 5: 4 esquinas + 1 central). No hay calendario ni reparto automático de combates.
+- **Inscripciones por fechas:** el evento puede fijar inicio y cierre de inscripciones con hora; fuera de esa ventana el formulario público no acepta inscripciones (el alta manual del organizador sí).
+- **Números de competidor:** con las inscripciones cerradas, el botón «Asignar números de competidor» numera a los confirmados agrupando por club (orden alfabético, sin club al final) y por apellidos dentro del club. El número aparece en la lista, la ficha, el CSV y el cuadro.
+- **Documentos del evento:** póster (se muestra en la portada y en la página del evento), normas en texto y PDF descargable. Los ficheros se guardan en disco privado y se sirven por rutas propias; no hace falta `storage:link`.
+- **Foto del participante:** opcional y privada; solo la ve el organizador (ficha y edición).
 - **Publicación:** página pública de categorías, cuadros y resultados, controlada por el organizador. Un evento puede permanecer privado mientras se prepara.
 
 ### Fuera de la primera versión
 
-Pagos de inscripción, marcadores en directo, tatamis simultáneos, calendarios automáticos, rankings, clasificación por equipos, cabezas de serie, liguillas, doble eliminación, reglas de puntuación específicas de cada disciplina, aplicación móvil nativa y permisos para equipos de organizadores. Se podrán añadir tras validar el flujo básico con un campeonato real.
+Pagos de inscripción, marcadores en directo, calendario o reparto automático de combates por tatami, rankings, clasificación por equipos, cabezas de serie, liguillas, doble eliminación, reglas de puntuación específicas de cada federación (solo hay wazari/ippon, jueces y amonestaciones sin sanciones automáticas), aplicación móvil nativa y permisos para equipos de organizadores. Se podrán añadir tras validar el flujo básico con un campeonato real.
 
 ## Reglas de funcionamiento
 
@@ -97,6 +103,8 @@ npm run dev
 En MAMP PRO, crear el host `champcontrol.test` y apuntar el **DocumentRoot a `champcontrol/web/public`**. Activar `mod_rewrite` y permitir las reglas `.htaccess` de Laravel. No mover `public/index.php`. La configuración de correo puede usar `MAIL_MAILER=log` hasta configurar SMTP para recuperar contraseñas.
 
 Pruebas y estilo: `php artisan test` y `vendor/bin/pint --test`.
+
+Datos de prueba para el sorteo: `php artisan champcontrol:demo-inscritos ID_CATEGORIA --count=12` crea inscritos ficticios (marcados «DEMO») solo con los datos obligatorios; con `--extras` añade club y peso (`--clubs=3` limita los clubes), con `--pending=N` deja N pendientes, con `--seed=1` repite los datos y con `--clean` borra los de prueba. Se niega a actuar en producción (salvo `--force`) y en categorías con resultados o bajas.
 
 ## Despliegue básico en Apache
 El servidor debe tener PHP 8.4 con las extensiones requeridas por Laravel, Composer disponible para instalar dependencias, MySQL, y permisos de escritura para storage/ y bootstrap/cache/. Configurar el host Apache para servir exclusivamente public/, subir el código sin .env, crear un .env propio en el servidor, instalar dependencias con composer install --no-dev, ejecutar las migraciones y compilar los recursos antes o durante el despliegue. Ajustar APP_ENV=production, APP_DEBUG=false, APP_URL con HTTPS y configurar copias de seguridad de base de datos.

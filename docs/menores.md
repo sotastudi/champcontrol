@@ -9,6 +9,8 @@
 - **Panel:** la lista de inscripciones marca con «Menor» a los menores en la fecha del evento y avisa con «Menor sin datos de representante» cuando faltan. El CSV de inscritos incluye las columnas `Menor`, `Representante`, `Contacto representante` y `Consentimiento`.
 - **Privacidad:** los datos del representante son **privados**: solo los ve el organizador del evento (panel y CSV). Las páginas públicas muestran únicamente nombre, club, categoría, cuadro y resultado; tampoco publican fecha de nacimiento ni datos de contacto.
 
+- **Foto:** la foto opcional del participante (también de un menor) es un dato privado: solo la ve el organizador y no se publica ni se enlaza desde ninguna página pública. Hoy no hay un consentimiento específico para la imagen del menor.
+
 ## Qué NO hace el sistema
 
 - **No verifica la identidad** de quien rellena el formulario ni que sea realmente el representante legal del menor: la casilla es una declaración, no una prueba.
@@ -24,3 +26,4 @@ Los textos y criterios siguientes **no están validados**; esta lista son cuesti
 4. **Conservación y borrado:** durante cuánto tiempo se guardan los datos del representante y cómo se eliminan.
 5. **Edad de consentimiento digital:** en España se sitúa, según lo previsto, en 14 años; **verificar con asesoría legal** y decidir si `ADULT_AGE` o el flujo deben distinguir tramos.
 6. **Verificación de que quien consiente es el representante** (por ejemplo, documento firmado o comprobación posterior), dado que el sistema no la hace.
+7. **Imagen del menor:** si se admite la foto de un menor, definir la base legal y el texto de consentimiento específico, y cuánto tiempo se conserva (hoy se borra al eliminar el evento).
