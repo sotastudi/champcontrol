@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 #[Fillable(['name', 'discipline', 'description', 'starts_on', 'venue', 'status', 'is_public', 'registration_form_enabled',
@@ -93,6 +94,11 @@ class Event extends Model
     public function unfoughtWithdrawalRule(): UnfoughtWithdrawalRule
     {
         return $this->unfought_withdrawal_rule ?? UnfoughtWithdrawalRule::KeepPlace;
+    }
+
+    public function hasPoster(): bool
+    {
+        return filled($this->poster_path) && Storage::disk('local')->exists($this->poster_path);
     }
 
     public function drawCriteria(): DrawCriteria

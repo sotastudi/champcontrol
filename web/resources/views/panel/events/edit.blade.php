@@ -2,7 +2,7 @@
 @section('title', 'Editar evento')
 @section('content')
 <h1 class="h3 mb-3">Editar evento</h1>
-<form method="POST" action="{{ route('panel.events.update', $event) }}">
+<form method="POST" enctype="multipart/form-data" action="{{ route('panel.events.update', $event) }}">
     @csrf
     @method('PUT')
     @include('panel.events._form')

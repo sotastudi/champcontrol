@@ -8,7 +8,9 @@ use App\Http\Requests\EventRequest;
 use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EventController extends Controller
 {
@@ -26,7 +28,8 @@ class EventController extends Controller
 
     public function store(EventRequest $request): RedirectResponse
     {
-        $event = $request->user()->events()->create($request->validated());
+        $event = $request->user()->events()->create($request->safe()->except(['poster', 'remove_poster']));
+        $this->savePoster($request, $event);
 
         return redirect()->route('panel.events.show', $event)->with('status', 'Evento creado.');
     }
@@ -45,15 +48,43 @@ class EventController extends Controller
 
     public function update(EventRequest $request, Event $event): RedirectResponse
     {
-        $event->update($request->validated());
+        $event->update($request->safe()->except(['poster', 'remove_poster']));
+        $this->savePoster($request, $event);
 
         return redirect()->route('panel.events.show', $event)->with('status', 'Evento actualizado.');
     }
 
     public function destroy(Event $event): RedirectResponse
     {
+        $this->deletePoster($event);
         $event->delete();
 
         return redirect()->route('panel.events.index')->with('status', 'Evento eliminado.');
+    }
+
+    /** El póster se guarda en el disco privado y se sirve por una ruta propia (solo si el evento es público). */
+    public function poster(Event $event): StreamedResponse
+    {
+        abort_unless($event->hasPoster(), 404);
+
+        return Storage::disk('local')->response($event->poster_path, null, ['X-Content-Type-Options' => 'nosniff']);
+    }
+
+    private function savePoster(EventRequest $request, Event $event): void
+    {
+        if ($request->hasFile('poster')) {
+            $this->deletePoster($event);
+            $event->forceFill(['poster_path' => $request->file('poster')->store('posters', 'local')])->save();
+        } elseif ($request->boolean('remove_poster')) {
+            $this->deletePoster($event);
+            $event->forceFill(['poster_path' => null])->save();
+        }
+    }
+
+    private function deletePoster(Event $event): void
+    {
+        if (filled($event->poster_path)) {
+            Storage::disk('local')->delete($event->poster_path);
+        }
     }
 }

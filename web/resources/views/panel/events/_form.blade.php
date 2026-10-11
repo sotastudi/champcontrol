@@ -4,6 +4,18 @@
 <x-field name="starts_on" type="date" label="Fecha" :value="$event?->starts_on?->format('Y-m-d')" required />
 <x-field name="venue" label="Lugar" :value="$event?->venue" required />
 <x-textarea name="description" label="Descripción" :value="$event?->description" />
+<div class="mb-3">
+    <label for="poster" class="form-label">Póster del evento</label>
+    @if ($event?->hasPoster())
+        <div class="mb-2"><img src="{{ route('panel.events.poster', $event) }}?v={{ $event->updated_at?->timestamp }}" alt="Póster actual" class="img-thumbnail" style="max-height: 12rem"></div>
+    @endif
+    <input type="file" id="poster" name="poster" accept="image/jpeg,image/png,image/webp" class="form-control @error('poster') is-invalid @enderror">
+    <div class="form-text">JPG, PNG o WebP, máximo 4 MB. Se muestra en la portada y en la página pública del evento.</div>
+    @error('poster')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    @if ($event?->hasPoster())
+        <x-check name="remove_poster" label="Quitar el póster actual" :checked="false" />
+    @endif
+</div>
 <x-select name="status" label="Estado" :options="\App\Enums\EventStatus::options()" :value="$event?->status?->value ?? 'draft'" required />
 <x-check name="is_public" label="Evento público" :checked="$event?->is_public ?? false"
          help="Un evento público y no en borrador aparece en la portada y tiene página pública." />
