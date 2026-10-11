@@ -110,7 +110,10 @@ class BoutScorePanelTest extends TestCase
         $panel = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
         $this->assertStringContainsString('W:1 F:3', $panel);
         $this->assertMatchesRegularExpression('#score-marks">I</small>#', $panel);
-        $this->assertStringContainsString('name="a_warnings" form="score-form-'.$bout->id.'"', $panel);
+        $this->assertStringContainsString('name="a_warnings" id="score-form-'.$bout->id.'-a-warnings" form="score-form-'.$bout->id.'"', $panel);
+        foreach (['Wazari', 'Ippon', 'Falta'] as $label) {
+            $this->assertMatchesRegularExpression('#score-field-label"[^>]*>'.$label.'<#', $panel, 'nombre completo encima de cada bloque');
+        }
         $this->assertStringNotContainsString('Amonest', $panel);
 
         auth()->logout();

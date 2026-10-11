@@ -8,6 +8,8 @@ use App\Models\TatamiOperator;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 /** El propietario del evento autoriza (por correo) a usuarios ya registrados como controladores de un tatami. */
 class TatamiOperatorController extends Controller
@@ -55,16 +57,51 @@ class TatamiOperatorController extends Controller
             .($added > 0 ? "Puede puntuar los tatamis: {$list}." : "Ya tenía acceso a los tatamis: {$list}."));
     }
 
-    /** El organizador que creó la cuenta de controlador puede fijarle una contraseña nueva (sin correo no hay «recuperar contraseña»). */
-    public function password(Request $request, Event $event, TatamiOperator $operator): RedirectResponse
+    /**
+     * Edita un controlador: sus tatamis en este evento y, si la cuenta la creó este organizador, también su usuario,
+     * nombre, correo y contraseña (la contraseña solo cambia si se rellena). Sin correo no hay «recuperar contraseña».
+     */
+    public function update(Request $request, Event $event, TatamiOperator $operator): RedirectResponse
     {
         $user = $operator->user;
-        abort_unless($user->isTatamiAccount() && (int) $user->created_by_user_id === (int) $request->user()->id, 403);
+        $own = $user->isTatamiAccount() && (int) $user->created_by_user_id === (int) $request->user()->id;
 
-        $data = $request->validate(['password' => ['required', 'string', 'min:6', 'max:100']]);
-        $user->forceFill(['password' => $data['password']])->save();
+        $request->merge(['username' => mb_strtolower(trim((string) $request->input('username')))]);
+        $rules = [
+            'tatamis' => ['required', 'array', 'min:1'],
+            'tatamis.*' => ['integer', 'min:1', 'max:'.$event->tatamiCount()],
+        ];
+        if ($own) {
+            $rules += [
+                'username' => ['required', 'string', 'min:3', 'max:30', 'regex:/^[a-z0-9._-]+$/', Rule::unique('users', 'username')->ignore($user->id)],
+                'name' => ['nullable', 'string', 'max:255'],
+                'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+                'password' => ['nullable', 'string', 'min:6', 'max:100'],
+            ];
+        }
+        $data = $request->validate($rules, ['username.regex' => 'El usuario solo puede llevar letras minúsculas, números, punto, guion y guion bajo.']);
 
-        return back()->with('status', "Contraseña de «{$user->username}» actualizada.");
+        DB::transaction(function () use ($event, $user, $own, $data) {
+            if ($own) {
+                $user->forceFill([
+                    'username' => $data['username'],
+                    'name' => ($data['name'] ?? null) ?: $data['username'],
+                    'email' => ($data['email'] ?? null) ?: null,
+                ]);
+                if (filled($data['password'] ?? null)) {
+                    $user->forceFill(['password' => $data['password']]);
+                }
+                $user->save();
+            }
+
+            $wanted = array_unique(array_map('intval', $data['tatamis']));
+            $event->operators()->where('user_id', $user->id)->whereNotIn('tatami', $wanted)->delete();
+            foreach ($wanted as $tatami) {
+                $event->operators()->firstOrCreate(['user_id' => $user->id, 'tatami' => $tatami]);
+            }
+        });
+
+        return back()->with('status', 'Controlador actualizado'.($own ? '' : ' (solo los tatamis: la cuenta no la creaste tú)').'.');
     }
 
     public function destroy(Event $event, TatamiOperator $operator): RedirectResponse

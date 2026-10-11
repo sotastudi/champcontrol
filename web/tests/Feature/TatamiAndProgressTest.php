@@ -117,7 +117,7 @@ class TatamiAndProgressTest extends TestCase
 
         $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
 
-        $this->assertMatchesRegularExpression('#<small class="d-block text-muted bib-number">Nº \d</small>\s*<span class="side-chip[^>]*>.*?</span></span>\s*Ana Con#s', $html, 'número encima del nombre');
+        $this->assertMatchesRegularExpression('#<span class="bib-tag" title="Número de competidor">Nº \d</span>\s*</div>\s*<span class="side-chip[^>]*>.*?</span></span>\s*Ana Con#s', $html, 'número encima del nombre');
         $this->assertStringContainsString('Dojo Sur</small>', $html);
         $this->assertStringContainsString('text-muted fst-italic">Sin club</small>', $html);
     }

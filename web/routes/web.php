@@ -68,7 +68,7 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::post('codigo-acceso', [EventController::class, 'regenerateAccessCode'])->name('events.access-code');
         Route::post('controladores-tatami', [TatamiOperatorController::class, 'store'])->name('operators.store');
         Route::delete('controladores-tatami/{operator}', [TatamiOperatorController::class, 'destroy'])->name('operators.destroy');
-        Route::patch('controladores-tatami/{operator}/contrasena', [TatamiOperatorController::class, 'password'])->name('operators.password');
+        Route::put('controladores-tatami/{operator}', [TatamiOperatorController::class, 'update'])->name('operators.update');
         Route::get('normas.pdf', [EventController::class, 'rules'])->name('events.rules');
         Route::get('poster', [EventController::class, 'poster'])->name('events.poster');
         Route::get('editar', [EventController::class, 'edit'])->name('events.edit');

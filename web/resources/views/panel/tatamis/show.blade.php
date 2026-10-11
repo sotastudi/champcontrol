@@ -17,15 +17,10 @@
 @if ($tatami['now'])
     @php $bout = $tatami['now']; @endphp
     <h2 class="h5">Combate actual</h2>
-    <p class="text-muted small mb-2">{{ $bout->category->name }} · Combate {{ $bout->number }}</p>
-    <div style="max-width: 28rem" class="mb-4">
-        @include('partials.bout-card', [
+    <div class="mb-4">
+        @include('partials.tatami-bout', [
             'bout' => $bout,
             'category' => $bout->category,
-            'editable' => true,
-            'canRecord' => true,
-            'showGana' => false,
-            'panelOpen' => true,
             'scoreAction' => route('panel.tatamis.score', [$event, $tatami['number'], $bout]),
         ])
     </div>

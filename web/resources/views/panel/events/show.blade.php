@@ -142,8 +142,8 @@
                                 <div class="mb-3 tatami-now">
                                     <a href="{{ route('panel.brackets.show', [$event, $bout->category]) }}" class="text-decoration-none text-body">
                                         <div class="fw-semibold">{{ $bout->category->name }} · Combate {{ $bout->number }}</div>
-                                        <div><span class="side-chip side-aka" role="img" aria-label="AKA (rojo)"></span>{{ $bout->slotA->competitor->displayName() }}@if ($bout->slotA->competitor->bib_number) <small class="text-muted">(Nº {{ $bout->slotA->competitor->bib_number }})</small>@endif</div>
-                                        <div><span class="side-chip side-shiro" role="img" aria-label="SHIRO (blanco)"></span>{{ $bout->slotB->competitor->displayName() }}@if ($bout->slotB->competitor->bib_number) <small class="text-muted">(Nº {{ $bout->slotB->competitor->bib_number }})</small>@endif</div>
+                                        <div><span class="side-chip side-aka" role="img" aria-label="AKA (rojo)"></span>{{ $bout->slotA->competitor->displayName() }}<x-bib :competitor="$bout->slotA->competitor" class="ms-1" /></div>
+                                        <div><span class="side-chip side-shiro" role="img" aria-label="SHIRO (blanco)"></span>{{ $bout->slotB->competitor->displayName() }}<x-bib :competitor="$bout->slotB->competitor" class="ms-1" /></div>
                                     </a>
                                 </div>
                                 @if ($tatami['next']->isNotEmpty())
@@ -190,16 +190,40 @@
                                 @endforeach
                             </div>
                         </div>
-                        @if ($user->isTatamiAccount() && (int) $user->created_by_user_id === (int) auth()->id())
-                            <form method="POST" action="{{ route('panel.operators.password', [$event, $rows->first()]) }}" class="d-flex gap-2 align-items-center">
-                                @csrf
-                                @method('PATCH')
-                                <input type="text" name="password" id="new-password-{{ $rows->first()->id }}" class="form-control form-control-sm" placeholder="Nueva contraseña" minlength="6" required autocomplete="new-password" aria-label="Nueva contraseña de {{ $user->name }}">
-                                <button type="button" class="btn btn-outline-secondary btn-sm" data-generate-password="#new-password-{{ $rows->first()->id }}" title="Generar una contraseña aleatoria">Generar</button>
-                                <button type="submit" class="btn btn-outline-secondary btn-sm text-nowrap">Cambiar contraseña</button>
-                            </form>
-                        @endif
+                        <button type="button" class="btn btn-yellow btn-sm btn-icon" data-bs-toggle="collapse" data-bs-target="#edit-op-{{ $rows->first()->id }}" aria-expanded="false" aria-controls="edit-op-{{ $rows->first()->id }}"><svg width="16" height="16" aria-hidden="true"><use href="#pencil"/></svg> Editar</button>
                     </div>
+                    @php $own = $user->isTatamiAccount() && (int) $user->created_by_user_id === (int) auth()->id(); $current = $rows->pluck('tatami')->all(); @endphp
+                    <form method="POST" action="{{ route('panel.operators.update', [$event, $rows->first()]) }}" class="collapse mt-3 row g-2 align-items-start" id="edit-op-{{ $rows->first()->id }}">
+                        @csrf
+                        @method('PUT')
+                        @if ($own)
+                            <div class="col-12 col-md-3"><label class="form-label" for="eu-{{ $rows->first()->id }}">Usuario</label><input type="text" class="form-control" id="eu-{{ $rows->first()->id }}" name="username" value="{{ $user->username }}" required autocomplete="off"></div>
+                            <div class="col-12 col-md-3"><label class="form-label" for="en-{{ $rows->first()->id }}">Nombre</label><input type="text" class="form-control" id="en-{{ $rows->first()->id }}" name="name" value="{{ $user->name }}"></div>
+                            <div class="col-12 col-md-3"><label class="form-label" for="ee-{{ $rows->first()->id }}">Correo (opcional)</label><input type="email" class="form-control" id="ee-{{ $rows->first()->id }}" name="email" value="{{ $user->email }}"></div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label" for="new-password-{{ $rows->first()->id }}">Nueva contraseña</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="new-password-{{ $rows->first()->id }}" name="password" minlength="6" placeholder="Sin cambios" autocomplete="new-password">
+                                    <button type="button" class="btn btn-outline-secondary" data-generate-password="#new-password-{{ $rows->first()->id }}" title="Generar una contraseña aleatoria">Generar</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-copy-password="#new-password-{{ $rows->first()->id }}" title="Copiar la contraseña" aria-label="Copiar la contraseña">Copiar</button>
+                                </div>
+                            </div>
+                        @else
+                            <p class="small text-muted mb-0">Esta cuenta no la creaste tú: solo puedes cambiar sus tatamis en este evento.</p>
+                        @endif
+                        <div class="col-12">
+                            <div class="form-label">Tatamis con acceso</div>
+                            <div class="d-flex flex-wrap gap-3 mb-2">
+                                @foreach (range(1, $event->tatamiCount()) as $n)
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="tatamis[]" value="{{ $n }}" id="eo-{{ $rows->first()->id }}-{{ $n }}" @checked(in_array($n, $current))>
+                                        <label class="form-check-label" for="eo-{{ $rows->first()->id }}-{{ $n }}">Tatami {{ $n }}</label>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <button type="submit" class="btn btn-outline-primary btn-sm">Guardar cambios</button>
+                        </div>
+                    </form>
                 </li>
             @endforeach
         </ul>

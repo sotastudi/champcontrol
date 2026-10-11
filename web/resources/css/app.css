@@ -90,6 +90,16 @@
 .bout-card { border: 1px solid var(--bs-border-color); border-radius: .5rem; background: var(--bs-body-bg); }
 .bout-card .slot { padding: .35rem .6rem; }
 .bout-card .slot + .slot { border-top: 1px solid var(--bs-border-color); }
+.bib-tag { display: inline-block; min-width: 2.6rem; padding: .05rem .5rem; border: 2px solid var(--bs-body-color); border-radius: .3rem; font-weight: 700; font-size: .85rem; line-height: 1.35; text-align: center; background: var(--bs-body-bg); color: var(--bs-body-color); white-space: nowrap; }
+.bib-tag-lg { font-size: 1.1rem; padding: .1rem .7rem; }
+.bout-number-tag { display: inline-block; padding: .2rem .7rem; border-radius: .3rem; background: var(--bs-body-color); color: var(--bs-body-bg); font-weight: 700; font-size: 1.05rem; letter-spacing: .02em; }
+.score-field-label { display: block; margin-bottom: .2rem; font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--bs-secondary-color); }
+.score-ippon { min-height: 1.95rem; display: flex; align-items: center; }
+.score-ippon .form-check-input { width: 1.4rem; height: 1.4rem; margin: 0; }
+.tatami-competitor { border-left-width: .5rem; }
+.tatami-competitor-aka { border-left-color: #d11a2a; }
+.tatami-competitor-shiro { border-left-color: #fff; }
+.tatami-competitor.is-winner { background: var(--bs-success-bg-subtle); }
 .side-chip { display: inline-flex; align-items: center; height: .9rem; min-width: .9rem; border: 1px solid #6c757d; border-radius: 0; vertical-align: middle; position: relative; top: -.1rem; margin-right: .3rem; cursor: pointer; overflow: hidden; }
 .side-aka { background: #d11a2a; color: #fff; }
 .side-shiro { background: #fff; color: #212529; }
