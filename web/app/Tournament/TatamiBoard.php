@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 /**
  * Estado de cada tatami del evento: sus categorías y qué se está combatiendo. No hay un estado «en curso» explícito:
  * el combate actual de un tatami es el siguiente combate listo (ambos participantes definidos y sin ganador) de sus
- * categorías, por orden de categoría y de número de combate; a continuación vienen los siguientes listos.
+ * categorías, por orden de categoría dentro del tatami (el que fija el organizador) y de número de combate; a continuación vienen los siguientes listos.
  */
 final class TatamiBoard
 {
@@ -20,13 +20,14 @@ final class TatamiBoard
      * @return list<array{number:int, categories:Collection, now:?Bout, next:Collection, pending:int}> */
     public function for(Event $event, bool $publishedOnly = false): array
     {
-        $categories = $event->categories()->when($publishedOnly, fn ($q) => $q->where('is_published', true))->orderBy('id')->get();
+        $categories = $event->categories()->when($publishedOnly, fn ($q) => $q->where('is_published', true))->orderBy('tatami')->orderBy('tatami_position')->orderBy('id')->get();
+        $rank = $categories->pluck('id')->flip();
         $ready = Bout::whereIn('category_id', $categories->pluck('id'))
             ->where('required_participants', 2)->whereNull('winner_id')
             ->whereNotNull('slot_a_id')->whereNotNull('slot_b_id')
             ->with(['category', 'slotA.competitor', 'slotB.competitor'])
             ->get()
-            ->sortBy(fn (Bout $b) => sprintf('%09d-%09d', $b->category_id, $b->number ?? 0))
+            ->sortBy(fn (Bout $b) => sprintf('%09d-%09d', $rank[$b->category_id] ?? 0, $b->number ?? 0))
             ->values();
 
         $board = [];

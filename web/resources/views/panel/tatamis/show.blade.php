@@ -9,7 +9,7 @@
             <a href="{{ route('panel.events.index') }}" class="small">&larr; Mis tatamis</a>
         @endcan
         <h1 class="h3 mb-1">Tatami {{ $tatami['number'] }}</h1>
-        <div class="text-muted">{{ $event->name }} · {{ $tatami['categories']->count() }} {{ $tatami['categories']->count() === 1 ? 'categoría' : 'categorías' }}@if ($tatami['categories']->count()): {{ $tatami['categories']->pluck('name')->implode(' · ') }}@endif</div>
+        <div class="text-muted">{{ $event->name }} · {{ $tatami['categories']->count() }} {{ $tatami['categories']->count() === 1 ? 'categoría' : 'categorías' }}@if ($tatami['categories']->count()), en este orden: {{ $tatami['categories']->pluck('name')->map(fn ($name, $i) => ($i + 1).'. '.$name)->implode(' · ') }}@endif</div>
     </div>
     <a href="{{ route('panel.tatamis.show', [$event, $tatami['number']]) }}" class="btn btn-outline-secondary no-print">Actualizar</a>
 </div>

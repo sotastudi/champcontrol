@@ -78,6 +78,8 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::get('categorias/{category}/editar', [CategoryController::class, 'edit'])->name('categories.edit');
         Route::put('categorias/{category}', [CategoryController::class, 'update'])->name('categories.update');
         Route::delete('categorias/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+        Route::post('categorias/{category}/orden', [CategoryController::class, 'move'])->name('categories.move');
+        Route::post('orden-tatami/{tatami}', [CategoryController::class, 'reorder'])->whereNumber('tatami')->name('tatamis.reorder');
         Route::get('inscripciones', [RegistrationController::class, 'index'])->name('registrations.index');
         Route::get('inscripciones/crear', [RegistrationController::class, 'create'])->name('registrations.create');
         Route::post('inscripciones', [RegistrationController::class, 'store'])->name('registrations.store');

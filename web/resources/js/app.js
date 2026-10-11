@@ -3,6 +3,7 @@ import * as bootstrap from 'bootstrap';
 import './registration-form';
 import './judge-votes';
 import './offline-scores';
+import './tatami-order';
 
 window.bootstrap = bootstrap;
 

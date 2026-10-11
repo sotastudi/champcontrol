@@ -70,20 +70,20 @@
                         </td>
                         <td class="text-center"><a href="{{ route('panel.registrations.index', ['event' => $event, 'category_id' => $category->id]) }}">{{ $category->confirmed_count }}</a></td>
                         <td class="text-end">
-                            <a href="{{ route('panel.brackets.show', [$event, $category]) }}" class="btn btn-outline-secondary btn-sm">Cuadro</a>
+                            <a href="{{ route('panel.brackets.show', [$event, $category]) }}" class="btn btn-blue btn-sm btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#sitemap"/></svg> Cuadro</a>
                             @if ($category->is_published && $event->isListed())
                                 <a href="{{ route('public.categories.show', [$event, $category]) }}" class="btn btn-outline-secondary btn-sm">Ver página pública</a>
                             @endif
                             <form method="POST" action="{{ route('panel.categories.publication', [$event, $category]) }}" class="d-inline">
                                 @csrf
                                 @method('PATCH')
-                                <button type="submit" class="btn btn-outline-success btn-sm">{{ $category->is_published ? 'Ocultar' : 'Publicar' }}</button>
+                                <button type="submit" class="btn btn-outline-success btn-sm btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#share"/></svg> {{ $category->is_published ? 'Ocultar' : 'Publicar' }}</button>
                             </form>
-                            <a href="{{ route('panel.categories.edit', [$event, $category]) }}" class="btn btn-outline-primary btn-sm">Editar</a>
+                            <a href="{{ route('panel.categories.edit', [$event, $category]) }}" class="btn btn-yellow btn-sm btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#pencil"/></svg> Editar</a>
                             <form method="POST" action="{{ route('panel.categories.destroy', [$event, $category]) }}" class="d-inline" onsubmit="return confirm('¿Eliminar la categoría? Se borrarán también su cuadro, combates e inscripciones.')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                                <button type="submit" class="btn btn-outline-danger btn-sm btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#trash"/></svg> Eliminar</button>
                             </form>
                         </td>
                     </tr>
@@ -109,11 +109,33 @@
                         @if ($tatami['categories']->isEmpty())
                             <p class="text-muted mb-0">Sin categorías asignadas.</p>
                         @else
-                            <p class="small text-muted mb-2">
-                                @foreach ($tatami['categories'] as $category)
-                                    <a href="{{ route('panel.brackets.show', [$event, $category]) }}">{{ $category->name }}</a>@unless ($loop->last) · @endunless
-                                @endforeach
-                            </p>
+                            {{-- Orden de las categorías en este tatami (la primera es la que compite antes). «Reordenar» activa arrastrar y soltar. --}}
+                            <div class="tatami-order">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small text-uppercase text-muted">Orden</span>
+                                    @if ($tatami['categories']->count() > 1)
+                                        <button type="button" class="btn btn-outline-secondary btn-sm py-0" data-reorder-toggle data-label-on="Hecho" data-label-off="Reordenar" aria-pressed="false">Reordenar</button>
+                                    @endif
+                                </div>
+                                <ol class="small mb-2 ps-3" data-tatami-order data-reorder-url="{{ route('panel.tatamis.reorder', [$event, $tatami['number']]) }}">
+                                    @foreach ($tatami['categories'] as $category)
+                                        <li class="mb-1" data-category-id="{{ $category->id }}">
+                                            <span class="d-inline-flex align-items-center gap-1 flex-wrap">
+                                                <span class="reorder-handle text-muted d-none" aria-hidden="true" title="Arrastra para reordenar">&#8942;&#8942;</span>
+                                                <a href="{{ route('panel.brackets.show', [$event, $category]) }}">{{ $category->name }}</a>
+                                                @if ($tatami['categories']->count() > 1)
+                                                    <form method="POST" action="{{ route('panel.categories.move', [$event, $category]) }}" class="reorder-buttons d-none gap-1">
+                                                        @csrf
+                                                        <button type="submit" name="direction" value="up" class="btn btn-outline-secondary btn-sm py-0 px-1" @disabled($loop->first) aria-label="Subir {{ $category->name }}" title="Subir">&uarr;</button>
+                                                        <button type="submit" name="direction" value="down" class="btn btn-outline-secondary btn-sm py-0 px-1" @disabled($loop->last) aria-label="Bajar {{ $category->name }}" title="Bajar">&darr;</button>
+                                                    </form>
+                                                @endif
+                                            </span>
+                                        </li>
+                                    @endforeach
+                                </ol>
+                                <div class="small" data-reorder-status aria-live="polite"></div>
+                            </div>
                             @if ($tatami['now'])
                                 @php $bout = $tatami['now']; @endphp
                                 <div class="small text-uppercase text-muted">Ahora</div>

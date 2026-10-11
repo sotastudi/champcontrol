@@ -40,6 +40,26 @@
         <path d="M12 3.5 22 20.5H2L12 3.5z" fill="currentColor"/>
         <path d="M12 9.5v5M12 17.5h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
     </symbol>
+    {{-- Iconos de acciones: lápiz (editar), diagrama de árbol (cuadro), papelera (eliminar) y compartir (publicar). --}}
+    <symbol id="pencil" viewBox="0 0 24 24">
+        <path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M14.5 6.5l3 3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="sitemap" viewBox="0 0 24 24">
+        <rect x="9" y="3" width="6" height="4.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="2.5" y="16.5" width="6" height="4.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="15.5" y="16.5" width="6" height="4.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M12 7.5V12M5.5 16.5V12h13v4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="trash" viewBox="0 0 24 24">
+        <path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="share" viewBox="0 0 24 24">
+        <circle cx="18" cy="5.5" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="6" cy="12" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="18" cy="18.5" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M8.3 10.8l7.4-3.9M8.3 13.2l7.4 3.9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    </symbol>
     <symbol id="user" viewBox="0 0 24 24">
         <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.7"/>
         <path d="M4 20a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>

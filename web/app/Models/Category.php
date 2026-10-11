@@ -44,6 +44,19 @@ class Category extends Model
         return $this->belongsTo(Event::class);
     }
 
+    /** Coloca la categoría la última de su tatami (o sin posición si no tiene tatami). Llamar tras cambiar `tatami`. */
+    public function placeInTatami(): void
+    {
+        if ($this->tatami === null) {
+            $this->forceFill(['tatami_position' => null])->save();
+
+            return;
+        }
+
+        $last = static::where('event_id', $this->event_id)->where('tatami', $this->tatami)->whereKeyNot($this->id)->max('tatami_position');
+        $this->forceFill(['tatami_position' => (int) $last + 1])->save();
+    }
+
     public function registrations(): HasMany
     {
         return $this->hasMany(Registration::class);
