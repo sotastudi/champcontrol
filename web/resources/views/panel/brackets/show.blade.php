@@ -46,7 +46,7 @@
         <a href="{{ route('panel.exports.standings', $event) }}" class="btn btn-outline-secondary">Exportar clasificación (CSV)</a>
         <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Imprimir</button>
         @if ($bouts->isNotEmpty())
-            <a href="{{ route('panel.brackets.pdf', [$event, $category]) }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-icon" title="Cuadro en PDF (A4 horizontal) para rellenar a mano"><svg width="16" height="16" aria-hidden="true"><use href="#sitemap"/></svg> PDF para papel</a>
+            <a href="{{ route('panel.brackets.pdf', [$event, $category]) }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-icon" title="Descargar el cuadro en PDF (A4 horizontal) para rellenar a mano" aria-label="Descargar el cuadro en PDF para rellenar a mano"><svg width="16" height="16" aria-hidden="true"><use href="#download"/></svg> PDF</a>
         @endif
     </div>
 </div>

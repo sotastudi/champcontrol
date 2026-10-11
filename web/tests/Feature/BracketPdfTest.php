@@ -108,4 +108,14 @@ class BracketPdfTest extends TestCase
         $pdf = $this->actingAs($owner)->get(route('panel.brackets.pdf', [$event, $category]))->assertOk()->getContent();
         $this->assertSame(4, preg_match_all('#/Type\s*/Page\b#', $pdf));
     }
+
+    public function test_the_pdf_button_uses_the_download_icon_and_only_the_text_pdf(): void
+    {
+        [$owner, $event, $category] = $this->category(4);
+
+        $html = $this->actingAs($owner)->get(route('panel.brackets.show', [$event, $category]))->getContent();
+
+        $this->assertMatchesRegularExpression('#<a href="'.preg_quote(route('panel.brackets.pdf', [$event, $category]), '#').'"[^>]*aria-label="Descargar el cuadro en PDF para rellenar a mano">\s*<svg[^>]*><use href="\#download"/></svg> PDF</a>#', $html);
+        $this->assertStringNotContainsString('PDF para papel', $html);
+    }
 }
