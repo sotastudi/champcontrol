@@ -36,7 +36,7 @@ class FirstMilestoneTest extends TestCase
         $private = [];
         foreach ($names as $first => $last) {
             $this->post(route('panel.registrations.store', $event), [
-                'first_name' => $first, 'last_name' => $last, 'club' => 'Club '.$first, 'birth_date' => '199'.$i.'-05-0'.($i + 1),
+                'first_name' => $first, 'last_name' => $last, 'club' => 'Club '.$first, 'sex' => 'male', 'level' => '3º kyu', 'birth_date' => '199'.$i.'-05-0'.($i + 1),
                 'sex' => 'female', 'weight' => 60, 'email' => strtolower($first).'@privado.test', 'phone' => '60000000'.$i,
                 'category_id' => $category->id, 'status' => 'confirmed',
             ])->assertSessionHasNoErrors();

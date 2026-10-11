@@ -19,7 +19,7 @@ class PublicRegistrationTest extends TestCase
     {
         return array_merge([
             'first_name' => 'Lucía', 'last_name' => 'Martín Gil', 'club' => 'Club Sur',
-            'birth_date' => '2000-03-10', 'sex' => 'female', 'weight' => 55,
+            'birth_date' => '2000-03-10', 'sex' => 'female', 'level' => '2º kyu', 'weight' => 55,
             'email' => 'lucia@example.com', 'category_id' => $category->id,
         ], $o);
     }

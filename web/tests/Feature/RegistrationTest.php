@@ -21,7 +21,7 @@ class RegistrationTest extends TestCase
     {
         return array_merge([
             'first_name' => 'José', 'last_name' => 'García Pérez', 'club' => 'Dojo Norte',
-            'birth_date' => '2010-06-15', 'sex' => 'male', 'weight' => 58.5,
+            'birth_date' => '2010-06-15', 'sex' => 'male', 'level' => '4º kyu', 'weight' => 58.5,
         ], $o);
     }
 
@@ -214,5 +214,23 @@ class RegistrationTest extends TestCase
 
         $this->actingAs($user)->get(route('panel.registrations.show', [$event, $registration]))->assertNotFound();
         $this->actingAs(User::factory()->create())->get(route('panel.registrations.show', [$otherEvent, $registration]))->assertForbidden();
+    }
+
+    public function test_sex_and_level_are_required_and_marked_with_an_asterisk(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create(['starts_on' => '2026-11-20']);
+        $category = Category::factory()->for($event)->create();
+
+        $html = $this->actingAs($user)->get(route('panel.registrations.create', $event))->getContent();
+        $this->assertMatchesRegularExpression('/for="sex"[^>]*>Sexo[^<]*<span class="text-danger">\*/', $html);
+        $this->assertMatchesRegularExpression('/for="level"[^>]*>Nivel[^<]*<span class="text-danger">\*/', $html);
+
+        foreach (['sex', 'level'] as $field) {
+            $this->actingAs($user)->post(route('panel.registrations.store', $event), array_diff_key(
+                $this->data(['category_id' => $category->id, 'status' => 'confirmed']), [$field => 1]
+            ))->assertSessionHasErrors($field);
+        }
+        $this->assertSame(0, Registration::count());
     }
 }

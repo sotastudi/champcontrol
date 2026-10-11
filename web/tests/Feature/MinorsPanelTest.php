@@ -25,7 +25,7 @@ class MinorsPanelTest extends TestCase
     private function data(Category $category, array $o = []): array
     {
         return array_merge([
-            'first_name' => 'Pau', 'last_name' => 'Vidal Roca', 'birth_date' => '2012-05-05',
+            'first_name' => 'Pau', 'last_name' => 'Vidal Roca', 'birth_date' => '2012-05-05', 'sex' => 'male', 'level' => '5º kyu',
             'category_id' => $category->id, 'status' => 'confirmed',
         ], $o);
     }
@@ -77,7 +77,7 @@ class MinorsPanelTest extends TestCase
             ->assertOk()->assertSee('guardian_name', false)->assertDontSee('guardian_consent', false);
 
         $this->actingAs($user)->put(route('panel.competitors.update', [$event, $competitor]), [
-            'first_name' => $competitor->first_name, 'last_name' => $competitor->last_name, 'birth_date' => '2012-05-05',
+            'first_name' => $competitor->first_name, 'last_name' => $competitor->last_name, 'birth_date' => '2012-05-05', 'sex' => 'male', 'level' => '5º kyu',
             'guardian_name' => 'Rosa Roca', 'guardian_contact' => 'rosa@familia.test',
         ])->assertSessionHasNoErrors();
 
@@ -91,7 +91,7 @@ class MinorsPanelTest extends TestCase
         $competitor->forceFill(['guardian_consent_at' => now()])->save();
 
         $this->actingAs($user)->put(route('panel.competitors.update', [$event, $competitor]), [
-            'first_name' => $competitor->first_name, 'last_name' => $competitor->last_name, 'birth_date' => '2012-05-05',
+            'first_name' => $competitor->first_name, 'last_name' => $competitor->last_name, 'birth_date' => '2012-05-05', 'sex' => 'male', 'level' => '5º kyu',
             'guardian_name' => '', 'guardian_contact' => '600',
         ])->assertSessionHasNoErrors();
 
