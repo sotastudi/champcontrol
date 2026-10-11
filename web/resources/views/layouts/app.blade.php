@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,8 +23,11 @@
 <nav class="navbar navbar-expand-md bg-body border-bottom mb-4">
     <div class="container">
         <a class="navbar-brand" href="{{ route('home') }}" aria-label="ChampControl">
-            <img src="{{ asset('img/brand/light-logo-horizontal.svg') }}" alt="ChampControl" height="40" class="brand-logo-light">
-            <img src="{{ asset('img/brand/dark-logo-horizontal.svg') }}" alt="" height="40" class="brand-logo-dark" aria-hidden="true">
+            {{-- Logo horizontal desde tablet (md) hacia arriba; icono en móvil. Claro/oscuro según el tema activo. --}}
+            <img src="{{ asset('img/brand/light-logo-horizontal.svg') }}" alt="ChampControl" height="40" class="brand-logo brand-full brand-light">
+            <img src="{{ asset('img/brand/dark-logo-horizontal.svg') }}" alt="" height="40" class="brand-logo brand-full brand-dark" aria-hidden="true">
+            <img src="{{ asset('img/brand/light-icon-logo.svg') }}" alt="ChampControl" height="36" class="brand-logo brand-icon brand-light">
+            <img src="{{ asset('img/brand/dark-icon-logo.svg') }}" alt="" height="36" class="brand-logo brand-icon brand-dark" aria-hidden="true">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Menú">
             <span class="navbar-toggler-icon"></span>

@@ -1,8 +1,15 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
-.brand-logo-dark, .theme-label-dark { display: none; }
-[data-bs-theme="dark"] .brand-logo-light, [data-bs-theme="dark"] .theme-label-light { display: none; }
-[data-bs-theme="dark"] .brand-logo-dark { display: inline; }
+/* Logo: icono en móvil, horizontal desde md; variante según el tema activo. */
+.brand-logo, .theme-label-dark { display: none; }
+[data-bs-theme="light"] .brand-icon.brand-light { display: inline; }
+[data-bs-theme="dark"] .brand-icon.brand-dark { display: inline; }
+@media (min-width: 768px) {
+    .brand-icon { display: none !important; }
+    [data-bs-theme="light"] .brand-full.brand-light { display: inline; }
+    [data-bs-theme="dark"] .brand-full.brand-dark { display: inline; }
+}
+[data-bs-theme="dark"] .theme-label-light { display: none; }
 [data-bs-theme="dark"] .theme-label-dark { display: inline; }
 
 .bracket-round { min-width: 16rem; }
@@ -14,7 +21,7 @@
 @media print {
     .no-print, .navbar, .alert { display: none !important; }
     body { background: #fff !important; }
-    .brand-logo-dark { display: none !important; }
+    .brand-dark { display: none !important; }
     .bracket { overflow: visible !important; }
     a { text-decoration: none; color: inherit; }
 }
