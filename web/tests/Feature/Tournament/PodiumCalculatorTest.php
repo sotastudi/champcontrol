@@ -3,9 +3,12 @@
 namespace Tests\Feature\Tournament;
 
 use App\Enums\BronzeRule;
+use App\Enums\WithdrawalType;
 use App\Models\Category;
+use App\Models\Registration;
 use App\Tournament\PodiumCalculator;
 use App\Tournament\ResultRecorder;
+use App\Tournament\WithdrawalRecorder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\BuildsBrackets;
 use Tests\TestCase;
@@ -93,5 +96,48 @@ class PodiumCalculatorTest extends TestCase
         $this->playAll($category);
 
         $this->assertSame([1, 2, 3], array_column($this->podium($category), 0));
+    }
+
+    /** Semifinal 1 jugada, el ganador de baja antes de la final y semifinal 2 jugada: el rival gana la final por walkover. */
+    private function finalWithoutFirstFinalist(WithdrawalType $type): array
+    {
+        $category = $this->generated(4);
+        $recorder = app(ResultRecorder::class);
+        $s1 = $this->bout($category, 1, 1);
+        $s2 = $this->bout($category, 1, 2);
+        $recorder->record($s1, $s1->slot_a_id);
+        app(WithdrawalRecorder::class)->record(Registration::find($s1->slot_a_id), $type, 'motivo');
+        $recorder->record($s2, $s2->slot_a_id);
+
+        return [$category, $s1->slot_a_id, $s2->slot_a_id];
+    }
+
+    public function test_withdrawn_before_the_final_keeps_second_place(): void
+    {
+        [$category, $withdrawnId, $championId] = $this->finalWithoutFirstFinalist(WithdrawalType::Withdrawn);
+
+        $placements = app(PodiumCalculator::class)->for($category);
+
+        $this->assertSame([[1, $championId], [2, $withdrawnId]], collect($placements)->take(2)->map(fn ($p) => [$p->place, $p->registration->id])->all());
+        $this->assertTrue($placements[1]->withdrawn);
+        $this->assertFalse($placements[0]->withdrawn);
+        $this->assertSame([], app(PodiumCalculator::class)->vacantPlaces($category));
+    }
+
+    public function test_disqualified_is_omitted_without_renumbering_and_place_is_reported_vacant(): void
+    {
+        [$category, $dqId, $championId] = $this->finalWithoutFirstFinalist(WithdrawalType::Disqualified);
+
+        $bronze = $this->bout($category, 2, 1, true);
+        app(ResultRecorder::class)->record($bronze, $bronze->slot_a_id);
+
+        $calculator = app(PodiumCalculator::class);
+        $placements = collect($calculator->for($category));
+
+        $this->assertNotContains($dqId, $placements->map(fn ($p) => $p->registration->id)->all());
+        $this->assertSame($championId, $placements->firstWhere('place', 1)->registration->id);
+        $this->assertNull($placements->firstWhere('place', 2));
+        $this->assertNotNull($placements->firstWhere('place', 3));   // sin renumerar
+        $this->assertSame([2], $calculator->vacantPlaces($category));
     }
 }

@@ -10,8 +10,28 @@ use Illuminate\Support\Collection;
 
 final class PodiumCalculator
 {
-    /** @return list<Placement> */
+    /** Podio visible: los descalificados se omiten sin renumerar a los demás. @return list<Placement> */
     public function for(Category $category): array
+    {
+        return array_values(array_filter(
+            $this->bracketPlacements($category),
+            fn (Placement $p) => ! $p->registration->isDisqualified(),
+        ));
+    }
+
+    /** Puestos que el cuadro asigna a un descalificado y quedan sin cubrir. @return list<int> */
+    public function vacantPlaces(Category $category): array
+    {
+        $places = array_map(
+            fn (Placement $p) => $p->place,
+            array_filter($this->bracketPlacements($category), fn (Placement $p) => $p->registration->isDisqualified()),
+        );
+
+        return array_values(array_unique($places));
+    }
+
+    /** @return list<Placement> */
+    private function bracketPlacements(Category $category): array
     {
         $bouts = $category->bouts()->with(['slotA.competitor', 'slotB.competitor', 'winner.competitor'])->get();
         $final = $bouts->first(fn (Bout $b) => $b->isFinal());

@@ -18,6 +18,9 @@ final class ResultRecorder
         if ($bout->category->event->status === EventStatus::Finished) {
             throw new TournamentException('El evento está finalizado: reábrelo para corregir resultados.');
         }
+        if ($bout->isWalkover()) {
+            throw new TournamentException('Victoria por incomparecencia: no se puede corregir.');
+        }
         if ($bout->isBye()) {
             throw new TournamentException('Un pase avanza automáticamente: no admite resultado.');
         }

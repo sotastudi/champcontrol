@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'category_id', 'number', 'round', 'position', 'is_bronze', 'required_participants',
-    'slot_a_id', 'slot_b_id', 'winner_id', 'next_bout_id', 'next_slot', 'loser_next_bout_id', 'loser_next_slot',
+    'slot_a_id', 'slot_b_id', 'winner_id', 'result_type', 'next_bout_id', 'next_slot', 'loser_next_bout_id', 'loser_next_slot',
 ])]
 class Bout extends Model
 {
@@ -53,6 +53,12 @@ class Bout extends Model
     public function isBye(): bool
     {
         return (int) $this->required_participants === 1;
+    }
+
+    /** Victoria por incomparecencia del rival (retirado o descalificado). */
+    public function isWalkover(): bool
+    {
+        return $this->result_type === 'walkover';
     }
 
     public function isCompleted(): bool

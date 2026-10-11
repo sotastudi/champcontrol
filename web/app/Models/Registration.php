@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\RegistrationStatus;
+use App\Enums\WithdrawalType;
 use Database\Factories\RegistrationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,7 +19,11 @@ class Registration extends Model
 
     protected function casts(): array
     {
-        return ['status' => RegistrationStatus::class];
+        return [
+            'status' => RegistrationStatus::class,
+            'withdrawal_type' => WithdrawalType::class,
+            'withdrawn_at' => 'datetime',
+        ];
     }
 
     public function category(): BelongsTo
@@ -29,6 +34,17 @@ class Registration extends Model
     public function competitor(): BelongsTo
     {
         return $this->belongsTo(Competitor::class);
+    }
+
+    /** Retirada o descalificada (los datos de baja se asignan con forceFill, no son rellenables en masa). */
+    public function isWithdrawn(): bool
+    {
+        return $this->withdrawal_type !== null;
+    }
+
+    public function isDisqualified(): bool
+    {
+        return $this->withdrawal_type === WithdrawalType::Disqualified;
     }
 
     public function isInBracket(): bool

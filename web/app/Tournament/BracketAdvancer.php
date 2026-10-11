@@ -4,6 +4,7 @@ namespace App\Tournament;
 
 use App\Models\Bout;
 use App\Models\Category;
+use App\Models\Registration;
 
 final class BracketAdvancer
 {
@@ -31,6 +32,25 @@ final class BracketAdvancer
         $this->place($bout->loser_next_bout_id, $bout->loser_next_slot, $loserId);
     }
 
+    /** Da por ganado al rival cada combate pendiente de un competidor de baja (si el rival ya está definido y no está de baja). */
+    public function resolveWalkovers(Registration $registration): void
+    {
+        $registration->category->bouts()->where('required_participants', 2)->whereNull('winner_id')
+            ->where(fn ($q) => $q->where('slot_a_id', $registration->id)->orWhere('slot_b_id', $registration->id))
+            ->orderBy('round')->orderBy('position')->get()
+            ->each(function (Bout $bout) {
+                $bout->refresh();   // una cascada anterior pudo resolverlo
+                $this->resolveIfOneSideWithdrawn($bout);
+            });
+    }
+
+    /** Victoria por incomparecencia: igual que un resultado, marcado como walkover. */
+    public function completeWalkover(Bout $bout, int $winnerId): void
+    {
+        $bout->update(['result_type' => 'walkover']);
+        $this->complete($bout, $winnerId);
+    }
+
     /** Vuelve al estado inicial de la primera ronda (solo válido sin resultados reales) y re-resuelve los pases. */
     public function reset(Category $category): void
     {
@@ -51,6 +71,25 @@ final class BracketAdvancer
 
         if ($target->isBye() && $target->filledSlots() === 1) {
             $this->complete($target, $registrationId);
+
+            return;
+        }
+
+        $this->resolveIfOneSideWithdrawn($target);
+    }
+
+    /** Combate con dos participantes donde exactamente uno está de baja: gana el otro. Si ambos lo están, queda para resolución manual. */
+    private function resolveIfOneSideWithdrawn(Bout $bout): void
+    {
+        if ($bout->isBye() || $bout->isCompleted() || $bout->filledSlots() !== 2) {
+            return;
+        }
+
+        $a = Registration::findOrFail($bout->slot_a_id);
+        $b = Registration::findOrFail($bout->slot_b_id);
+
+        if ($a->isWithdrawn() !== $b->isWithdrawn()) {
+            $this->completeWalkover($bout, $a->isWithdrawn() ? $b->id : $a->id);
         }
     }
 }

@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\EventStatus;
+use App\Enums\WithdrawalType;
 use App\Models\Category;
 use App\Models\Competitor;
 use App\Models\Event;
+use App\Models\Registration;
 use App\Models\User;
 use App\Tournament\ResultRecorder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -122,5 +124,18 @@ class PublicResultsTest extends TestCase
         $this->assertContains('1', $places);
         $this->assertContains('4', $places); // show_fourth activado
         $this->actingAs(User::factory()->create())->get(route('panel.exports.standings', $category->event))->assertForbidden();
+    }
+
+    public function test_standings_csv_excludes_a_disqualified_competitor(): void
+    {
+        $category = $this->playedCategory();
+        $final = $category->bouts()->where('is_bronze', false)->orderByDesc('round')->first();
+        $loser = Registration::with('competitor')->find($final->loserId());
+        $loser->forceFill(['withdrawal_type' => WithdrawalType::Disqualified, 'withdrawn_at' => now()])->save();
+
+        $csv = $this->actingAs($category->event->user)->get(route('panel.exports.standings', $category->event))->streamedContent();
+
+        $this->assertStringNotContainsString($loser->competitor->last_name, $csv);
+        $this->assertStringContainsString('Puesto', $csv);
     }
 }
