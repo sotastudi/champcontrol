@@ -81,4 +81,53 @@
         </div>
     @endif
 </section>
+
+<section id="tatamis" class="mb-4">
+    <h2 class="h5 mb-2">Tatamis</h2>
+    <p class="text-muted small">Combate actual de cada tatami: el siguiente con los dos participantes definidos de sus categorías (en el orden de creación de las categorías y por número de combate).</p>
+    <div class="row g-3">
+        @foreach ($tatamis as $tatami)
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card h-100 tatami-block">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>Tatami {{ $tatami['number'] }}</strong>
+                        <span class="small text-muted">{{ $tatami['categories']->count() }} {{ $tatami['categories']->count() === 1 ? 'categoría' : 'categorías' }}@if ($tatami['categories']->count()) · {{ $tatami['pending'] }} {{ $tatami['pending'] === 1 ? 'combate listo' : 'combates listos' }}@endif</span>
+                    </div>
+                    <div class="card-body">
+                        @if ($tatami['categories']->isEmpty())
+                            <p class="text-muted mb-0">Sin categorías asignadas.</p>
+                        @else
+                            <p class="small text-muted mb-2">
+                                @foreach ($tatami['categories'] as $category)
+                                    <a href="{{ route('panel.brackets.show', [$event, $category]) }}">{{ $category->name }}</a>@unless ($loop->last) · @endunless
+                                @endforeach
+                            </p>
+                            @if ($tatami['now'])
+                                @php $bout = $tatami['now']; @endphp
+                                <div class="small text-uppercase text-muted">Ahora</div>
+                                <div class="mb-3 tatami-now">
+                                    <a href="{{ route('panel.brackets.show', [$event, $bout->category]) }}" class="text-decoration-none text-body">
+                                        <div class="fw-semibold">{{ $bout->category->name }} · Combate {{ $bout->number }}</div>
+                                        <div><span class="side-chip side-aka" role="img" aria-label="AKA (rojo)"></span>{{ $bout->slotA->competitor->displayName() }}@if ($bout->slotA->competitor->bib_number) <small class="text-muted">(Nº {{ $bout->slotA->competitor->bib_number }})</small>@endif</div>
+                                        <div><span class="side-chip side-shiro" role="img" aria-label="SHIRO (blanco)"></span>{{ $bout->slotB->competitor->displayName() }}@if ($bout->slotB->competitor->bib_number) <small class="text-muted">(Nº {{ $bout->slotB->competitor->bib_number }})</small>@endif</div>
+                                    </a>
+                                </div>
+                                @if ($tatami['next']->isNotEmpty())
+                                    <div class="small text-uppercase text-muted">A continuación</div>
+                                    <ul class="list-unstyled small mb-0">
+                                        @foreach ($tatami['next'] as $next)
+                                            <li>{{ $next->category->name }} · Combate {{ $next->number }}: {{ $next->slotA->competitor->displayName() }} <span class="text-muted">vs</span> {{ $next->slotB->competitor->displayName() }}</li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            @else
+                                <p class="text-muted mb-0">Sin combates listos (sin cuadro, a la espera de resultados o ya finalizado).</p>
+                            @endif
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</section>
 @endsection

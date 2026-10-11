@@ -8,6 +8,7 @@ use App\Http\Requests\EventRequest;
 use App\Models\Event;
 use App\Registrations\BibNumberAssigner;
 use App\Registrations\RegistrationException;
+use App\Tournament\TatamiBoard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -37,11 +38,14 @@ class EventController extends Controller
         return redirect()->route('panel.events.show', $event)->with('status', 'Evento creado.');
     }
 
-    public function show(Event $event): View
+    public function show(Event $event, TatamiBoard $board): View
     {
-        return view('panel.events.show', ['event' => $event->load(['categories' => fn ($q) => $q->orderBy('name')->withCount([
-            'registrations as confirmed_count' => fn ($r) => $r->where('status', RegistrationStatus::Confirmed->value),
-        ])])]);
+        return view('panel.events.show', [
+            'event' => $event->load(['categories' => fn ($q) => $q->orderBy('name')->withCount([
+                'registrations as confirmed_count' => fn ($r) => $r->where('status', RegistrationStatus::Confirmed->value),
+            ])]),
+            'tatamis' => $board->for($event),
+        ]);
     }
 
     public function edit(Event $event): View
