@@ -125,7 +125,7 @@ class TatamiAndProgressTest extends TestCase
     public function test_category_panel_shows_the_tatami_right_under_the_name(): void
     {
         $user = User::factory()->create();
-        $event = Event::factory()->for($user)->create(['tatami_count' => 3]);
+        $event = Event::factory()->for($user)->create(['tatami_count' => 3, 'is_public' => true, 'status' => EventStatus::InProgress]);
         $with = Category::factory()->for($event)->create(['name' => 'Cat Con', 'tatami' => 2, 'referees' => 3, 'is_published' => true]);
         $without = Category::factory()->for($event)->create(['name' => 'Cat Sin']);
 
