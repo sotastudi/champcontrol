@@ -108,12 +108,18 @@
 .side-chip.is-open .side-text { max-width: 3.5rem; padding: 0 .3rem; }
 @media (hover: hover) { .side-chip:hover .side-text { max-width: 3.5rem; padding: 0 .3rem; } }
 .btn-icon { display: inline-flex; align-items: center; gap: .3rem; }
+/* En móvil, los botones «compactos» muestran solo el icono (el texto sigue en title/aria-label). */
+@media (max-width: 767.98px) {
+    .btn-compact { padding-left: .5rem; padding-right: .5rem; }
+    .btn-compact .btn-label { display: none; }
+}
 /* El color principal es rojo: el azul y el amarillo de las acciones de la tabla de categorías se definen aparte.
    Como el resto de botones «outline»: fondo transparente, texto y borde de color; el relleno solo al pasar el cursor, pulsar o enfocar. */
-:root { --action-blue: #1f6feb; --action-blue-hover: #1a5fcb; --action-yellow: #a87b00; --action-yellow-fill: #f4d03f; }
-[data-bs-theme="dark"] { --action-blue: #5b9dff; --action-blue-hover: #3f86f5; --action-yellow: #f4d03f; --action-yellow-fill: #f4d03f; }
+:root { --action-blue: #1f6feb; --action-blue-hover: #1a5fcb; --action-yellow: #a87b00; --action-yellow-fill: #f4d03f; --action-orange: #c2570c; --action-orange-fill: #fd7e14; }
+[data-bs-theme="dark"] { --action-blue: #5b9dff; --action-blue-hover: #3f86f5; --action-yellow: #f4d03f; --action-yellow-fill: #f4d03f; --action-orange: #ff9a45; --action-orange-fill: #fd7e14; }
 .btn-blue { --bs-btn-color: var(--action-blue); --bs-btn-bg: transparent; --bs-btn-border-color: var(--action-blue); --bs-btn-hover-color: #fff; --bs-btn-hover-bg: var(--action-blue-hover); --bs-btn-hover-border-color: var(--action-blue-hover); --bs-btn-active-color: #fff; --bs-btn-active-bg: var(--action-blue-hover); --bs-btn-active-border-color: var(--action-blue-hover); --bs-btn-focus-shadow-rgb: 31, 111, 235; --bs-btn-disabled-color: var(--action-blue); --bs-btn-disabled-bg: transparent; --bs-btn-disabled-border-color: var(--action-blue); }
 .btn-yellow { --bs-btn-color: var(--action-yellow); --bs-btn-bg: transparent; --bs-btn-border-color: var(--action-yellow); --bs-btn-hover-color: #3d3200; --bs-btn-hover-bg: var(--action-yellow-fill); --bs-btn-hover-border-color: var(--action-yellow-fill); --bs-btn-active-color: #3d3200; --bs-btn-active-bg: var(--action-yellow-fill); --bs-btn-active-border-color: var(--action-yellow-fill); --bs-btn-focus-shadow-rgb: 244, 208, 63; --bs-btn-disabled-color: var(--action-yellow); --bs-btn-disabled-bg: transparent; --bs-btn-disabled-border-color: var(--action-yellow); }
+.btn-orange { --bs-btn-color: var(--action-orange); --bs-btn-bg: transparent; --bs-btn-border-color: var(--action-orange); --bs-btn-hover-color: #fff; --bs-btn-hover-bg: var(--action-orange-fill); --bs-btn-hover-border-color: var(--action-orange-fill); --bs-btn-active-color: #fff; --bs-btn-active-bg: var(--action-orange-fill); --bs-btn-active-border-color: var(--action-orange-fill); --bs-btn-focus-shadow-rgb: 253, 126, 20; --bs-btn-disabled-color: var(--action-orange); --bs-btn-disabled-bg: transparent; --bs-btn-disabled-border-color: var(--action-orange); }
 .operator-create { border-left: .35rem solid var(--bs-primary); }
 .operator-tatami-option { min-width: 6.2rem; padding: .55rem .9rem; }
 .tatami-order { position: relative; z-index: 2; } /* por encima del enlace extendido del bloque del tatami */

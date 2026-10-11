@@ -65,17 +65,17 @@
 <p class="text-muted small">Estos datos son privados: no se muestran en las páginas públicas.</p>
 
 <div class="d-flex flex-wrap gap-2 no-print">
-    @foreach ([['confirmed', 'Confirmar', 'btn-success'], ['cancelled', 'Cancelar', 'btn-outline-danger'], ['pending', 'Pendiente', 'btn-yellow']] as [$target, $text, $class])
+    @foreach ([['confirmed', 'Confirmar', 'btn-outline-success', 'check'], ['cancelled', 'Cancelar', 'btn-outline-secondary', 'ban'], ['pending', 'Pendiente', 'btn-orange', 'clock']] as [$target, $text, $class, $icon])
         @if ($registration->status->value !== $target)
             <form method="POST" action="{{ route('panel.registrations.update', [$event, $registration]) }}">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="status" value="{{ $target }}">
-                <button type="submit" class="btn {{ $class }}">{{ $text }}</button>
+                <button type="submit" class="btn {{ $class }} btn-icon btn-compact" title="{{ $text }}" aria-label="{{ $text }}"><svg width="16" height="16" aria-hidden="true"><use href="#{{ $icon }}"/></svg> <span class="btn-label">{{ $text }}</span></button>
             </form>
         @endif
     @endforeach
-    <a href="{{ route('panel.competitors.edit', [$event, $competitor]) }}" class="btn btn-outline-primary">Editar datos</a>
+    <a href="{{ route('panel.competitors.edit', [$event, $competitor]) }}" class="btn btn-yellow btn-icon btn-compact" title="Editar" aria-label="Editar"><svg width="16" height="16" aria-hidden="true"><use href="#pencil"/></svg> <span class="btn-label">Editar</span></a>
     <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Imprimir</button>
 </div>
 @endsection

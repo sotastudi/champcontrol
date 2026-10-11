@@ -261,18 +261,34 @@ class RegistrationTest extends TestCase
         $this->get(route('public.registration.create', $event))->assertSee('Club');
     }
 
-    public function test_the_pending_button_is_yellow_in_the_list_and_in_the_card(): void
+    public function test_registration_action_buttons_have_their_colours_and_icons_in_the_list_and_in_the_card(): void
     {
         $user = User::factory()->create();
         $event = Event::factory()->for($user)->create();
         $category = Category::factory()->for($event)->create();
-        $registration = Registration::factory()->forCategory($category)->create(['status' => RegistrationStatus::Confirmed]);
+        $registration = Registration::factory()->forCategory($category)->create(['status' => RegistrationStatus::Pending]);
+
+        $button = fn (string $class, string $icon, string $text, string $size) => '#class="btn '.$class.$size.' btn-icon btn-compact" title="'.$text.'" aria-label="'.$text.'"[^>]*><svg[^>]*><use href="'.preg_quote('#'.$icon, '#').'"/></svg> <span class="btn-label">'.$text.'</span>#';
 
         $list = $this->actingAs($user)->get(route('panel.registrations.index', $event))->getContent();
-        $this->assertMatchesRegularExpression('#<button type="submit" class="btn btn-yellow btn-sm">Pendiente</button>#', $list);
-        $this->assertMatchesRegularExpression('#<button type="submit" class="btn btn-outline-secondary btn-sm">Cancelar</button>#', $list, 'los demás botones no cambian');
+        $this->assertMatchesRegularExpression($button('btn-outline-success', 'check', 'Confirmar', ' btn-sm'), $list);
+        $this->assertMatchesRegularExpression($button('btn-outline-secondary', 'ban', 'Cancelar', ' btn-sm'), $list);
+        $this->assertMatchesRegularExpression($button('btn-outline-info', 'eye', 'Ver ficha', ' btn-sm'), $list);
+        $this->assertMatchesRegularExpression($button('btn-yellow', 'pencil', 'Editar', ' btn-sm'), $list);
+        $this->assertStringNotContainsString('>Pendiente</button>', $list, 'el estado actual no ofrece su propio botón');
+
+        // Ya confirmada: aparece Pendiente en naranja con reloj y desaparece Confirmar.
+        $registration->update(['status' => RegistrationStatus::Confirmed]);
+        $confirmed = $this->actingAs($user)->get(route('panel.registrations.index', $event))->getContent();
+        $this->assertMatchesRegularExpression($button('btn-orange', 'clock', 'Pendiente', ' btn-sm'), $confirmed);
+        $this->assertDoesNotMatchRegularExpression($button('btn-outline-success', 'check', 'Confirmar', ' btn-sm'), $confirmed);
 
         $card = $this->actingAs($user)->get(route('panel.registrations.show', [$event, $registration]))->getContent();
-        $this->assertMatchesRegularExpression('#class="btn btn-yellow">Pendiente</button>#', $card);
+        $this->assertMatchesRegularExpression($button('btn-orange', 'clock', 'Pendiente', ''), $card);
+        $this->assertMatchesRegularExpression($button('btn-outline-secondary', 'ban', 'Cancelar', ''), $card);
+        $this->assertMatchesRegularExpression($button('btn-yellow', 'pencil', 'Editar', ''), $card);
+        foreach (['check', 'ban', 'clock', 'eye', 'pencil'] as $icon) {
+            $this->assertStringContainsString('<symbol id="'.$icon.'"', $card);
+        }
     }
 }

@@ -63,18 +63,18 @@
                     <td>{{ $registration->category->name }}</td>
                     <td><span class="badge {{ $registration->status->badgeClass() }}">{{ $registration->status->label() }}</span></td>
                     <td class="text-end text-nowrap no-print">
-                        @foreach ([['confirmed', 'Confirmar', 'btn-outline-secondary'], ['cancelled', 'Cancelar', 'btn-outline-secondary'], ['pending', 'Pendiente', 'btn-yellow']] as [$target, $text, $class])
+                        @foreach ([['confirmed', 'Confirmar', 'btn-outline-success', 'check'], ['cancelled', 'Cancelar', 'btn-outline-secondary', 'ban'], ['pending', 'Pendiente', 'btn-orange', 'clock']] as [$target, $text, $class, $icon])
                             @if ($registration->status->value !== $target)
                                 <form method="POST" action="{{ route('panel.registrations.update', [$event, $registration]) }}" class="d-inline">
                                     @csrf
                                     @method('PATCH')
                                     <input type="hidden" name="status" value="{{ $target }}">
-                                    <button type="submit" class="btn {{ $class }} btn-sm">{{ $text }}</button>
+                                    <button type="submit" class="btn {{ $class }} btn-sm btn-icon btn-compact" title="{{ $text }}" aria-label="{{ $text }}"><svg width="16" height="16" aria-hidden="true"><use href="#{{ $icon }}"/></svg> <span class="btn-label">{{ $text }}</span></button>
                                 </form>
                             @endif
                         @endforeach
-                        <a href="{{ route('panel.registrations.show', [$event, $registration]) }}" class="btn btn-outline-info btn-sm">Ver ficha</a>
-                        <a href="{{ route('panel.competitors.edit', [$event, $registration->competitor]) }}" class="btn btn-outline-primary btn-sm">Editar datos</a>
+                        <a href="{{ route('panel.registrations.show', [$event, $registration]) }}" class="btn btn-outline-info btn-sm btn-icon btn-compact" title="Ver ficha" aria-label="Ver ficha"><svg width="16" height="16" aria-hidden="true"><use href="#eye"/></svg> <span class="btn-label">Ver ficha</span></a>
+                        <a href="{{ route('panel.competitors.edit', [$event, $registration->competitor]) }}" class="btn btn-yellow btn-sm btn-icon btn-compact" title="Editar" aria-label="Editar"><svg width="16" height="16" aria-hidden="true"><use href="#pencil"/></svg> <span class="btn-label">Editar</span></a>
                     </td>
                 </tr>
             @endforeach
