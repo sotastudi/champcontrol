@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\Competitor;
 use App\Models\Event;
 use App\Models\Registration;
 use App\Models\User;
@@ -39,22 +40,24 @@ class FirstMilestoneTest extends TestCase
                 'sex' => 'female', 'weight' => 60, 'email' => strtolower($first).'@privado.test', 'phone' => '60000000'.$i,
                 'category_id' => $category->id, 'status' => 'confirmed',
             ])->assertSessionHasNoErrors();
-            $private[] = '199'.$i.'-05-0'.($i + 1);
-            $private[] = '0'.($i + 1).'/05/199'.$i;
-            $private[] = strtolower($first).'@privado.test';
-            $private[] = '60000000'.$i;
+            $private[$first] = [
+                'iso' => '199'.$i.'-05-0'.($i + 1),
+                'dmy' => '0'.($i + 1).'/05/199'.$i,
+                'email' => strtolower($first).'@privado.test',
+                'phone' => '60000000'.$i,
+            ];
             $i++;
         }
 
-        // El organizador sí ve los datos privados (CSV de inscritos): así las comprobaciones públicas pueden fallar.
+        // El organizador sí ve los datos privados: así las comprobaciones públicas pueden fallar.
         $csv = $this->get(route('panel.exports.registrations', $event))->assertOk()->streamedContent();
-        foreach ([$private[2], $private[3]] as $value) {
-            $this->assertStringContainsString($value, $csv);
+        foreach ($private as $first => $values) {
+            foreach (['email', 'phone', 'dmy'] as $key) {
+                $this->assertStringContainsString($values[$key], $csv, "CSV del organizador sin $key de $first");
+            }
+            $competitor = Competitor::where('first_name', $first)->firstOrFail();
+            $this->get(route('panel.competitors.edit', [$event, $competitor]))->assertOk()->assertSee($values['iso']);
         }
-        $this->assertTrue(
-            str_contains($csv, $private[0]) || str_contains($csv, $private[1]),
-            'el CSV del organizador debe contener la fecha de nacimiento'
-        );
 
         $this->post(route('panel.brackets.store', [$event, $category]))->assertSessionHasNoErrors();
         $this->assertSame(3, $category->bouts()->where('required_participants', 1)->where('is_bronze', false)->count(), 'cinco competidores → tres pases');
@@ -71,21 +74,37 @@ class FirstMilestoneTest extends TestCase
 
         $final = $category->bouts()->get()->first(fn ($b) => $b->isFinal());
         $bronze = $category->bouts()->where('is_bronze', true)->firstOrFail();
-        $first = $final->winner->competitor->first_name;
-        $fourth = $bronze->fresh()->loserId() ? Registration::find($bronze->fresh()->loserId())->competitor->first_name : null;
-        $this->assertNotNull($fourth);
+        $name = fn (?int $registrationId) => Registration::findOrFail($registrationId)->competitor->displayName();
+        $podium = [
+            1 => $name($final->winner_id),
+            2 => $name($final->loserId()),
+            3 => $name($bronze->winner_id),
+            4 => $name($bronze->loserId()),
+        ];
+        $this->assertCount(4, array_unique($podium));
 
         $this->patch(route('panel.categories.publication', [$event, $category]))->assertRedirect()->assertSessionHasNoErrors();
         $this->assertTrue($category->fresh()->is_published);
         auth()->logout();
 
-        $response = $this->get(route('public.categories.show', [$event, $category]))->assertOk()
-            ->assertSeeInOrder(['1.º', $first])
-            ->assertSee('4.º');
-        $html = $response->getContent();
-        $this->assertMatchesRegularExpression('/4\.º.{0,400}?'.preg_quote($fourth, '/').'/su', $html);
-        foreach ($private as $secret) {
-            $this->assertStringNotContainsString($secret, $html);
+        $html = $this->get(route('public.categories.show', [$event, $category]))->assertOk()->getContent();
+
+        // Solo el bloque del podio: el cuadro y los resultados de debajo listan a todos los competidores.
+        $this->assertSame(1, preg_match('#<ul class="list-group[^"]*">(.*?)</ul>#s', $html, $block));
+        preg_match_all('#<li\b.*?</li>#s', $block[1], $rows);
+        $this->assertCount(4, $rows[0], 'el podio tiene cuatro filas');
+        foreach ($podium as $place => $expected) {
+            $row = $rows[0][$place - 1];
+            $this->assertStringContainsString($place.'.º', $row);
+            $this->assertStringContainsString($expected, $row);
+            foreach (array_diff($podium, [$place => $expected]) as $other) {
+                $this->assertStringNotContainsString($other, $row, "$other no debe estar en la fila del $place.º");
+            }
+        }
+        foreach ($private as $values) {
+            foreach ($values as $secret) {
+                $this->assertStringNotContainsString($secret, $html);
+            }
         }
     }
 }
