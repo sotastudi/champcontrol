@@ -1,0 +1,18 @@
+@extends('layouts.app')
+@section('title', 'Nueva inscripción')
+@section('content')
+<h1 class="h3 mb-3">Nueva inscripción</h1>
+@error('error')<div class="alert alert-danger">{{ $message }}</div>@enderror
+@if (empty($categories))
+    <div class="alert alert-info">Primero crea alguna categoría en el evento.</div>
+@endif
+<form method="POST" action="{{ route('panel.registrations.store', $event) }}">
+    @csrf
+    <x-select name="category_id" label="Categoría" :options="$categories" placeholder="Selecciona una categoría" required />
+    @include('panel.competitors._fields')
+    <x-select name="status" label="Estado" :options="[\App\Enums\RegistrationStatus::Pending->value => 'Pendiente', \App\Enums\RegistrationStatus::Confirmed->value => 'Confirmada']" value="confirmed" required />
+    <x-textarea name="notes" label="Notas" />
+    <button type="submit" class="btn btn-primary">Registrar</button>
+    <a href="{{ route('panel.registrations.index', $event) }}" class="btn btn-link">Cancelar</a>
+</form>
+@endsection

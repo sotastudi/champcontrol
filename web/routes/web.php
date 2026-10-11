@@ -6,7 +6,9 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Panel\CategoryController;
+use App\Http\Controllers\Panel\CompetitorController;
 use App\Http\Controllers\Panel\EventController;
+use App\Http\Controllers\Panel\RegistrationController;
 use App\Http\Controllers\PublicEventController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +44,12 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::get('categorias/{category}/editar', [CategoryController::class, 'edit'])->name('categories.edit');
         Route::put('categorias/{category}', [CategoryController::class, 'update'])->name('categories.update');
         Route::delete('categorias/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+        Route::get('inscripciones', [RegistrationController::class, 'index'])->name('registrations.index');
+        Route::get('inscripciones/crear', [RegistrationController::class, 'create'])->name('registrations.create');
+        Route::post('inscripciones', [RegistrationController::class, 'store'])->name('registrations.store');
+        Route::patch('inscripciones/{registration}', [RegistrationController::class, 'update'])->name('registrations.update');
+        Route::get('competidores/{competitor}/editar', [CompetitorController::class, 'edit'])->name('competitors.edit');
+        Route::put('competidores/{competitor}', [CompetitorController::class, 'update'])->name('competitors.update');
         // Las tareas siguientes añaden aquí categorías, inscripciones, cuadros, exportaciones…
     });
 });

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Str;
 
 #[Fillable(['name', 'discipline', 'description', 'starts_on', 'venue', 'status', 'is_public', 'registration_form_enabled'])]
@@ -43,6 +44,16 @@ class Event extends Model
     public function categories(): HasMany
     {
         return $this->hasMany(Category::class);
+    }
+
+    public function competitors(): HasMany
+    {
+        return $this->hasMany(Competitor::class);
+    }
+
+    public function registrations(): HasManyThrough
+    {
+        return $this->hasManyThrough(Registration::class, Category::class);
     }
 
     public function scopeListed(Builder $query): void

@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 #[Fillable(['first_name', 'last_name', 'club', 'birth_date', 'sex', 'weight', 'level', 'email', 'phone', 'notes'])]
 class Competitor extends Model
@@ -31,6 +33,17 @@ class Competitor extends Model
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(Registration::class);
+    }
+
+    /** Clave de comparación de nombres: sin acentos, minúsculas y espacios colapsados. */
+    public static function normalizeName(string $value): string
+    {
+        return Str::of($value)->squish()->ascii()->lower()->toString();
     }
 
     /** Años cumplidos en $date (el día del cumpleaños ya cuenta como cumplido). */

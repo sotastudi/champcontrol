@@ -11,6 +11,7 @@
         </div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ route('panel.registrations.index', $event) }}" class="btn btn-primary">Inscripciones</a>
         <a href="{{ route('panel.events.edit', $event) }}" class="btn btn-outline-primary">Editar</a>
         @if ($event->isListed())
             <a href="{{ route('public.events.show', $event) }}" class="btn btn-outline-secondary">Ver página pública</a>
@@ -34,7 +35,7 @@
     @else
         <div class="table-responsive">
             <table class="table align-middle">
-                <thead><tr><th>Nombre</th><th>Criterios</th><th></th></tr></thead>
+                <thead><tr><th>Nombre</th><th>Criterios</th><th class="text-center">Confirmados</th><th></th></tr></thead>
                 <tbody>
                 @foreach ($event->categories as $category)
                     <tr>
@@ -48,6 +49,7 @@
                                 $category->level,
                             ])->filter()->implode(' · ') ?: 'Sin restricciones' }}
                         </td>
+                        <td class="text-center"><a href="{{ route('panel.registrations.index', ['event' => $event, 'category_id' => $category->id]) }}">{{ $category->confirmed_count }}</a></td>
                         <td class="text-end">
                             <a href="{{ route('panel.categories.edit', [$event, $category]) }}" class="btn btn-outline-primary btn-sm">Editar</a>
                             <form method="POST" action="{{ route('panel.categories.destroy', [$event, $category]) }}" class="d-inline" onsubmit="return confirm('¿Eliminar la categoría?')">

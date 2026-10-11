@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Panel;
 
+use App\Enums\RegistrationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EventRequest;
 use App\Models\Event;
@@ -32,7 +33,9 @@ class EventController extends Controller
 
     public function show(Event $event): View
     {
-        return view('panel.events.show', ['event' => $event->load(['categories' => fn ($q) => $q->orderBy('name')])]);
+        return view('panel.events.show', ['event' => $event->load(['categories' => fn ($q) => $q->orderBy('name')->withCount([
+            'registrations as confirmed_count' => fn ($r) => $r->where('status', RegistrationStatus::Confirmed->value),
+        ])])]);
     }
 
     public function edit(Event $event): View

@@ -1,0 +1,160 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\RegistrationStatus;
+use App\Models\Category;
+use App\Models\Competitor;
+use App\Models\Event;
+use App\Models\Registration;
+use App\Models\User;
+use App\Registrations\RegistrationException;
+use App\Registrations\RegistrationService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class RegistrationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function data(array $o = []): array
+    {
+        return array_merge([
+            'first_name' => 'José', 'last_name' => 'García Pérez', 'club' => 'Dojo Norte',
+            'birth_date' => '2010-06-15', 'sex' => 'male', 'weight' => 58.5,
+        ], $o);
+    }
+
+    public function test_organizer_registers_a_competitor_manually(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+        $category = Category::factory()->for($event)->create();
+
+        $this->actingAs($user)->post(route('panel.registrations.store', $event), $this->data([
+            'category_id' => $category->id, 'status' => 'confirmed',
+        ]))->assertRedirect(route('panel.registrations.index', $event));
+
+        $registration = Registration::firstOrFail();
+        $this->assertSame(RegistrationStatus::Confirmed, $registration->status);
+        $this->assertSame($event->id, $registration->competitor->event_id);
+    }
+
+    public function test_cannot_register_into_a_category_of_another_event(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+        $foreign = Category::factory()->create();
+
+        $this->actingAs($user)->post(route('panel.registrations.store', $event), $this->data(['category_id' => $foreign->id, 'status' => 'pending']))
+            ->assertSessionHasErrors('category_id');
+        $this->assertDatabaseCount('registrations', 0);
+    }
+
+    public function test_duplicate_registration_in_same_category_is_rejected(): void
+    {
+        $category = Category::factory()->create();
+        $service = app(RegistrationService::class);
+        $service->register($category, $this->data());
+
+        $this->expectException(RegistrationException::class);
+        $service->register($category, $this->data());
+    }
+
+    /** Review Focus 1: misma persona con otra capitalización, acentos y espacios. */
+    public function test_duplicate_detection_ignores_case_accents_and_extra_spaces(): void
+    {
+        $category = Category::factory()->create();
+        $service = app(RegistrationService::class);
+        $service->register($category, $this->data());
+
+        try {
+            $service->register($category, $this->data(['first_name' => '  jose ', 'last_name' => 'GARCIA   PEREZ']));
+            $this->fail('Debió detectar el duplicado');
+        } catch (RegistrationException) {
+            $this->assertDatabaseCount('competitors', 1);
+            $this->assertDatabaseCount('registrations', 1);
+        }
+    }
+
+    public function test_same_competitor_can_join_two_categories_and_reuses_the_competitor(): void
+    {
+        $event = Event::factory()->create();
+        $a = Category::factory()->for($event)->create();
+        $b = Category::factory()->for($event)->create();
+        $service = app(RegistrationService::class);
+
+        $service->register($a, $this->data());
+        $service->register($b, $this->data());
+
+        $this->assertDatabaseCount('competitors', 1);
+        $this->assertDatabaseCount('registrations', 2);
+    }
+
+    public function test_cancelled_registration_is_reactivated_instead_of_duplicated(): void
+    {
+        $category = Category::factory()->create();
+        $service = app(RegistrationService::class);
+        $registration = $service->register($category, $this->data(), RegistrationStatus::Confirmed);
+        $service->changeStatus($registration, RegistrationStatus::Cancelled);
+
+        $again = $service->register($category, $this->data());
+
+        $this->assertSame($registration->id, $again->id);
+        $this->assertSame(RegistrationStatus::Pending, $again->fresh()->status);
+        $this->assertDatabaseCount('registrations', 1);
+    }
+
+    public function test_same_name_and_birthdate_in_another_event_is_a_different_competitor(): void
+    {
+        $service = app(RegistrationService::class);
+        $service->register(Category::factory()->create(), $this->data());
+        $service->register(Category::factory()->create(), $this->data());
+
+        $this->assertDatabaseCount('competitors', 2);
+    }
+
+    public function test_status_change_and_filters(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+        $category = Category::factory()->for($event)->create(['name' => 'A']);
+        $other = Category::factory()->for($event)->create(['name' => 'B']);
+        $r1 = Registration::factory()->forCategory($category)->create();
+        Registration::factory()->forCategory($other)->confirmed()->create();
+
+        $this->actingAs($user)->patch(route('panel.registrations.update', [$event, $r1]), ['status' => 'confirmed'])->assertRedirect();
+        $this->assertSame(RegistrationStatus::Confirmed, $r1->fresh()->status);
+
+        $this->actingAs($user)->patch(route('panel.registrations.update', [$event, $r1]), ['status' => 'bogus'])->assertSessionHasErrors('status');
+
+        $page = $this->actingAs($user)->get(route('panel.registrations.index', ['event' => $event, 'category_id' => $other->id]));
+        $page->assertOk()->assertSee($other->registrations()->first()->competitor->last_name)
+            ->assertDontSee($r1->competitor->last_name);
+    }
+
+    public function test_competitor_data_can_be_edited_by_owner(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+        $competitor = Competitor::factory()->for($event)->create();
+
+        $this->actingAs($user)->put(route('panel.competitors.update', [$event, $competitor]), $this->data(['club' => 'Nuevo Club']))
+            ->assertRedirect(route('panel.registrations.index', $event));
+        $this->assertSame('Nuevo Club', $competitor->fresh()->club);
+    }
+
+    public function test_forms_and_event_summary_render(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+        $category = Category::factory()->for($event)->create();
+        $registration = Registration::factory()->forCategory($category)->confirmed()->create();
+
+        $this->actingAs($user)->get(route('panel.registrations.create', $event))->assertOk();
+        $this->actingAs($user)->get(route('panel.competitors.edit', [$event, $registration->competitor]))
+            ->assertOk()->assertSee($registration->competitor->last_name);
+        $this->actingAs($user)->get(route('panel.events.show', $event))->assertOk()->assertSee('Inscripciones');
+        $this->assertSame(1, $event->categories()->withCount(['registrations as confirmed_count' => fn ($q) => $q->where('status', 'confirmed')])->first()->confirmed_count);
+    }
+}
