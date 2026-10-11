@@ -79,5 +79,10 @@ class TatamiAndProgressTest extends TestCase
 
         $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))
             ->assertSee('bracket-pair', false)->assertSee('bracket-slot', false);
+
+        $club = $category->registrations()->with('competitor')->firstOrFail()->competitor->club;
+        $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
+        $this->assertStringContainsString('<small class="d-block text-muted">'.e($club).'</small>', $html, 'el club va en su propia línea bajo el nombre');
+        $this->assertStringNotContainsString('('.e($club).')', $html);
     }
 }

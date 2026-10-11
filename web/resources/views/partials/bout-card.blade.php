@@ -24,7 +24,7 @@
                     <small class="text-danger">({{ $registration->isDisqualified() ? 'descalificado' : 'retirado' }})</small>
                 @endif
                 @if ($registration?->competitor->club)
-                    <small class="text-muted">({{ $registration->competitor->club }})</small>
+                    <small class="d-block text-muted">{{ $registration->competitor->club }}</small>
                 @endif
             </span>
             @if ($editable && $canRecord && $bout->filledSlots() === 2 && ! $bout->isBye() && ! $bout->isWalkover())
