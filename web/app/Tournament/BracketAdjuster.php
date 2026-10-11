@@ -21,8 +21,8 @@ final class BracketAdjuster
         if ($registrationA === $registrationB) {
             throw new TournamentException('Elige dos participantes distintos.');
         }
-        if ($category->hasResults()) {
-            throw new TournamentException('El cuadro ya tiene resultados: no se puede ajustar.');
+        if ($category->isRegenerationLocked()) {
+            throw new TournamentException('Hay resultados o bajas registradas: el cuadro ya no se puede ajustar.');
         }
 
         $bouts = $category->bouts()->where('round', 1)->get();

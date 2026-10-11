@@ -50,11 +50,18 @@ final class PodiumCalculator
             return ['podium' => $this->shiftUp($kept, $category), 'vacant' => []];
         }
 
-        $keptPlaces = array_map(fn (Placement $p) => $p->place, $kept);
-        $vacant = array_diff(array_map(fn (Placement $p) => $p->place, $removed), $keptPlaces);
+        $max = $this->maxPlace($category);
+        $within = fn (Placement $p) => $p->place <= $max;
+        $vacant = array_unique(array_map(fn (Placement $p) => $p->place, array_filter($removed, $within)));
         sort($vacant);
 
-        return ['podium' => $kept, 'vacant' => array_values(array_unique($vacant))];
+        return ['podium' => array_values(array_filter($kept, $within)), 'vacant' => array_values($vacant)];
+    }
+
+    /** Último puesto visible: 3, o 4 si la categoría lo muestra y hay combate por el bronce. */
+    private function maxPlace(Category $category): int
+    {
+        return $category->show_fourth && $category->bronze_rule === BronzeRule::BronzeMatch ? 4 : 3;
     }
 
     /** Renumeración densa por rango respetando empates; descarta lo que supere el máximo permitido. @param list<Placement> $placements @return list<Placement> */
@@ -63,7 +70,7 @@ final class PodiumCalculator
         $places = array_values(array_unique(array_map(fn (Placement $p) => $p->place, $placements)));
         sort($places);
         $rank = array_flip($places);
-        $max = $category->show_fourth && $category->bronze_rule === BronzeRule::BronzeMatch ? 4 : 3;
+        $max = $this->maxPlace($category);
 
         $result = [];
         foreach ($placements as $p) {
@@ -105,7 +112,7 @@ final class PodiumCalculator
             $bronze = $bouts->first(fn (Bout $b) => $b->is_bronze);
             if ($bronze?->isCompleted()) {
                 $placements[] = new Placement(3, $bronze->winner);
-                if ($category->show_fourth && ! $bronze->isBye()) {
+                if (! $bronze->isBye()) {
                     $placements[] = new Placement(4, $this->loser($bronze));
                 }
             }

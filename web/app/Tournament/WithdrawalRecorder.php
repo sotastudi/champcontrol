@@ -28,8 +28,13 @@ final class WithdrawalRecorder
         if ($registration->status !== RegistrationStatus::Confirmed || ! $registration->isInBracket()) {
             throw new TournamentException('Solo se puede dar de baja a un inscrito confirmado que esté en el cuadro.');
         }
-        if (! $category->hasResults() && $category->event->preResultsWithdrawalRule() === PreResultsWithdrawalRule::CancelAndRegenerate) {
-            throw new TournamentException('Aún no hay resultados: cancela la inscripción y regenera el cuadro.');
+        if (! $category->hasResults()) {
+            if ($category->event->preResultsWithdrawalRule() === PreResultsWithdrawalRule::CancelAndRegenerate) {
+                throw new TournamentException('Aún no hay resultados: cancela la inscripción y regenera el cuadro.');
+            }
+            if ($category->bracketIsStale()) {
+                throw new TournamentException(TournamentException::STALE_BRACKET);
+            }
         }
 
         DB::transaction(function () use ($registration, $type, $reason) {

@@ -21,8 +21,8 @@ final class BracketGenerator
      */
     public function generate(Category $category, ?Closure $shuffler = null): void
     {
-        if ($category->hasResults()) {
-            throw new TournamentException('La categoría ya tiene resultados: el cuadro no se puede regenerar.');
+        if ($category->isRegenerationLocked()) {
+            throw new TournamentException('Hay resultados o bajas registradas: el cuadro ya no se puede regenerar.');
         }
 
         $ids = $category->registrations()->where('status', RegistrationStatus::Confirmed->value)->orderBy('id')->pluck('id');

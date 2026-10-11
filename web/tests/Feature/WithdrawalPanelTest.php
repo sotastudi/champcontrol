@@ -105,7 +105,7 @@ class WithdrawalPanelTest extends TestCase
         app(ResultRecorder::class)->record($s2, $s2->slot_a_id);
 
         $this->actingAs($category->event->user)->get(route('panel.brackets.show', [$category->event, $category]))
-            ->assertSee('Puesto vacante por descalificación: resolver según el reglamento.');
+            ->assertSee('Puesto vacante (descalificación o retirada sin combatir): resolver según el reglamento.');
         $this->get(route('public.categories.show', [$category->event, $category]))
             ->assertOk()->assertDontSee('vacante');
     }

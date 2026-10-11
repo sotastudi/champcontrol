@@ -35,7 +35,7 @@ final class ResultRecorder
         }
         $category = $bout->category;
         if (! $category->hasResults() && $category->bracketIsStale()) {
-            throw new TournamentException('El cuadro está desactualizado respecto a las inscripciones confirmadas: regéneralo antes de anotar el primer resultado.');
+            throw new TournamentException(TournamentException::STALE_BRACKET);
         }
 
         DB::transaction(function () use ($bout, $winnerRegistrationId) {

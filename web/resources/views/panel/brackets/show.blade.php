@@ -11,7 +11,7 @@
         <div class="text-muted">{{ $confirmedCount }} {{ $confirmedCount === 1 ? 'inscrito confirmado' : 'inscritos confirmados' }}</div>
     </div>
     <div class="d-flex gap-2 flex-wrap no-print">
-        @unless ($hasResults)
+        @unless ($regenerationLocked)
             <form method="POST" action="{{ route('panel.brackets.store', [$event, $category]) }}"
                   @if ($bouts->isNotEmpty()) onsubmit="return confirm('Se descartará el cuadro actual y se generará uno nuevo. ¿Continuar?')" @endif>
                 @csrf
@@ -51,7 +51,7 @@
         @include('partials.bracket', ['editable' => true])
     </section>
 
-    @unless ($hasResults)
+    @unless ($regenerationLocked)
         <section class="mb-4 no-print">
             <h2 class="h5">Intercambiar participantes</h2>
             <form method="POST" action="{{ route('panel.brackets.swap', [$event, $category]) }}" class="row g-2 align-items-end">
@@ -150,7 +150,7 @@
         <h2 class="h5">Podio</h2>
         @include('partials.podium', ['editable' => true])
         @if (count($vacantPlaces))
-            <div class="alert alert-warning">Puesto vacante por descalificación: resolver según el reglamento.</div>
+            <div class="alert alert-warning">Puesto vacante (descalificación o retirada sin combatir): resolver según el reglamento. Puestos: {{ implode(', ', $vacantPlaces) }}.</div>
         @endif
     </section>
 @endif

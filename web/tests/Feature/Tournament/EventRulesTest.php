@@ -12,6 +12,8 @@ use App\Models\Category;
 use App\Models\Event;
 use App\Models\Registration;
 use App\Models\User;
+use App\Tournament\BracketAdjuster;
+use App\Tournament\BracketGenerator;
 use App\Tournament\PodiumCalculator;
 use App\Tournament\ResultRecorder;
 use App\Tournament\TournamentException;
@@ -292,5 +294,122 @@ class EventRulesTest extends TestCase
         $this->rules($category, ['dq_podium_rule' => 'shift_up']);
 
         $this->assertSame(['1', '2', '3'], $places());
+    }
+
+    public function test_shared_bronze_tie_with_one_disqualified_third_still_reports_the_vacant_place(): void
+    {
+        $category = $this->generated(4, BronzeRule::SharedBronze);
+        $s1 = $this->bout($category, 1, 1);
+        $s2 = $this->bout($category, 1, 2);
+        $this->win($category, 1, 1, $s1->slot_a_id);
+        $this->win($category, 1, 2, $s2->slot_a_id);
+        $this->win($category, 2, 1, $s1->slot_a_id);
+        $this->withdraw($s1->slot_b_id, WithdrawalType::Disqualified);
+
+        $this->assertSame([1, 2, 3], $this->places($category));
+        $this->assertSame([3], $this->vacant($category));
+    }
+
+    /** @return array{0: Category, 1: int, 2: int, 3: int, 4: int} categoría, campeón, subcampeón, bronce, cuarto */
+    private function fourFullyPlayedWithoutFourthShown(): array
+    {
+        $category = $this->generated(4);
+        $s1 = $this->bout($category, 1, 1);
+        $s2 = $this->bout($category, 1, 2);
+        $this->win($category, 1, 1, $s1->slot_a_id);
+        $this->win($category, 1, 2, $s2->slot_a_id);
+        $bronze = $this->bout($category, 2, 1, true);
+        $this->win($category, 2, 1, $bronze->slot_a_id, true);
+        $this->win($category, 2, 1, $s1->slot_a_id);
+        $bronze->refresh();
+        $this->withdraw($s2->slot_a_id, WithdrawalType::Disqualified);
+
+        return [$category->refresh(), $s1->slot_a_id, $s2->slot_a_id, $bronze->winner_id, $bronze->loserId()];
+    }
+
+    public function test_shift_up_without_fourth_shown_fills_third_with_the_bronze_loser(): void
+    {
+        [$category, $champion, , $bronzeWinner, $bronzeLoser] = $this->fourFullyPlayedWithoutFourthShown();
+        $this->rules($category, ['dq_podium_rule' => 'shift_up']);
+
+        $this->assertSame([[1, $champion], [2, $bronzeWinner], [3, $bronzeLoser]], $this->podium($category));
+        $this->assertSame([], $this->vacant($category));
+    }
+
+    public function test_vacant_without_fourth_shown_never_exposes_a_fourth_place(): void
+    {
+        [$category, $champion, , $bronzeWinner] = $this->fourFullyPlayedWithoutFourthShown();
+
+        $this->assertSame([[1, $champion], [3, $bronzeWinner]], $this->podium($category));
+        $this->assertSame([2], $this->vacant($category));
+    }
+
+    public function test_unfought_bye_recipient_withdrawn_before_the_final_is_dropped_with_no_place(): void
+    {
+        $category = $this->generated(3);
+        $bye = $category->bouts()->where('round', 1)->get()->first(fn ($b) => $b->isBye());
+        $real = $category->bouts()->where('round', 1)->get()->first(fn ($b) => ! $b->isBye());
+        $this->win($category, 1, $real->position, $real->slot_a_id);
+        $this->withdraw($bye->winner_id, WithdrawalType::Withdrawn);
+        $this->rules($category, ['unfought_withdrawal_rule' => 'no_place']);
+
+        $this->assertNotContains($bye->winner_id, array_column($this->podium($category), 1));
+        $this->assertContains(2, $this->vacant($category));
+        $this->rules($category, ['unfought_withdrawal_rule' => 'keep_place']);
+        $this->assertContains($bye->winner_id, array_column($this->podium($category), 1));
+    }
+
+    public function test_withdrawing_a_bye_recipient_before_results_locks_regeneration_and_swaps(): void
+    {
+        $category = $this->generated(3);
+        $this->rules($category, ['withdrawal_before_results_rule' => 'allow_walkover']);
+        $bye = $category->bouts()->where('round', 1)->get()->first(fn ($b) => $b->isBye());
+        $this->withdraw($bye->winner_id, WithdrawalType::Withdrawn);
+        $category->refresh();
+
+        $this->assertFalse($category->hasResults());
+        $this->assertTrue($category->isRegenerationLocked());
+        $ids = $category->registrations()->pluck('id');
+        try {
+            app(BracketGenerator::class)->generate($category);
+            $this->fail('generate() debería lanzar');
+        } catch (TournamentException $e) {
+            $this->assertStringContainsString('ya no se puede regenerar', $e->getMessage());
+        }
+        $this->expectException(TournamentException::class);
+        app(BracketAdjuster::class)->swap($category, $ids[0], $ids[1]);
+    }
+
+    public function test_panel_hides_regenerate_and_swap_when_regeneration_is_locked(): void
+    {
+        $category = $this->generated(3);
+        $this->rules($category, ['withdrawal_before_results_rule' => 'allow_walkover']);
+        $url = route('panel.brackets.show', [$category->event, $category]);
+        $owner = $category->event->user;
+
+        $this->actingAs($owner)->get($url)->assertSee('Regenerar cuadro')->assertSee('Intercambiar participantes');
+
+        $bye = $category->bouts()->where('round', 1)->get()->first(fn ($b) => $b->isBye());
+        $this->withdraw($bye->winner_id, WithdrawalType::Withdrawn);
+
+        $this->actingAs($owner)->get($url)->assertOk()->assertDontSee('Regenerar cuadro')->assertDontSee('Intercambiar participantes');
+    }
+
+    public function test_allow_walkover_is_refused_while_the_bracket_is_stale(): void
+    {
+        $category = $this->generated(4);
+        $this->rules($category, ['withdrawal_before_results_rule' => 'allow_walkover']);
+        Registration::factory()->confirmed()->forCategory($category)->create();
+        $target = $this->bout($category, 1, 1)->slot_a_id;
+
+        $this->actingAs($category->event->user)->get(route('panel.brackets.show', [$category->event, $category]))
+            ->assertOk()->assertDontSee('Retiradas y descalificaciones');
+        try {
+            $this->withdraw($target, WithdrawalType::Withdrawn);
+            $this->fail('debería lanzar');
+        } catch (TournamentException $e) {
+            $this->assertStringContainsString('desactualizado', $e->getMessage());
+        }
+        $this->assertFalse(Registration::find($target)->isWithdrawn());
     }
 }

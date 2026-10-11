@@ -36,7 +36,8 @@ class ExportController extends Controller
     public function standings(Event $event, PodiumCalculator $podium): StreamedResponse
     {
         $rows = [];
-        foreach ($event->categories()->orderBy('name')->get() as $category) {
+        $categories = $event->categories()->orderBy('name')->get()->each->setRelation('event', $event);
+        foreach ($categories as $category) {
             foreach ($podium->for($category) as $p) {
                 $c = $p->registration->competitor;
                 $rows[] = [$category->name, $p->place, $c->last_name, $c->first_name, $c->club];

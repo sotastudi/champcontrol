@@ -80,6 +80,12 @@ class Category extends Model
         return $this->bouts()->where('required_participants', 2)->whereNotNull('winner_id')->exists();
     }
 
+    /** El cuadro no se puede regenerar ni ajustar: hay resultados o bajas registradas (una baja sin resultado, p. ej. de un pase, ya lo bloquea). */
+    public function isRegenerationLocked(): bool
+    {
+        return $this->hasResults() || $this->registrations()->whereNotNull('withdrawal_type')->exists();
+    }
+
     /** El cuadro ya no refleja las inscripciones confirmadas (o la regla del bronce): hay que regenerarlo. */
     public function bracketIsStale(): bool
     {

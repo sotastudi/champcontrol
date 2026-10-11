@@ -32,8 +32,9 @@ class BracketController extends Controller
             'confirmedCount' => $category->registrations()->where('status', 'confirmed')->count(),
             'stale' => $stale,
             'hasResults' => $hasResults,
-            'canWithdraw' => $bouts->isNotEmpty()
-                && ($hasResults || $event->preResultsWithdrawalRule() === PreResultsWithdrawalRule::AllowWalkover),
+            'canWithdraw' => $bouts->isNotEmpty() && ($hasResults
+                || ($event->preResultsWithdrawalRule() === PreResultsWithdrawalRule::AllowWalkover && ! $stale)),
+            'regenerationLocked' => $category->isRegenerationLocked(),
             'canRecord' => $hasResults || ! $stale,
         ]);
     }
