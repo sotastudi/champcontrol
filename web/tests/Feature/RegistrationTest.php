@@ -157,4 +157,30 @@ class RegistrationTest extends TestCase
         $this->actingAs($user)->get(route('panel.events.show', $event))->assertOk()->assertSee('Inscripciones');
         $this->assertSame(1, $event->categories()->withCount(['registrations as confirmed_count' => fn ($q) => $q->where('status', 'confirmed')])->first()->confirmed_count);
     }
+
+    public function test_editing_to_a_name_variant_of_another_competitor_is_rejected(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+        Competitor::factory()->for($event)->create(['first_name' => 'José', 'last_name' => 'García Pérez', 'birth_date' => '2010-06-15']);
+        $b = Competitor::factory()->for($event)->create(['birth_date' => '2010-06-15']);
+
+        $this->actingAs($user)->put(route('panel.competitors.update', [$event, $b]), $this->data(['first_name' => ' JOSE', 'last_name' => 'garcia   perez']))
+            ->assertSessionHasErrors('last_name');
+    }
+
+    public function test_editing_without_changing_identity_or_with_other_birth_date_is_allowed(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+        $a = Competitor::factory()->for($event)->create(['first_name' => 'José', 'last_name' => 'García Pérez', 'birth_date' => '2010-06-15']);
+        $b = Competitor::factory()->for($event)->create(['birth_date' => '2011-01-01']);
+
+        $this->actingAs($user)->put(route('panel.competitors.update', [$event, $a]), $this->data(['club' => 'Otro']))
+            ->assertSessionHasNoErrors();
+        $this->assertSame('Otro', $a->fresh()->club);
+
+        $this->actingAs($user)->put(route('panel.competitors.update', [$event, $b]), $this->data(['birth_date' => '2011-02-02']))
+            ->assertSessionHasNoErrors();
+    }
 }

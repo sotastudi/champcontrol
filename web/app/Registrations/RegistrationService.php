@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\Registration;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 final class RegistrationService
 {
@@ -58,6 +59,9 @@ final class RegistrationService
             ->first(fn (Competitor $c) => Competitor::normalizeName($c->first_name) === $first
                 && Competitor::normalizeName($c->last_name) === $last);
 
-        return $existing ?? $event->competitors()->create(Arr::only($data, Competitor::FIELDS));
+        return $existing ?? $event->competitors()->create(array_merge(Arr::only($data, Competitor::FIELDS), [
+            'first_name' => Str::squish($data['first_name']),
+            'last_name' => Str::squish($data['last_name']),
+        ]));
     }
 }

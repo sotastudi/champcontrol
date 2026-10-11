@@ -3,8 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Enums\Sex;
+use App\Models\Competitor;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class CompetitorRequest extends FormRequest
 {
@@ -17,12 +19,7 @@ class CompetitorRequest extends FormRequest
     {
         return [
             'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100',
-                Rule::unique('competitors')->where(fn ($q) => $q
-                    ->where('event_id', $this->route('event')->id)
-                    ->where('first_name', $this->input('first_name'))
-                    ->where('birth_date', $this->input('birth_date')))
-                    ->ignore($this->route('competitor')->id)],
+            'last_name' => ['required', 'string', 'max:100'],
             'club' => ['nullable', 'string', 'max:150'],
             'birth_date' => ['required', 'date', 'before_or_equal:today'],
             'sex' => ['nullable', Rule::enum(Sex::class)],
@@ -32,5 +29,28 @@ class CompetitorRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:30'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
+    }
+
+    /** Misma persona = nombre y apellidos normalizados + fecha de nacimiento, dentro del evento. */
+    public function after(): array
+    {
+        return [function (Validator $validator) {
+            if ($validator->errors()->hasAny(['first_name', 'last_name', 'birth_date'])) {
+                return;
+            }
+
+            $first = Competitor::normalizeName($this->input('first_name'));
+            $last = Competitor::normalizeName($this->input('last_name'));
+
+            $duplicate = $this->route('event')->competitors()
+                ->whereKeyNot($this->route('competitor')->id)
+                ->whereDate('birth_date', $this->input('birth_date'))->get()
+                ->contains(fn (Competitor $c) => Competitor::normalizeName($c->first_name) === $first
+                    && Competitor::normalizeName($c->last_name) === $last);
+
+            if ($duplicate) {
+                $validator->errors()->add('last_name', 'Ya existe otro competidor con ese nombre y fecha de nacimiento en el evento.');
+            }
+        }];
     }
 }
