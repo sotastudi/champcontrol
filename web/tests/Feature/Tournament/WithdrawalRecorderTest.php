@@ -3,6 +3,7 @@
 namespace Tests\Feature\Tournament;
 
 use App\Enums\EventStatus;
+use App\Enums\PreResultsWithdrawalRule;
 use App\Enums\WithdrawalType;
 use App\Models\Registration;
 use App\Tournament\ResultRecorder;
@@ -225,5 +226,28 @@ class WithdrawalRecorderTest extends TestCase
         $this->assertSame($q(4)->slot_a_id, $semi2->winner_id);
         $this->assertTrue($final->isWalkover());
         $this->assertSame($q(4)->slot_a_id, $final->winner_id);
+    }
+
+    public function test_withdrawal_is_allowed_when_category_is_locked_by_withdrawals_even_without_results(): void
+    {
+        // n=3: quien tiene el pase no genera walkover al retirarse (su rival de la final aún no existe).
+        $category = $this->generated(3);
+        $category->event->forceFill(['withdrawal_before_results_rule' => PreResultsWithdrawalRule::AllowWalkover])->save();
+
+        $bye = $category->bouts()->where('round', 1)->where('required_participants', 1)->firstOrFail();
+        $byeRegistration = Registration::findOrFail($bye->slot_a_id ?? $bye->slot_b_id);
+        $this->withdraw($byeRegistration);
+
+        $category->refresh();
+        $this->assertFalse($category->hasResults());
+        $this->assertTrue($category->isRegenerationLocked());
+
+        // Se vuelve a la regla por defecto y se retira a otro: el cuadro ya no se puede regenerar, así que no debe pedirlo.
+        $category->event->forceFill(['withdrawal_before_results_rule' => PreResultsWithdrawalRule::CancelAndRegenerate])->save();
+        $other = Registration::where('category_id', $category->id)->whereKeyNot($byeRegistration->id)->firstOrFail();
+
+        $this->withdraw($other->fresh());
+
+        $this->assertTrue($other->fresh()->isWithdrawn());
     }
 }

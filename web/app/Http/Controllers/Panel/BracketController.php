@@ -21,7 +21,6 @@ class BracketController extends Controller
         $bouts = $category->bouts()->with(['slotA.competitor', 'slotB.competitor', 'winner'])->get();
 
         $stale = $category->bracketIsStale();
-        $hasResults = $category->hasResults();
         $locked = $category->isRegenerationLocked();
 
         return view('panel.brackets.show', [
@@ -32,7 +31,6 @@ class BracketController extends Controller
             'vacantPlaces' => $podium->vacantPlaces($category),
             'confirmedCount' => $category->registrations()->where('status', 'confirmed')->count(),
             'stale' => $stale,
-            'hasResults' => $hasResults,
             'canWithdraw' => $bouts->isNotEmpty() && ($locked
                 || ($event->preResultsWithdrawalRule() === PreResultsWithdrawalRule::AllowWalkover && ! $stale)),
             'regenerationLocked' => $locked,
