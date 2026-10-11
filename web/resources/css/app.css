@@ -1,9 +1,14 @@
-@import 'tailwindcss';
+@import 'bootstrap/dist/css/bootstrap.min.css';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+.bracket-round { min-width: 16rem; }
+.bout-card { border: 1px solid var(--bs-border-color); border-radius: .5rem; background: var(--bs-body-bg); }
+.bout-card .slot { padding: .35rem .6rem; }
+.bout-card .slot + .slot { border-top: 1px solid var(--bs-border-color); }
+.bout-card .winner { font-weight: 600; background: var(--bs-success-bg-subtle); }
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+@media print {
+    .no-print, .navbar, .alert { display: none !important; }
+    body { background: #fff !important; }
+    .bracket { overflow: visible !important; }
+    a { text-decoration: none; color: inherit; }
 }
