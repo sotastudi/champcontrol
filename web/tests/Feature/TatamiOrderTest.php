@@ -155,4 +155,18 @@ class TatamiOrderTest extends TestCase
         }
         $this->assertSame(2, substr_count($this->actingAs($user)->get(route('panel.events.show', $event))->getContent(), 'href="#eye"'), 'evento y categoría');
     }
+
+    public function test_event_header_and_access_code_buttons_have_their_colours_and_icons(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+
+        $html = $this->actingAs($user)->get(route('panel.events.show', $event))->getContent();
+
+        $this->assertMatchesRegularExpression('#class="btn btn-blue">Asignar números de competidor</button>#', $html);
+        $this->assertMatchesRegularExpression('#class="btn btn-yellow btn-icon"><svg[^>]*><use href="\#pencil"/></svg> Editar</a>#', $html);
+        $this->assertMatchesRegularExpression('#class="btn btn-outline-danger btn-icon"><svg[^>]*><use href="\#trash"/></svg> Eliminar</button>#', $html);
+        $this->assertMatchesRegularExpression('#btn-icon"><svg[^>]*><use href="\#reset"/></svg> Regenerar código</button>#', $html);
+        $this->assertStringContainsString('<symbol id="reset"', $html);
+    }
 }

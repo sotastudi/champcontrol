@@ -41,6 +41,10 @@
         <path d="M12 9.5v5M12 17.5h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
     </symbol>
     {{-- Iconos de acciones: lápiz (editar), diagrama de árbol (cuadro), papelera (eliminar) y compartir (publicar). --}}
+    <symbol id="reset" viewBox="0 0 24 24">
+        <path d="M20 12a8 8 0 1 1-2.6-5.9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M20 4.5v4.5h-4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
     <symbol id="download" viewBox="0 0 24 24">
         <path d="M12 4v11M7.5 11l4.5 4.5 4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>

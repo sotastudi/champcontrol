@@ -15,17 +15,17 @@
         <form method="POST" action="{{ route('panel.events.bibs', $event) }}"
               onsubmit="return confirm('Se asignarán (o reasignarán) los números de competidor agrupando por club. ¿Continuar?')">
             @csrf
-            <button type="submit" class="btn btn-outline-secondary">Asignar números de competidor</button>
+            <button type="submit" class="btn btn-blue">Asignar números de competidor</button>
         </form>
         <a href="{{ route('panel.exports.standings', $event) }}" class="btn btn-outline-secondary">Exportar clasificación (CSV)</a>
-        <a href="{{ route('panel.events.edit', $event) }}" class="btn btn-outline-primary">Editar</a>
+        <a href="{{ route('panel.events.edit', $event) }}" class="btn btn-yellow btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#pencil"/></svg> Editar</a>
         @if ($event->isListed())
             <a href="{{ route('public.events.show', $event) }}" class="btn btn-outline-secondary btn-icon" title="Ver página pública" aria-label="Ver página pública"><svg width="16" height="16" aria-hidden="true"><use href="#eye"/></svg> Ver</a>
         @endif
         <form method="POST" action="{{ route('panel.events.destroy', $event) }}" onsubmit="return confirm('¿Eliminar el evento y todos sus datos?')">
             @csrf
             @method('DELETE')
-            <button type="submit" class="btn btn-outline-danger">Eliminar</button>
+            <button type="submit" class="btn btn-outline-danger btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#trash"/></svg> Eliminar</button>
         </form>
     </div>
 </div>
@@ -37,7 +37,7 @@
         <code class="fs-4 user-select-all" aria-label="Código de acceso">{{ $event->access_code }}</code>
         <form method="POST" action="{{ route('panel.events.access-code', $event) }}" onsubmit="return confirm('El código actual dejará de funcionar y quien lo tenga tendrá que pedir el nuevo. ¿Regenerarlo?')">
             @csrf
-            <button type="submit" class="btn btn-outline-secondary btn-sm">Regenerar código</button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#reset"/></svg> Regenerar código</button>
         </form>
     </div>
     <p class="text-muted small mt-1 mb-0">Se genera con el evento. El público lo necesita para ver cuadros, resultados y tatamis; tú decides a quién dárselo. Tú y tus controladores de tatami no lo necesitáis.</p>
