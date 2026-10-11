@@ -20,7 +20,26 @@
     <h2 class="h5 mt-4">Cuadros y resultados</h2>
     <div class="list-group">
         @foreach ($categories as $category)
-            <a class="list-group-item list-group-item-action" href="{{ route('public.categories.show', [$event, $category]) }}">{{ $category->name }}</a>
+            @php
+                $url = $category->is_published ? route('public.categories.show', [$event, $category]) : route('panel.brackets.show', [$event, $category]);
+                $done = $category->total_bouts > 0 && $category->played_bouts === $category->total_bouts;
+            @endphp
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center flex-wrap gap-2" href="{{ $url }}">
+                <span>
+                    {{ $category->name }}
+                    @if ($category->tatami)<small class="text-muted">· Tatami {{ $category->tatami }}</small>@endif
+                    @if (! $category->is_published)<span class="badge text-bg-warning">Sin publicar</span>@endif
+                </span>
+                <span class="small text-muted">
+                    @if ($category->total_bouts === 0)
+                        Cuadro sin generar
+                    @elseif ($done)
+                        <span class="badge text-bg-success">Finalizada</span>@if (! empty($champions[$category->id])) 🥇 {{ $champions[$category->id] }}@endif
+                    @else
+                        <span class="badge text-bg-primary">En curso</span> {{ $category->played_bouts }}/{{ $category->total_bouts }} combates
+                    @endif
+                </span>
+            </a>
         @endforeach
     </div>
 @endif

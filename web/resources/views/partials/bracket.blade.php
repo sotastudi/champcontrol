@@ -4,13 +4,26 @@
     $rounds = $bouts->where('is_bronze', false)->groupBy('round')->sortKeys();
     $bronze = $bouts->firstWhere('is_bronze', true);
 @endphp
-<div class="bracket d-flex gap-3 overflow-auto pb-3">
+<div class="bracket d-flex pb-3">
     @foreach ($rounds as $round => $roundBouts)
-        <div class="bracket-round flex-shrink-0">
+        @php $sorted = $roundBouts->sortBy('position')->values(); $hasNext = $round < $totalRounds; @endphp
+        <div class="bracket-round flex-shrink-0 {{ $hasNext ? 'has-next' : '' }}">
             <h3 class="h6 text-center text-muted">{{ \App\Tournament\RoundLabel::for($round, $totalRounds) }}</h3>
-            @foreach ($roundBouts->sortBy('position') as $bout)
-                @include('partials.bout-card', ['bout' => $bout])
-            @endforeach
+            <div class="bracket-bouts">
+                @if ($hasNext)
+                    @foreach ($sorted->chunk(2) as $pair)
+                        <div class="bracket-pair">
+                            @foreach ($pair as $bout)
+                                <div class="bracket-slot">@include('partials.bout-card', ['bout' => $bout])</div>
+                            @endforeach
+                        </div>
+                    @endforeach
+                @else
+                    @foreach ($sorted as $bout)
+                        <div class="bracket-slot">@include('partials.bout-card', ['bout' => $bout])</div>
+                    @endforeach
+                @endif
+            </div>
         </div>
     @endforeach
 </div>

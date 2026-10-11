@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'modality', 'sex', 'min_age', 'max_age', 'min_weight', 'max_weight', 'level', 'bronze_rule', 'show_fourth', 'draw_criteria'])]
+#[Fillable(['name', 'modality', 'sex', 'min_age', 'max_age', 'min_weight', 'max_weight', 'level', 'bronze_rule', 'show_fourth', 'draw_criteria', 'tatami', 'referees'])]
 class Category extends Model
 {
     /** @use HasFactory<CategoryFactory> */

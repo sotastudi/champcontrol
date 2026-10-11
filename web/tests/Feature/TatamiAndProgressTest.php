@@ -1,0 +1,83 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\EventStatus;
+use App\Models\Category;
+use App\Models\Event;
+use App\Models\Registration;
+use App\Models\User;
+use App\Tournament\BracketGenerator;
+use App\Tournament\ResultRecorder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class TatamiAndProgressTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function payload(array $o = []): array
+    {
+        return array_merge([
+            'name' => 'Open', 'discipline' => 'Judo', 'starts_on' => '2026-11-20', 'venue' => 'Pabellón', 'status' => 'draft',
+            'is_public' => '0', 'registration_form_enabled' => '0', 'tatami_count' => 3,
+        ], $o);
+    }
+
+    public function test_tatami_count_and_category_assignment_with_referees(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user)->post(route('panel.events.store'), $this->payload())->assertSessionHasNoErrors();
+        $event = $user->events()->firstOrFail();
+        $this->assertSame(3, $event->tatamiCount());
+
+        $this->actingAs($user)->get(route('panel.categories.create', $event))->assertSee('Tatami 3')->assertDontSee('Tatami 4');
+
+        $base = ['name' => 'Cat', 'bronze_rule' => 'bronze_match'];
+        $this->actingAs($user)->post(route('panel.categories.store', $event), $base + ['tatami' => 4])->assertSessionHasErrors('tatami');
+        $this->actingAs($user)->post(route('panel.categories.store', $event), $base + ['tatami' => 3, 'referees' => 5])->assertSessionHasNoErrors();
+        $category = $event->categories()->firstOrFail();
+        $this->assertSame([3, 5], [$category->tatami, $category->referees]);
+
+        $this->actingAs($user)->get(route('panel.events.show', $event))->assertSee('Tatami 3 (5 árbitros)');
+        $this->actingAs($user)->put(route('panel.events.update', $event), $this->payload(['tatami_count' => 2]))->assertSessionHasErrors('tatami_count');
+        $this->actingAs($user)->put(route('panel.events.update', $event), $this->payload(['tatami_count' => 3]))->assertSessionHasNoErrors();
+    }
+
+    public function test_public_event_page_shows_progress_champion_and_owner_sees_unpublished(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create(['is_public' => true, 'status' => EventStatus::InProgress]);
+        $done = Category::factory()->for($event)->create(['name' => 'Cat Final', 'is_published' => true, 'tatami' => 2]);
+        $running = Category::factory()->for($event)->create(['name' => 'Cat Curso', 'is_published' => true]);
+        $hidden = Category::factory()->for($event)->create(['name' => 'Cat Oculta', 'is_published' => false]);
+        foreach ([$done, $running, $hidden] as $c) {
+            Registration::factory()->count(2)->confirmed()->forCategory($c)->create();
+            app(BracketGenerator::class)->generate($c, fn ($ids) => $ids->values());
+        }
+        $final = $done->bouts()->firstOrFail();
+        app(ResultRecorder::class)->record($final, $final->slot_a_id);
+        $champion = $final->fresh()->winner->competitor->displayName();
+
+        $this->get(route('public.events.show', $event))
+            ->assertSee('Cat Final')->assertSee('Finalizada')->assertSee($champion)->assertSee('Tatami 2')
+            ->assertSee('Cat Curso')->assertSee('0/1 combates')
+            ->assertDontSee('Cat Oculta');
+
+        $this->actingAs($user)->get(route('public.events.show', $event))
+            ->assertSee('Cat Oculta')->assertSee('Sin publicar')->assertSee(route('panel.brackets.show', [$event, $hidden]), false);
+        $this->actingAs(User::factory()->create())->get(route('public.events.show', $event))->assertDontSee('Cat Oculta');
+    }
+
+    public function test_bracket_draws_connector_pairs_and_the_podium_shows_steps(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create(['is_public' => true, 'status' => EventStatus::InProgress]);
+        $category = Category::factory()->for($event)->create(['is_published' => true]);
+        Registration::factory()->count(4)->confirmed()->forCategory($category)->create();
+        app(BracketGenerator::class)->generate($category, fn ($ids) => $ids->values());
+
+        $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))
+            ->assertSee('bracket-pair', false)->assertSee('bracket-slot', false);
+    }
+}

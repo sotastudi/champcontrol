@@ -34,6 +34,13 @@ class EventRequest extends FormRequest
             'default_bronze_rule' => ['sometimes', 'required', Rule::enum(BronzeRule::class)],
             'registration_opens_at' => ['nullable', 'date'],
             'registration_closes_at' => ['nullable', 'date', Rule::when($this->filled('registration_opens_at'), ['after:registration_opens_at'])],
+            'tatami_count' => ['sometimes', 'required', 'integer', 'min:1', 'max:50', function (string $attribute, mixed $value, \Closure $fail) {
+                $event = $this->route('event');
+                $max = $event?->categories()->max('tatami');
+                if ($max !== null && (int) $value < (int) $max) {
+                    $fail("Hay categorías asignadas al tatami {$max}: reasígnalas antes de reducir el número de tatamis.");
+                }
+            }],
             'poster' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'remove_poster' => ['boolean'],
             'draw_criteria' => ['sometimes', 'required', Rule::enum(DrawCriteria::class)],

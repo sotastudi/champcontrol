@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 #[Fillable(['name', 'discipline', 'description', 'starts_on', 'venue', 'status', 'is_public', 'registration_form_enabled',
-    'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule', 'draw_criteria', 'registration_opens_at', 'registration_closes_at'])]
+    'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule', 'draw_criteria', 'registration_opens_at', 'registration_closes_at', 'tatami_count'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
@@ -106,6 +106,12 @@ class Event extends Model
     public function unfoughtWithdrawalRule(): UnfoughtWithdrawalRule
     {
         return $this->unfought_withdrawal_rule ?? UnfoughtWithdrawalRule::KeepPlace;
+    }
+
+    /** Número de tatamis del evento (mínimo 1; tras create() el atributo puede estar sin refrescar). */
+    public function tatamiCount(): int
+    {
+        return max(1, (int) ($this->tatami_count ?? 1));
     }
 
     public function hasPoster(): bool

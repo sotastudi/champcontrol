@@ -89,12 +89,19 @@ class FirstMilestoneTest extends TestCase
 
         $html = $this->get(route('public.categories.show', [$event, $category]))->assertOk()->getContent();
 
-        // Solo el bloque del podio: el cuadro y los resultados de debajo listan a todos los competidores.
-        $this->assertSame(1, preg_match('#<ul class="list-group[^"]*">(.*?)</ul>#s', $html, $block));
-        preg_match_all('#<li\b.*?</li>#s', $block[1], $rows);
-        $this->assertCount(4, $rows[0], 'el podio tiene cuatro filas');
+        // Solo el bloque del podio (columnas 1.º-3.º y fila del 4.º): el cuadro y los resultados de debajo listan a todos.
+        $this->assertSame(1, preg_match('#<div class="podium d-flex.*?(?=<section)#s', $html, $block));
+        $rows = [];
+        foreach (preg_split('#<div class="podium-col podium-#', $block[0]) as $i => $piece) {
+            if ($i > 0) {
+                $rows[(int) $piece[0]] = explode('<ul class="list-group', $piece)[0];
+            }
+        }
+        $this->assertSame(1, preg_match('#<li\b.*?</li>#s', $block[0], $fourth));
+        $rows[4] = $fourth[0];
+        $this->assertCount(4, $rows, 'el podio tiene cuatro puestos');
         foreach ($podium as $place => $expected) {
-            $row = $rows[0][$place - 1];
+            $row = $rows[$place];
             $this->assertStringContainsString($place.'.º', $row);
             $this->assertStringContainsString($expected, $row);
             foreach (array_diff($podium, [$place => $expected]) as $other) {
