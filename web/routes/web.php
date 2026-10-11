@@ -4,9 +4,13 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Panel\EventController;
+use App\Http\Controllers\PublicEventController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'home')->name('home');
+Route::get('/', HomeController::class)->name('home');
+Route::get('eventos/{event:slug}', [PublicEventController::class, 'show'])->name('public.events.show');
 
 Route::middleware('guest')->group(function () {
     Route::get('registro', [RegisterController::class, 'create'])->name('register');
@@ -21,7 +25,17 @@ Route::middleware('guest')->group(function () {
 
 Route::post('salir', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
-// Provisional: la Task 4 lo sustituye por EventController.
 Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
-    Route::view('eventos', 'panel.events.index', ['events' => collect()])->name('events.index');
+    Route::get('eventos', [EventController::class, 'index'])->name('events.index');
+    Route::get('eventos/crear', [EventController::class, 'create'])->name('events.create');
+    Route::post('eventos', [EventController::class, 'store'])->name('events.store');
+
+    // Todo lo que cuelga de un evento exige ser su propietario; scopeBindings impide mezclar recursos de otro evento.
+    Route::middleware('can:manage,event')->scopeBindings()->prefix('eventos/{event}')->group(function () {
+        Route::get('/', [EventController::class, 'show'])->name('events.show');
+        Route::get('editar', [EventController::class, 'edit'])->name('events.edit');
+        Route::put('/', [EventController::class, 'update'])->name('events.update');
+        Route::delete('/', [EventController::class, 'destroy'])->name('events.destroy');
+        // Las tareas siguientes añaden aquí categorías, inscripciones, cuadros, exportaciones…
+    });
 });
