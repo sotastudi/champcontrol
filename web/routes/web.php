@@ -8,6 +8,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Panel\BoutResultController;
 use App\Http\Controllers\Panel\BoutScoreController;
 use App\Http\Controllers\Panel\BracketController;
+use App\Http\Controllers\Panel\BracketPdfController;
 use App\Http\Controllers\Panel\CategoryController;
 use App\Http\Controllers\Panel\CompetitorController;
 use App\Http\Controllers\Panel\EventController;
@@ -92,6 +93,7 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::put('competidores/{competitor}', [CompetitorController::class, 'update'])->name('competitors.update');
         Route::get('exportar/inscritos.csv', [ExportController::class, 'registrations'])->name('exports.registrations');
         Route::get('categorias/{category}/cuadro', [BracketController::class, 'show'])->name('brackets.show');
+        Route::get('categorias/{category}/cuadro.pdf', BracketPdfController::class)->name('brackets.pdf');
         Route::post('categorias/{category}/cuadro', [BracketController::class, 'store'])->name('brackets.store');
         Route::post('categorias/{category}/cuadro/intercambio', [BracketController::class, 'swap'])->name('brackets.swap');
         Route::put('categorias/{category}/combates/{bout}/resultado', [BoutResultController::class, 'update'])->name('bouts.result');
