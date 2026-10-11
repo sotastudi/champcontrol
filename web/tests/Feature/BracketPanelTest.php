@@ -146,4 +146,20 @@ class BracketPanelTest extends TestCase
         $this->assertNull($semi->fresh()->winner_id);
         $this->assertFalse($category->hasResults());
     }
+
+    public function test_validation_error_on_winner_is_visible_after_redirect(): void
+    {
+        [$user, $event, $category] = $this->owned(4);
+        $this->actingAs($user)->post(route('panel.brackets.store', [$event, $category]));
+        $bout = $category->bouts()->where('round', 1)->firstOrFail();
+        $show = route('panel.brackets.show', [$event, $category]);
+
+        $this->actingAs($user)->from($show)
+            ->put(route('panel.bouts.result', [$event, $category, $bout]), ['winner_id' => 'abc'])
+            ->assertRedirect($show)->assertSessionHasErrors('winner_id');
+
+        $this->followingRedirects()->actingAs($user)->from($show)
+            ->put(route('panel.bouts.result', [$event, $category, $bout]), ['winner_id' => 'abc'])
+            ->assertSee('alert-danger', false);
+    }
 }

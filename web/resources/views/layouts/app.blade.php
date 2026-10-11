@@ -89,6 +89,12 @@
     @error('error')
         <div class="alert alert-danger">{{ $message }}</div>
     @enderror
+    {{-- Errores de campos de formularios del cuadro (resultado, bajas, intercambio) que no se pintan junto al campo. --}}
+    @foreach (['winner_id', 'registration_id', 'type', 'reason', 'registration_a', 'registration_b'] as $field)
+        @error($field)
+            <div class="alert alert-danger">{{ $message }}</div>
+        @enderror
+    @endforeach
     @yield('content')
 </main>
 </body>
