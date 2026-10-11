@@ -2,7 +2,7 @@
 
 Aplicación web ligera para organizar campeonatos de artes marciales: crear eventos y categorías, inscribir competidores, generar cuadros de eliminación, anotar combates y publicar clasificaciones.
 
-**Estado:** definición inicial del proyecto. Este documento describe la primera versión que se quiere construir; las funciones enumeradas todavía no están implementadas.
+**Estado:** primera versión implementada en `web/`. Las funciones descritas abajo están implementadas, salvo las decisiones pendientes de confirmar: ver [docs/decisiones-pendientes.md](docs/decisiones-pendientes.md) (retiradas y descalificaciones, regla del bronce, etc.) y [docs/menores.md](docs/menores.md) (inscripción de menores).
 
 ## Objetivo y alcance
 
@@ -72,36 +72,27 @@ Esta combinación favorece el desarrollo en PHP y permite una interfaz familiar 
 
 Requisitos: MAMP PRO con Apache, **PHP 8.4 tanto para el sitio como para la terminal**, MySQL compatible, Composer y Node.js con npm. Verificar en la terminal `php -v`, `composer --version` y `node -v`; si la terminal usa otro PHP, seleccionar el binario PHP 8.4 de MAMP antes de ejecutar Composer o Artisan.
 
-Cuando se inicie el código del proyecto:
+El código de la aplicación está en `web/`. Desde esa carpeta:
 
 ```bash
-composer create-project laravel/laravel:^13.0 champcontrol
-cd champcontrol
+cd web
+source scripts/dev-env.sh   # PHP 8.4 de MAMP y Node en el PATH
+composer install
 cp .env.example .env
 php artisan key:generate
 npm install
 ```
 
-Crear una base de datos vacía y ajustar .env con los valores reales de MAMP:
-APP_NAME=ChampControl
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=https://champcontrol.test
+Crear una base de datos MySQL vacía y ajustar `web/.env` con los valores reales de MAMP PRO (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `DB_PORT`; `APP_URL=https://champcontrol.test`). Después:
 
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=champcontrol
-DB_USERNAME=usuario_local
-DB_PASSWORD=clave_local
-
-El puerto, usuario y contraseña del ejemplo son marcadores: usar los que muestre MAMP PRO. Tras configurar la base de datos y crear las migraciones de la aplicación:
 ```bash
 php artisan migrate
 npm run dev
 ```
 
-En MAMP PRO, crear el host champcontrol.test y apuntar el DocumentRoot a champcontrol/public. Activar mod_rewrite y permitir las reglas .htaccess de Laravel. No poner la raíz del proyecto bajo el directorio público ni mover public/index.php. La configuración de correo puede usar un servicio local de pruebas o el controlador de registro (MAIL_MAILER=log) hasta configurar SMTP para recuperar contraseñas.
+En MAMP PRO, crear el host `champcontrol.test` y apuntar el **DocumentRoot a `champcontrol/web/public`**. Activar `mod_rewrite` y permitir las reglas `.htaccess` de Laravel. No mover `public/index.php`. La configuración de correo puede usar `MAIL_MAILER=log` hasta configurar SMTP para recuperar contraseñas.
+
+Pruebas y estilo: `php artisan test` y `vendor/bin/pint --test`.
 
 ## Despliegue básico en Apache
 El servidor debe tener PHP 8.4 con las extensiones requeridas por Laravel, Composer disponible para instalar dependencias, MySQL, y permisos de escritura para storage/ y bootstrap/cache/. Configurar el host Apache para servir exclusivamente public/, subir el código sin .env, crear un .env propio en el servidor, instalar dependencias con composer install --no-dev, ejecutar las migraciones y compilar los recursos antes o durante el despliegue. Ajustar APP_ENV=production, APP_DEBUG=false, APP_URL con HTTPS y configurar copias de seguridad de base de datos.
