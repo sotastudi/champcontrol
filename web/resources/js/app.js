@@ -3,6 +3,7 @@ import * as bootstrap from 'bootstrap';
 import './registration-form';
 import './judge-votes';
 import './offline-scores';
+import './score-lock';
 import './tatami-order';
 import './password-generator';
 
@@ -164,4 +165,11 @@ document.addEventListener('click', (event) => {
         clearTimeout(chip._hideTimer);
         chip._hideTimer = setTimeout(() => chip.classList.remove('is-open'), 3000);
     }
+});
+
+// Tras «Desbloquear» se recalculan los bloqueos del ippon/2 wazari del rival y el estado del botón Guardar.
+document.addEventListener('score-unlocked', (event) => {
+    const formId = event.detail.formId;
+    ['a', 'b'].forEach((side) => syncIppon(`${formId}-${side}`));
+    syncSave(document.getElementById(formId));
 });

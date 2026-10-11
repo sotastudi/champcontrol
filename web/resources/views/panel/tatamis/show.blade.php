@@ -14,9 +14,23 @@
     <a href="{{ route('panel.tatamis.show', [$event, $tatami['number']]) }}" class="btn btn-outline-secondary no-print">Actualizar</a>
 </div>
 
-@if ($tatami['now'])
-    @php $bout = $tatami['now']; @endphp
-    <h2 class="h5">Combate actual</h2>
+@if ($bout)
+    {{-- Navegación entre combates del tatami: se puede volver a un combate ya puntuado para revisarlo. --}}
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 tatami-nav">
+        @if ($previous)
+            <a href="{{ route('panel.tatamis.show', [$event, $tatami['number'], 'combate' => $previous->id]) }}" class="btn btn-outline-secondary btn-sm">&larr; Combate anterior ({{ $previous->number }})</a>
+        @else
+            <span></span>
+        @endif
+        <h2 class="h5 mb-0">{{ $isCurrent ? 'Combate actual' : 'Revisando el combate '.$bout->number }}</h2>
+        @if ($following)
+            <a href="{{ route('panel.tatamis.show', [$event, $tatami['number'], 'combate' => $following->id]) }}" class="btn btn-outline-secondary btn-sm">Combate siguiente ({{ $following->number }}) &rarr;</a>
+        @elseif (! $isCurrent && $tatami['now'])
+            <a href="{{ route('panel.tatamis.show', [$event, $tatami['number']]) }}" class="btn btn-primary btn-sm">Volver al combate actual &rarr;</a>
+        @else
+            <span></span>
+        @endif
+    </div>
     <div class="mb-4">
         @include('partials.tatami-bout', [
             'bout' => $bout,
@@ -25,7 +39,7 @@
         ])
     </div>
 
-    @if ($tatami['next']->isNotEmpty())
+    @if ($isCurrent && $tatami['next']->isNotEmpty())
         <h2 class="h6">A continuación</h2>
         <ul class="list-unstyled small">
             @foreach ($tatami['next'] as $next)
@@ -34,6 +48,6 @@
         </ul>
     @endif
 @else
-    <p class="text-muted">Sin combates listos en este tatami (sin cuadro, a la espera de resultados o ya finalizado).</p>
+    <p class="text-muted">Sin combates en este tatami todavía (sin cuadro o a la espera de resultados).</p>
 @endif
 @endsection

@@ -3,12 +3,20 @@
 @php
     $scoreForm = 'score-form-'.$bout->id;
 @endphp
+@php $locked = $bout->isCompleted() && ! $bout->isWalkover(); @endphp
 @php $totalRounds = $bout->category->bouts()->where('is_bronze', false)->max('round'); @endphp
+<div class="tatami-bout-wrap" @if ($locked) data-score-lock="locked" data-score-form-id="{{ $scoreForm }}" @endif>
 <div class="d-flex align-items-center flex-wrap gap-2 mb-3 tatami-bout-header">
     <span class="bout-number-tag">Combate {{ $bout->number }}</span>
     <span class="fw-semibold">{{ $bout->category->name }}</span>
     <span class="text-muted">· {{ $bout->is_bronze ? 'Bronce' : \App\Tournament\RoundLabel::for($bout->round, $totalRounds) }}</span>
 </div>
+@if ($locked)
+    <div class="alert alert-success d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 score-lock-banner" role="status">
+        <span><strong>Resultado guardado.</strong> Para corregirlo, desbloquea la puntuación y vuelve a guardar.</span>
+        <button type="button" class="btn btn-warning btn-sm btn-icon" data-score-unlock>Desbloquear</button>
+    </div>
+@endif
 <div class="row g-3 tatami-bout">
     @foreach (['a' => $bout->slotA, 'b' => $bout->slotB] as $slot => $registration)
         @php
@@ -43,4 +51,5 @@
             </div>
         </div>
     </div>
+</div>
 </div>

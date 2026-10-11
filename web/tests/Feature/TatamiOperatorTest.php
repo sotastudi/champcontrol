@@ -266,4 +266,57 @@ class TatamiOperatorTest extends TestCase
         }
         $this->assertSame(1, substr_count($html, 'data-score-save'), 'un solo formulario de puntuación');
     }
+
+    public function test_one_can_go_back_to_a_scored_bout_see_it_locked_and_correct_it(): void
+    {
+        [$owner, $event, $cat1] = $this->setUpEvent();
+        $b1 = $cat1->bouts()->where('number', 1)->firstOrFail();
+        $b2 = $cat1->bouts()->where('number', 2)->firstOrFail();
+        $show = fn (array $query = []) => $this->actingAs($owner)->get(route('panel.tatamis.show', [$event, 1] + $query));
+        $score = fn ($bout, array $data) => $this->actingAs($owner)->put(route('panel.tatamis.score', [$event, 1, $bout]), $data);
+
+        // Combate 1 puntuado (ippon de AKA): el actual pasa a ser el 2 y desde él se puede volver al 1.
+        $score($b1, ['a_ippon' => 1])->assertSessionHasNoErrors();
+        $html = $show()->assertOk()->assertSee('Combate actual')->assertSee('Combate anterior (1)')->getContent();
+        $this->assertStringContainsString(route('panel.tatamis.show', [$event, 1, 'combate' => $b1->id]), html_entity_decode($html));
+        $this->assertStringNotContainsString('data-score-lock="locked"', $html, 'el combate actual no está bloqueado');
+
+        // Revisar el combate 1: aparece bloqueado, con «Desbloquear» y la vuelta al actual.
+        $review = $show(['combate' => $b1->id])->assertOk()->assertSee('Revisando el combate 1')->assertSee('Resultado guardado')->assertSee('Desbloquear')->assertSee('Combate siguiente (2)')->getContent();
+        $this->assertStringContainsString('data-score-lock="locked"', $review);
+        $this->assertStringContainsString('data-score-unlock', $review);
+        $this->assertStringContainsString('Ganador', $review);
+
+        // Corregirlo (tras desbloquear): ahora gana SHIRO por ippon. El siguiente combate aún no se ha jugado, así que se puede.
+        $score($b1->fresh(), ['b_ippon' => 1])->assertSessionHasNoErrors();
+        $this->assertSame($b1->fresh()->slot_b_id, $b1->fresh()->winner_id);
+
+        // No se puede puntuar un combate futuro ni entrar a uno de otro tatami o inexistente.
+        $future = $cat1->bouts()->where('number', 3)->firstOrFail();
+        $score($future, ['a_ippon' => 1])->assertSessionHasErrors('error');
+        $show(['combate' => 999999])->assertNotFound();
+        $show(['combate' => $this->setUpEvent()[3]->bouts()->first()->id])->assertNotFound();
+
+        // Con los dos combates jugados, el final de la lista permite seguir hasta el actual.
+        $score($b2, ['a_ippon' => 1])->assertSessionHasNoErrors();
+        $this->assertSame($b2->fresh()->slot_a_id, $b2->fresh()->winner_id);
+        $show(['combate' => $b1->id])->assertSee('Combate siguiente (2)');
+    }
+
+    public function test_a_correction_is_refused_when_the_next_bout_already_depends_on_it(): void
+    {
+        [$owner, $event, $cat1] = $this->setUpEvent();
+        $b1 = $cat1->bouts()->where('number', 1)->firstOrFail();
+        $b2 = $cat1->bouts()->where('number', 2)->firstOrFail();
+        $score = fn ($bout, array $data) => $this->actingAs($owner)->put(route('panel.tatamis.score', [$event, 1, $bout]), $data);
+
+        $score($b1, ['a_ippon' => 1]);
+        $score($b2, ['a_ippon' => 1]);
+        $final = $cat1->bouts()->where('number', 3)->firstOrFail();
+        $score($final, ['a_ippon' => 1])->assertSessionHasNoErrors();
+
+        // La final ya está jugada: cambiar el ganador de la semifinal 1 la invalidaría.
+        $score($b1->fresh(), ['b_ippon' => 1])->assertSessionHasErrors('error');
+        $this->assertSame($b1->fresh()->slot_a_id, $b1->fresh()->winner_id);
+    }
 }

@@ -46,4 +46,23 @@ final class TatamiBoard
 
         return $board;
     }
+
+    /**
+     * Todos los combates reales de un tatami con los dos participantes definidos (jugados y por jugar), en el orden en que
+     * se compiten: categoría (orden del tatami) y número de combate. Sirve para volver a combates anteriores.
+     *
+     * @return Collection<int,Bout>
+     */
+    public function sequence(Event $event, int $tatami): Collection
+    {
+        $categories = $event->categories()->where('tatami', $tatami)->orderBy('tatami_position')->orderBy('id')->get();
+        $rank = $categories->pluck('id')->flip();
+
+        return Bout::whereIn('category_id', $categories->pluck('id'))
+            ->where('required_participants', 2)->whereNotNull('slot_a_id')->whereNotNull('slot_b_id')
+            ->with(['category', 'slotA.competitor', 'slotB.competitor'])
+            ->get()
+            ->sortBy(fn (Bout $b) => sprintf('%09d-%09d', $rank[$b->category_id] ?? 0, $b->number ?? 0))
+            ->values();
+    }
 }
