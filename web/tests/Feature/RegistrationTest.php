@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\EventStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\Category;
 use App\Models\Competitor;
@@ -232,5 +233,31 @@ class RegistrationTest extends TestCase
             ))->assertSessionHasErrors($field);
         }
         $this->assertSame(0, Registration::count());
+    }
+
+    public function test_club_is_required_in_every_competitor_form_and_marked_with_an_asterisk(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create(['starts_on' => '2026-11-20', 'is_public' => true, 'registration_form_enabled' => true, 'status' => EventStatus::RegistrationOpen]);
+        $category = Category::factory()->for($event)->create();
+        $payload = $this->data(['category_id' => $category->id, 'status' => 'confirmed']);
+
+        $html = $this->actingAs($user)->get(route('panel.registrations.create', $event))->getContent();
+        $this->assertMatchesRegularExpression('/for="club"[^>]*>Club[^<]*<span class="text-danger">\*/', $html);
+
+        foreach (['', '   '] as $empty) {
+            $this->actingAs($user)->post(route('panel.registrations.store', $event), ['club' => $empty] + $payload)->assertSessionHasErrors('club');
+        }
+        $this->actingAs($user)->post(route('panel.registrations.store', $event), array_diff_key($payload, ['club' => 1]))->assertSessionHasErrors('club');
+        $this->assertSame(0, Registration::count());
+
+        $competitor = Competitor::factory()->for($event)->create();
+        $edit = array_diff_key($payload, ['category_id' => 1, 'status' => 1]);
+        $this->actingAs($user)->put(route('panel.competitors.update', [$event, $competitor]), ['club' => ''] + $edit)->assertSessionHasErrors('club');
+        $this->actingAs($user)->put(route('panel.competitors.update', [$event, $competitor]), ['club' => 'Dojo Norte'] + $edit)->assertSessionHasNoErrors();
+
+        auth()->logout();
+        $this->post(route('public.registration.store', $event), ['club' => ''] + $payload)->assertSessionHasErrors('club');
+        $this->get(route('public.registration.create', $event))->assertSee('Club');
     }
 }

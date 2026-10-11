@@ -19,7 +19,7 @@ class CompetitorPhotoTest extends TestCase
     private function data(Category $category, array $o = []): array
     {
         return array_merge([
-            'first_name' => 'Ana', 'last_name' => 'Ruiz Sala', 'birth_date' => '1995-03-04', 'sex' => 'female', 'level' => '1º dan',
+            'first_name' => 'Ana', 'last_name' => 'Ruiz Sala', 'birth_date' => '1995-03-04', 'sex' => 'female', 'level' => '1º dan', 'club' => 'Dojo Test',
             'category_id' => $category->id, 'status' => 'confirmed',
         ], $o);
     }
@@ -71,7 +71,7 @@ class CompetitorPhotoTest extends TestCase
         $this->actingAs($user)->post(route('panel.registrations.store', $event), $this->data($category, ['photo' => UploadedFile::fake()->image('a.jpg')]));
         $competitor = Competitor::firstOrFail();
         $first = $competitor->photo_path;
-        $payload = ['first_name' => 'Ana', 'last_name' => 'Ruiz Sala', 'birth_date' => '1995-03-04', 'sex' => 'female', 'level' => '1º dan'];
+        $payload = ['first_name' => 'Ana', 'last_name' => 'Ruiz Sala', 'birth_date' => '1995-03-04', 'sex' => 'female', 'level' => '1º dan', 'club' => 'Dojo Test'];
 
         $this->actingAs($user)->put(route('panel.competitors.update', [$event, $competitor]), $payload + ['photo' => UploadedFile::fake()->image('b.png')])->assertSessionHasNoErrors();
         $second = $competitor->fresh()->photo_path;

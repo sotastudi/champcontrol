@@ -19,8 +19,8 @@ class DemoRegistrations extends Command
     protected $signature = 'champcontrol:demo-inscritos
         {category : ID de la categoría}
         {--count=12 : Número de inscritos a crear}
-        {--extras : Añade también club y peso (para probar esos criterios del sorteo)}
-        {--clubs=4 : Con --extras, número de clubes distintos (menos clubes = más coincidencias)}
+        {--extras : Añade también el peso (para probar ese criterio del sorteo)}
+        {--clubs=4 : Número de clubes distintos (menos clubes = más coincidencias)}
         {--pending=0 : Cuántos de ellos se dejan pendientes (el resto, confirmados)}
         {--seed= : Semilla para repetir los mismos datos}
         {--clean : Solo borra los inscritos DEMO de la categoría}
@@ -101,18 +101,18 @@ class DemoRegistrations extends Command
         $minW = $category->min_weight ?? 50;
         $maxW = $category->max_weight ?? 90;
 
-        // Solo los datos obligatorios (nombre, apellidos, nacimiento, sexo, nivel); club y peso con --extras.
+        // Datos obligatorios (nombre, apellidos, club, nacimiento, sexo, nivel); el peso, que es opcional, solo con --extras.
         $data = [
             'first_name' => $first,
             'last_name' => $last,
             'birth_date' => $birth->toDateString(),
             'sex' => $sex,
             'level' => $levels[mt_rand(0, count($levels) - 1)],
+            'club' => $clubs[$i % count($clubs)],
             'notes' => self::MARK,
         ];
 
         if ($this->option('extras')) {
-            $data['club'] = $clubs[$i % count($clubs)];
             $data['weight'] = round($minW + mt_rand(0, 100) / 100 * ($maxW - $minW), 1);
         }
 

@@ -34,7 +34,7 @@ class DemoRegistrationsTest extends TestCase
             $this->assertNotEmpty($c->first_name.$c->last_name);
             $this->assertNotNull($c->sex);
             $this->assertContains($c->level, MartialLevels::values());
-            $this->assertNull($c->club);
+            $this->assertNotEmpty($c->club, 'el club es obligatorio');
             $this->assertNull($c->weight);
             $this->assertGreaterThanOrEqual(15, $c->ageOn($category->event->starts_on));
             $this->assertLessThanOrEqual(17, $c->ageOn($category->event->starts_on));
@@ -44,7 +44,7 @@ class DemoRegistrationsTest extends TestCase
         $this->assertGreaterThan(0, $category->bouts()->count());
     }
 
-    public function test_extras_add_club_and_weight_and_rerun_replaces_only_demo_data(): void
+    public function test_extras_add_weight_clubs_are_always_set_and_rerun_replaces_only_demo_data(): void
     {
         $category = $this->category();
         $real = Registration::factory()->forCategory($category)->create();

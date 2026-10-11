@@ -19,7 +19,7 @@ class RegistrationRequest extends FormRequest
         return [
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
-            'club' => ['nullable', 'string', 'max:150'],
+            'club' => ['required', 'string', 'max:150'],
             'birth_date' => ['required', 'date', 'before_or_equal:today', 'before_or_equal:'.$this->route('event')->starts_on->toDateString()],
             'sex' => ['required', Rule::enum(Sex::class)],
             'weight' => ['nullable', 'numeric', 'min:0', 'max:300'],
