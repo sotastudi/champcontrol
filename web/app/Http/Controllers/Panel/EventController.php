@@ -32,7 +32,7 @@ class EventController extends Controller
 
     public function show(Event $event): View
     {
-        return view('panel.events.show', ['event' => $event]);
+        return view('panel.events.show', ['event' => $event->load('categories')]);
     }
 
     public function edit(Event $event): View

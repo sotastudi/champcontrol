@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Panel\CategoryController;
 use App\Http\Controllers\Panel\EventController;
 use App\Http\Controllers\PublicEventController;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,11 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::get('editar', [EventController::class, 'edit'])->name('events.edit');
         Route::put('/', [EventController::class, 'update'])->name('events.update');
         Route::delete('/', [EventController::class, 'destroy'])->name('events.destroy');
+        Route::get('categorias/crear', [CategoryController::class, 'create'])->name('categories.create');
+        Route::post('categorias', [CategoryController::class, 'store'])->name('categories.store');
+        Route::get('categorias/{category}/editar', [CategoryController::class, 'edit'])->name('categories.edit');
+        Route::put('categorias/{category}', [CategoryController::class, 'update'])->name('categories.update');
+        Route::delete('categorias/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
         // Las tareas siguientes añaden aquí categorías, inscripciones, cuadros, exportaciones…
     });
 });

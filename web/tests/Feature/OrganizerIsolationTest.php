@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -65,7 +66,9 @@ class OrganizerIsolationTest extends TestCase
     {
         $event = Event::factory()->for($owner)->create();
 
-        return ['event' => $event->id];
+        $category = Category::factory()->for($event)->create();
+
+        return ['event' => $event->id, 'category' => $category->id];
     }
 
     /** @return list<LaravelRoute> */

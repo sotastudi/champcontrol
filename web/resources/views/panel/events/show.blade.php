@@ -24,7 +24,43 @@
 </div>
 @if ($event->description)<p style="white-space: pre-line">{{ $event->description }}</p>@endif
 
-<section id="categorias">
-    {{-- Las Tasks 5 y 6 añaden aquí categorías e inscripciones. --}}
+<section id="categorias" class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h5 mb-0">Categorías</h2>
+        <a href="{{ route('panel.categories.create', $event) }}" class="btn btn-primary btn-sm">Nueva categoría</a>
+    </div>
+    @if ($event->categories->isEmpty())
+        <p class="text-muted">Aún no hay categorías.</p>
+    @else
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead><tr><th>Nombre</th><th>Criterios</th><th></th></tr></thead>
+                <tbody>
+                @foreach ($event->categories->sortBy('name') as $category)
+                    <tr>
+                        <td>{{ $category->name }}</td>
+                        <td class="text-muted small">
+                            {{ collect([
+                                $category->modality,
+                                $category->sex?->label(),
+                                ($category->min_age !== null || $category->max_age !== null) ? 'Edad '.($category->min_age ?? '…').'–'.($category->max_age ?? '…') : null,
+                                ($category->min_weight !== null || $category->max_weight !== null) ? 'Peso '.($category->min_weight ?? '…').'–'.($category->max_weight ?? '…').' kg' : null,
+                                $category->level,
+                            ])->filter()->implode(' · ') ?: 'Sin restricciones' }}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ route('panel.categories.edit', [$event, $category]) }}" class="btn btn-outline-primary btn-sm">Editar</a>
+                            <form method="POST" action="{{ route('panel.categories.destroy', [$event, $category]) }}" class="d-inline" onsubmit="return confirm('¿Eliminar la categoría?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
 </section>
 @endsection
