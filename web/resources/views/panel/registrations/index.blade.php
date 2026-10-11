@@ -72,6 +72,7 @@
                                 </form>
                             @endif
                         @endforeach
+                        <a href="{{ route('panel.registrations.show', [$event, $registration]) }}" class="btn btn-outline-info btn-sm">Ver ficha</a>
                         <a href="{{ route('panel.competitors.edit', [$event, $registration->competitor]) }}" class="btn btn-outline-primary btn-sm">Editar datos</a>
                     </td>
                 </tr>

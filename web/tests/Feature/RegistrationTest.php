@@ -183,4 +183,36 @@ class RegistrationTest extends TestCase
         $this->actingAs($user)->put(route('panel.competitors.update', [$event, $b]), $this->data(['birth_date' => '2011-02-02']))
             ->assertSessionHasNoErrors();
     }
+
+    public function test_organizer_sees_the_registration_card_before_confirming(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create(['starts_on' => '2026-11-20']);
+        $category = Category::factory()->for($event)->create();
+        $competitor = Competitor::factory()->for($event)->create([
+            'first_name' => 'Lucía', 'last_name' => 'Mora Díez', 'birth_date' => '2012-05-05', 'club' => 'Dojo Sur',
+            'phone' => '600111222', 'guardian_name' => 'Marta Díez', 'guardian_contact' => 'marta@example.com', 'notes' => 'Alergia al látex',
+        ]);
+        $registration = Registration::factory()->forCategory($category)->create(['competitor_id' => $competitor->id, 'status' => RegistrationStatus::Pending]);
+
+        $this->actingAs($user)->get(route('panel.registrations.index', $event))
+            ->assertSee(route('panel.registrations.show', [$event, $registration]), false);
+
+        $this->actingAs($user)->get(route('panel.registrations.show', [$event, $registration]))
+            ->assertOk()
+            ->assertSee('Mora Díez, Lucía')->assertSee('05/05/2012')->assertSee('14 años')
+            ->assertSee('Dojo Sur')->assertSee('600111222')->assertSee('Marta Díez')->assertSee('marta@example.com')
+            ->assertSee('Alergia al látex')->assertSee('Confirmar');
+    }
+
+    public function test_registration_card_of_another_event_is_not_found_or_forbidden(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+        $otherEvent = Event::factory()->for($user)->create();
+        $registration = Registration::factory()->forCategory(Category::factory()->for($otherEvent)->create())->create();
+
+        $this->actingAs($user)->get(route('panel.registrations.show', [$event, $registration]))->assertNotFound();
+        $this->actingAs(User::factory()->create())->get(route('panel.registrations.show', [$otherEvent, $registration]))->assertForbidden();
+    }
 }

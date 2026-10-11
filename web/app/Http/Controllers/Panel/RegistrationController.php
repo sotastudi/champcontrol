@@ -29,6 +29,18 @@ class RegistrationController extends Controller
         ]);
     }
 
+    public function show(Event $event, Registration $registration): View
+    {
+        $registration->load(['competitor', 'category.event']);
+
+        return view('panel.registrations.show', [
+            'event' => $event,
+            'registration' => $registration,
+            'competitor' => $registration->competitor,
+            'warnings' => $registration->category->mismatchesFor($registration->competitor),
+        ]);
+    }
+
     public function create(Event $event): View
     {
         return view('panel.registrations.create', [
