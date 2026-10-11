@@ -1,7 +1,7 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
 /* Logo: icono en móvil, horizontal desde md; variante según el tema activo. */
-.brand-logo, .theme-label-dark { display: none; }
+.brand-logo { display: none; }
 [data-bs-theme="light"] .brand-icon.brand-light { display: inline; }
 [data-bs-theme="dark"] .brand-icon.brand-dark { display: inline; }
 @media (min-width: 768px) {
@@ -9,8 +9,12 @@
     [data-bs-theme="light"] .brand-full.brand-light { display: inline; }
     [data-bs-theme="dark"] .brand-full.brand-dark { display: inline; }
 }
-[data-bs-theme="dark"] .theme-label-light { display: none; }
-[data-bs-theme="dark"] .theme-label-dark { display: inline; }
+
+/* Selector de tema: el icono del botón refleja el modo elegido (light / dark / auto). */
+.theme-icon { display: none; }
+[data-theme-mode="light"] .theme-icon-light,
+[data-theme-mode="dark"] .theme-icon-dark,
+[data-theme-mode="auto"] .theme-icon-auto { display: inline; }
 
 .bracket-round { min-width: 16rem; }
 .bout-card { border: 1px solid var(--bs-border-color); border-radius: .5rem; background: var(--bs-body-bg); }

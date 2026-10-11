@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="light">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="light" data-theme-mode="auto">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,19 +7,40 @@
     <link rel="icon" type="image/svg+xml" href="{{ asset('img/brand/light-icon-logo.svg') }}" media="(prefers-color-scheme: light)">
     <link rel="icon" type="image/svg+xml" href="{{ asset('img/brand/dark-icon-logo.svg') }}" media="(prefers-color-scheme: dark)">
     <script>
-        // Tema claro/oscuro: preferencia guardada o, si no hay, la del sistema. Antes de pintar para evitar parpadeo.
+        // Modo de tema: light | dark | auto (sistema). Se aplica antes de pintar para evitar parpadeo.
         (function () {
-            var theme = null;
-            try { theme = localStorage.getItem('theme'); } catch (e) {}
-            if (theme !== 'light' && theme !== 'dark') {
-                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            }
+            var mode = null;
+            try { mode = localStorage.getItem('theme'); } catch (e) {}
+            if (mode !== 'light' && mode !== 'dark') { mode = 'auto'; }
+            var theme = mode === 'auto'
+                ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                : mode;
+            document.documentElement.setAttribute('data-theme-mode', mode);
             document.documentElement.setAttribute('data-bs-theme', theme);
         })();
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-body-tertiary">
+<svg xmlns="http://www.w3.org/2000/svg" class="d-none" aria-hidden="true">
+    <defs>
+        <clipPath id="bulb-left-half"><rect x="0" y="0" width="12" height="24"/></clipPath>
+    </defs>
+    {{-- Bombilla encendida (claro), apagada (oscuro) y mitad/mitad (automático). --}}
+    <symbol id="bulb-on" viewBox="0 0 24 24">
+        <path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M9.5 21h5M10 18v0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="bulb-off" viewBox="0 0 24 24">
+        <path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M9.5 21h5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="bulb-half" viewBox="0 0 24 24">
+        <path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2z" fill="currentColor" clip-path="url(#bulb-left-half)"/>
+        <path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M9.5 21h5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </symbol>
+</svg>
 <nav class="navbar navbar-expand-md bg-body border-bottom mb-4">
     <div class="container">
         <a class="navbar-brand" href="{{ route('home') }}" aria-label="ChampControl">
@@ -34,10 +55,17 @@
         </button>
         <div class="collapse navbar-collapse" id="nav">
             <ul class="navbar-nav ms-auto align-items-md-center gap-md-2">
-                <li class="nav-item">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="theme-toggle" aria-label="Cambiar entre modo claro y oscuro">
-                        <span class="theme-label-light">Modo oscuro</span><span class="theme-label-dark">Modo claro</span>
+                <li class="nav-item dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" id="theme-menu" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tema de color">
+                        <svg class="theme-icon theme-icon-light" width="18" height="18" aria-hidden="true"><use href="#bulb-on"/></svg>
+                        <svg class="theme-icon theme-icon-dark" width="18" height="18" aria-hidden="true"><use href="#bulb-off"/></svg>
+                        <svg class="theme-icon theme-icon-auto" width="18" height="18" aria-hidden="true"><use href="#bulb-half"/></svg>
                     </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-menu">
+                        <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="light"><svg width="18" height="18" aria-hidden="true"><use href="#bulb-on"/></svg> Claro</button></li>
+                        <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="dark"><svg width="18" height="18" aria-hidden="true"><use href="#bulb-off"/></svg> Oscuro</button></li>
+                        <li><button class="dropdown-item d-flex align-items-center gap-2" type="button" data-theme-value="auto"><svg width="18" height="18" aria-hidden="true"><use href="#bulb-half"/></svg> Automático (sistema)</button></li>
+                    </ul>
                 </li>
                 @auth
                     <li class="nav-item"><a class="nav-link" href="{{ route('panel.events.index') }}">Mis eventos</a></li>

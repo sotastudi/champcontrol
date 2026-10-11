@@ -3,36 +3,52 @@ import * as bootstrap from 'bootstrap';
 window.bootstrap = bootstrap;
 
 const root = document.documentElement;
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 
-function setTheme(theme, persist = true) {
-    root.setAttribute('data-bs-theme', theme);
-    if (persist) {
-        try { localStorage.setItem('theme', theme); } catch (e) { /* sin almacenamiento: solo esta página */ }
+function storedMode() {
+    try {
+        const mode = localStorage.getItem('theme');
+        return mode === 'light' || mode === 'dark' ? mode : 'auto';
+    } catch (e) {
+        return 'auto';
     }
 }
 
-document.getElementById('theme-toggle')?.addEventListener('click', () => {
-    setTheme(root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
-});
+function resolve(mode) {
+    return mode === 'auto' ? (systemDark.matches ? 'dark' : 'light') : mode;
+}
 
-// Sin preferencia guardada, seguir los cambios del sistema.
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    let stored = null;
-    try { stored = localStorage.getItem('theme'); } catch (err) { /* ignorar */ }
-    if (!stored) {
-        setTheme(e.matches ? 'dark' : 'light', false);
+function applyMode(mode, persist = true) {
+    root.setAttribute('data-theme-mode', mode);
+    root.setAttribute('data-bs-theme', resolve(mode));
+    document.querySelectorAll('[data-theme-value]').forEach((item) => {
+        const active = item.dataset.themeValue === mode;
+        item.classList.toggle('active', active);
+        item.setAttribute('aria-current', active ? 'true' : 'false');
+    });
+    if (persist) {
+        try {
+            if (mode === 'auto') {
+                localStorage.removeItem('theme');
+            } else {
+                localStorage.setItem('theme', mode);
+            }
+        } catch (e) { /* sin almacenamiento: solo esta página */ }
+    }
+}
+
+document.querySelectorAll('[data-theme-value]').forEach((item) => {
+    item.addEventListener('click', () => applyMode(item.dataset.themeValue));
+});
+applyMode(storedMode(), false);
+
+// En modo automático, seguir los cambios del sistema.
+systemDark.addEventListener('change', () => {
+    if (storedMode() === 'auto') {
+        applyMode('auto', false);
     }
 });
 
 // Imprimir siempre en claro y restaurar después.
-let themeBeforePrint = null;
-window.addEventListener('beforeprint', () => {
-    themeBeforePrint = root.getAttribute('data-bs-theme');
-    setTheme('light', false);
-});
-window.addEventListener('afterprint', () => {
-    if (themeBeforePrint) {
-        setTheme(themeBeforePrint, false);
-        themeBeforePrint = null;
-    }
-});
+window.addEventListener('beforeprint', () => root.setAttribute('data-bs-theme', 'light'));
+window.addEventListener('afterprint', () => root.setAttribute('data-bs-theme', resolve(storedMode())));
