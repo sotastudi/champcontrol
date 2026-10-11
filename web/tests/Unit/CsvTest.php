@@ -24,6 +24,8 @@ class CsvTest extends TestCase
             'teléfono con +' => ['+34 600 000 000', '+34 600 000 000'],
             'teléfono pegado' => ['+34600000000', '+34600000000'],
             'número negativo' => ['-5', '-5'],
+            'guiones interiores' => ['+34-600-000-000', '\'+34-600-000-000'],
+            'resta pegada' => ['-1-1', '\'-1-1'],
             'suma interior' => ['+34+1', '\'+34+1'],
             'resta con operación' => ['-1+2', '\'-1+2'],
             'dde' => ["+cmd|' /C calc'!A0", "'+cmd|' /C calc'!A0"],

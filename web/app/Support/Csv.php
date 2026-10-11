@@ -25,12 +25,12 @@ final class Csv
         }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
-    /** Evita la inyección de fórmulas: una celda que empieza por = + - @ (o tab/CR) se prefija con ', salvo un número de teléfono (solo dígitos, espacios, puntos, guiones y paréntesis, con +/- inicial). */
+    /** Evita la inyección de fórmulas: una celda que empieza por = + - @ (o tab/CR) se prefija con ', salvo un número de teléfono (solo dígitos, espacios, puntos y paréntesis, con +/- inicial y sin más signos). */
     public static function cell(mixed $value): string
     {
         $text = (string) ($value ?? '');
 
-        if (preg_match('/^[+\-]?\d[\d\s().\-]*$/', $text) === 1) {
+        if (preg_match('/^[+\-]?\d[\d\s().]*$/D', $text) === 1) {
             return $text;
         }
 
