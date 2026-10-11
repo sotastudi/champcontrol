@@ -7,12 +7,14 @@ use App\Models\Category;
 use App\Models\Competitor;
 use App\Models\Event;
 use App\Models\User;
+use App\Tournament\ResultRecorder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\BuildsBrackets;
 use Tests\TestCase;
 
 class CategoryTest extends TestCase
 {
-    use RefreshDatabase;
+    use BuildsBrackets, RefreshDatabase;
 
     private function payload(array $o = []): array
     {
@@ -104,5 +106,16 @@ class CategoryTest extends TestCase
         $this->assertSame([], $category->mismatchesFor($ok));
         $this->assertCount(1, $category->mismatchesFor($young));
         $this->assertCount(2, $category->mismatchesFor($heavy)); // sexo y peso
+    }
+
+    public function test_bronze_rule_cannot_change_once_results_exist(): void
+    {
+        $category = $this->generated(4);
+        $semi = $this->bout($category, 1, 1);
+        app(ResultRecorder::class)->record($semi, $semi->slot_a_id);
+        $event = $category->event;
+
+        $this->actingAs($event->user)->put(route('panel.categories.update', [$event, $category]), $this->payload(['name' => $category->name, 'bronze_rule' => 'shared_bronze']))
+            ->assertSessionHasErrors('bronze_rule');
     }
 }

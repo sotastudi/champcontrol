@@ -26,7 +26,12 @@ class CategoryRequest extends FormRequest
             'min_weight' => ['nullable', 'numeric', 'min:0', 'max:300'],
             'max_weight' => ['nullable', 'numeric', 'min:0', 'max:300', Rule::when($this->filled('min_weight'), ['gte:min_weight'])],
             'level' => ['nullable', 'string', 'max:100'],
-            'bronze_rule' => ['required', Rule::enum(BronzeRule::class)],
+            'bronze_rule' => ['required', Rule::enum(BronzeRule::class), function (string $attribute, mixed $value, \Closure $fail) {
+                $category = $this->route('category');
+                if ($category && $category->hasResults() && $category->bronze_rule->value !== $value) {
+                    $fail('No se puede cambiar la regla del bronce cuando ya hay resultados.');
+                }
+            }],
             'show_fourth' => ['boolean'],
         ];
     }
