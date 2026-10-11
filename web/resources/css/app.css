@@ -1,5 +1,52 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
+/* Color de resalte: rojo en lugar del azul por defecto de Bootstrap. */
+:root, [data-bs-theme="light"] {
+    --bs-primary: #c8102e;
+    --bs-primary-rgb: 200, 16, 46;
+    --bs-primary-text-emphasis: #5a0713;
+    --bs-primary-bg-subtle: #f8d7dc;
+    --bs-primary-border-subtle: #f0aeb8;
+    --bs-link-color: #c8102e;
+    --bs-link-color-rgb: 200, 16, 46;
+    --bs-link-hover-color: #a00d25;
+    --bs-link-hover-color-rgb: 160, 13, 37;
+    --bs-focus-ring-color: rgba(200, 16, 46, .25);
+}
+[data-bs-theme="dark"] {
+    --bs-primary: #e8475f;
+    --bs-primary-rgb: 232, 71, 95;
+    --bs-primary-text-emphasis: #f29aa8;
+    --bs-primary-bg-subtle: #3a0b14;
+    --bs-primary-border-subtle: #7a1626;
+    --bs-link-color: #f06b80;
+    --bs-link-color-rgb: 240, 107, 128;
+    --bs-link-hover-color: #f48fa0;
+    --bs-link-hover-color-rgb: 244, 143, 160;
+    --bs-focus-ring-color: rgba(232, 71, 95, .25);
+}
+.btn-primary {
+    --bs-btn-bg: #c8102e; --bs-btn-border-color: #c8102e;
+    --bs-btn-hover-bg: #a00d25; --bs-btn-hover-border-color: #940c22;
+    --bs-btn-active-bg: #940c22; --bs-btn-active-border-color: #880b1f;
+    --bs-btn-disabled-bg: #c8102e; --bs-btn-disabled-border-color: #c8102e;
+    --bs-btn-focus-shadow-rgb: 215, 63, 87;
+}
+.btn-outline-primary {
+    --bs-btn-color: #c8102e; --bs-btn-border-color: #c8102e;
+    --bs-btn-hover-bg: #c8102e; --bs-btn-hover-border-color: #c8102e;
+    --bs-btn-active-bg: #c8102e; --bs-btn-active-border-color: #c8102e;
+    --bs-btn-disabled-color: #c8102e; --bs-btn-disabled-border-color: #c8102e;
+    --bs-btn-focus-shadow-rgb: 200, 16, 46;
+}
+[data-bs-theme="dark"] .btn-outline-primary { --bs-btn-color: #f06b80; --bs-btn-border-color: #e8475f; }
+.form-control:focus, .form-select:focus { border-color: #e17f8f; box-shadow: 0 0 0 .25rem rgba(200, 16, 46, .25); }
+.form-check-input:checked, .form-check-input[type="checkbox"]:indeterminate { background-color: #c8102e; border-color: #c8102e; }
+.form-check-input:focus { border-color: #e17f8f; box-shadow: 0 0 0 .25rem rgba(200, 16, 46, .25); }
+.dropdown-item.active, .dropdown-item:active { background-color: #c8102e; }
+.page-link { color: #c8102e; }
+.page-item.active .page-link { background-color: #c8102e; border-color: #c8102e; }
+
 /* Logo: icono en móvil, horizontal desde md; variante según el tema activo. */
 .brand-logo { display: none; }
 [data-bs-theme="light"] .brand-icon.brand-light { display: inline; }
