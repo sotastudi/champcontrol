@@ -30,36 +30,96 @@ class TatamiOperatorTest extends TestCase
         return [$owner, $event, $cat1, $cat2];
     }
 
-    public function test_owner_creates_a_limited_account_and_sees_the_temporary_password_once(): void
+    public function test_owner_creates_a_limited_account_with_username_and_password_without_email_for_several_tatamis(): void
     {
         [$owner, $event] = $this->setUpEvent();
 
-        $response = $this->actingAs($owner)->post(route('panel.operators.store', $event), ['email' => 'juez@example.com', 'name' => 'Juez Uno', 'tatami' => 1])
-            ->assertSessionHasNoErrors()->assertSessionHas('new_operator');
-        $password = session('new_operator')['password'];
+        $this->actingAs($owner)->post(route('panel.operators.store', $event), ['username' => 'Juez.Uno', 'password' => 'clave-123', 'name' => 'Juez Uno', 'tatamis' => [1, 2]])
+            ->assertSessionHasNoErrors()->assertSessionHas('status');
 
-        $user = User::where('email', 'juez@example.com')->firstOrFail();
+        $user = User::where('username', 'juez.uno')->firstOrFail();
         $this->assertTrue($user->isTatamiAccount());
-        $this->assertTrue(\Hash::check($password, $user->password));
-        $this->assertSame(1, $event->operators()->where('user_id', $user->id)->where('tatami', 1)->count());
+        $this->assertNull($user->email);
+        $this->assertSame($owner->id, $user->created_by_user_id);
+        $this->assertTrue(\Hash::check('clave-123', $user->password));
+        $this->assertSame([1, 2], $event->operators()->where('user_id', $user->id)->orderBy('tatami')->pluck('tatami')->all());
 
-        $this->actingAs($owner)->get(route('panel.events.show', $event))->assertSee('juez@example.com')->assertSee($password);
-        $this->actingAs($owner)->get(route('panel.events.show', $event))->assertDontSee($password); // solo una vez
+        // Entra con su usuario (sin correo) y ve «Mis tatamis» con los dos.
+        auth()->logout();
+        $this->post('/acceso', ['email' => 'JUEZ.uno', 'password' => 'clave-123'])->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertAuthenticatedAs($user);
+        $this->get(route('panel.events.index'))->assertOk()->assertSee('Mis tatamis')->assertSee('Tatami 1')->assertSee('Tatami 2');
+        auth()->logout();
+        $this->post('/acceso', ['email' => 'juez.uno', 'password' => 'mala'])->assertSessionHasErrors('email');
 
-        // Sin nombre no se crea una cuenta nueva; con cuenta existente no se pide ni se muestra nada más.
-        $this->actingAs($owner)->post(route('panel.operators.store', $event), ['email' => 'otra@example.com', 'tatami' => 1])->assertSessionHasErrors('name');
-        $this->assertNull(User::where('email', 'otra@example.com')->first());
-        $this->actingAs($owner)->post(route('panel.operators.store', $event), ['email' => 'juez@example.com', 'tatami' => 2])
-            ->assertSessionHasNoErrors()->assertSessionMissing('new_operator');
-        $this->assertSame(2, $event->operators()->count());
+        // El panel del organizador lo muestra agrupado con sus dos tatamis.
+        $html = $this->actingAs($owner)->get(route('panel.events.show', $event))->getContent();
+        $this->assertStringContainsString('@juez.uno', $html);
+        $this->assertMatchesRegularExpression('#Juez Uno.*?Tatami 1.*?Tatami 2#s', $html);
+    }
+
+    public function test_validation_of_new_controller_accounts_and_existing_accounts_are_only_given_access(): void
+    {
+        [$owner, $event] = $this->setUpEvent();
+        $post = fn (array $data) => $this->actingAs($owner)->post(route('panel.operators.store', $event), $data);
+
+        $post(['username' => 'ab', 'password' => 'clave-123', 'tatamis' => [1]])->assertSessionHasErrors('username');
+        $post(['username' => 'con espacios', 'password' => 'clave-123', 'tatamis' => [1]])->assertSessionHasErrors('username');
+        $post(['username' => 'nuevo', 'tatamis' => [1]])->assertSessionHasErrors('password');
+        $post(['username' => 'nuevo', 'password' => '123', 'tatamis' => [1]])->assertSessionHasErrors('password');
+        $post(['username' => 'nuevo', 'password' => 'clave-123'])->assertSessionHasErrors('tatamis');
+        $post(['username' => 'nuevo', 'password' => 'clave-123', 'tatamis' => [3]])->assertSessionHasErrors('tatamis.0');
+        $post(['username' => 'nuevo', 'password' => 'clave-123', 'email' => 'no-es-correo', 'tatamis' => [1]])->assertSessionHasErrors('email');
+        $this->assertNull(User::where('username', 'nuevo')->first());
+
+        // Con correo opcional.
+        $post(['username' => 'conmail', 'password' => 'clave-123', 'email' => 'juez@example.com', 'tatamis' => [1]])->assertSessionHasNoErrors();
+        $this->assertSame('juez@example.com', User::where('username', 'conmail')->firstOrFail()->email);
+
+        // Una cuenta existente (por usuario) solo recibe acceso: su contraseña no cambia aunque se envíe otra.
+        $post(['username' => 'conmail', 'password' => 'otra-clave', 'tatamis' => [2]])->assertSessionHasNoErrors();
+        $existing = User::where('username', 'conmail')->firstOrFail();
+        $this->assertTrue(\Hash::check('clave-123', $existing->password));
+        $this->assertSame([1, 2], $event->operators()->where('user_id', $existing->id)->orderBy('tatami')->pluck('tatami')->all());
+
+        // También se puede dar acceso a una cuenta de organizador por su correo.
+        $organizer = User::factory()->create(['email' => 'org@example.com']);
+        $post(['username' => 'ignorado', 'email' => 'org@example.com', 'tatamis' => [1]])->assertSessionHasNoErrors();
+        $this->assertSame(1, $event->operators()->where('user_id', $organizer->id)->count());
+        $this->assertNull(User::where('username', 'ignorado')->first());
+    }
+
+    public function test_only_the_creator_can_change_the_password_of_a_controller_account(): void
+    {
+        [$owner, $event] = $this->setUpEvent();
+        $this->actingAs($owner)->post(route('panel.operators.store', $event), ['username' => 'juez', 'password' => 'clave-123', 'tatamis' => [1]]);
+        $user = User::where('username', 'juez')->firstOrFail();
+        $operator = $event->operators()->where('user_id', $user->id)->firstOrFail();
+
+        $this->actingAs($owner)->patch(route('panel.operators.password', [$event, $operator]), ['password' => 'nueva-clave'])->assertSessionHasNoErrors();
+        $this->assertTrue(\Hash::check('nueva-clave', $user->fresh()->password));
+        $this->actingAs($owner)->patch(route('panel.operators.password', [$event, $operator]), ['password' => '123'])->assertSessionHasErrors('password');
+
+        // Otro organizador que también le da acceso a su propio evento no puede cambiarle la contraseña.
+        $other = User::factory()->create();
+        $otherEvent = Event::factory()->for($other)->create(['tatami_count' => 1]);
+        $this->actingAs($other)->post(route('panel.operators.store', $otherEvent), ['username' => 'juez', 'tatamis' => [1]])->assertSessionHasNoErrors();
+        $otherOperator = $otherEvent->operators()->where('user_id', $user->id)->firstOrFail();
+        $this->actingAs($other)->patch(route('panel.operators.password', [$otherEvent, $otherOperator]), ['password' => 'robada-123'])->assertForbidden();
+        $this->assertTrue(\Hash::check('nueva-clave', $user->fresh()->password));
+
+        // Ni una cuenta de organizador (no es una cuenta de tatami) se puede cambiar.
+        $organizer = User::factory()->create(['email' => 'org@example.com']);
+        $this->actingAs($owner)->post(route('panel.operators.store', $event), ['username' => 'xyz', 'email' => 'org@example.com', 'tatamis' => [1]]);
+        $orgOperator = $event->operators()->where('user_id', $organizer->id)->firstOrFail();
+        $this->actingAs($owner)->patch(route('panel.operators.password', [$event, $orgOperator]), ['password' => 'clave-nueva'])->assertForbidden();
     }
 
     public function test_tatami_number_must_exist_and_other_organizers_cannot_manage_operators(): void
     {
         [$owner, $event] = $this->setUpEvent();
 
-        $this->actingAs($owner)->post(route('panel.operators.store', $event), ['email' => 'a@example.com', 'name' => 'A', 'tatami' => 3])->assertSessionHasErrors('tatami');
-        $this->actingAs(User::factory()->create())->post(route('panel.operators.store', $event), ['email' => 'a@example.com', 'name' => 'A', 'tatami' => 1])->assertForbidden();
+        $this->actingAs(User::factory()->create())->post(route('panel.operators.store', $event), ['username' => 'aaa', 'password' => 'clave-123', 'tatamis' => [1]])->assertForbidden();
 
         $operator = $event->operators()->create(['user_id' => User::factory()->create()->id, 'tatami' => 1]);
         $this->actingAs(User::factory()->create())->delete(route('panel.operators.destroy', [$event, $operator]))->assertForbidden();
@@ -70,8 +130,8 @@ class TatamiOperatorTest extends TestCase
     public function test_the_operator_only_sees_and_scores_their_tatami_and_nothing_else_of_the_event(): void
     {
         [$owner, $event, $cat1, $cat2] = $this->setUpEvent();
-        $this->actingAs($owner)->post(route('panel.operators.store', $event), ['email' => 'juez@example.com', 'name' => 'Juez', 'tatami' => 1]);
-        $operator = User::where('email', 'juez@example.com')->firstOrFail();
+        $this->actingAs($owner)->post(route('panel.operators.store', $event), ['username' => 'juez', 'password' => 'clave-123', 'name' => 'Juez', 'tatamis' => [1]]);
+        $operator = User::where('username', 'juez')->firstOrFail();
         auth()->logout();
 
         // Va directo a su único tatami desde «Mis tatamis».

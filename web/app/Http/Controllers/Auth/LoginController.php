@@ -18,12 +18,17 @@ class LoginController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $data = $request->validate([
+            'email' => ['required', 'string', 'max:255'], // usuario o correo electrónico
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+        // Con «@» es un correo; si no, el nombre de usuario (las cuentas de controlador de tatami pueden no tener correo).
+        $login = str_contains($data['email'], '@')
+            ? ['email' => $data['email']]
+            : ['username' => mb_strtolower(trim($data['email']))];
+
+        if (! Auth::attempt($login + ['password' => $data['password']], $request->boolean('remember'))) {
             throw ValidationException::withMessages(['email' => __('auth.failed')]);
         }
 

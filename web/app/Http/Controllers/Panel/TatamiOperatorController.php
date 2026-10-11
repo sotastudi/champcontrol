@@ -8,40 +8,63 @@ use App\Models\TatamiOperator;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 /** El propietario del evento autoriza (por correo) a usuarios ya registrados como controladores de un tatami. */
 class TatamiOperatorController extends Controller
 {
     public function store(Request $request, Event $event): RedirectResponse
     {
+        $request->merge(['username' => mb_strtolower(trim((string) $request->input('username')))]);
         $data = $request->validate([
-            'email' => ['required', 'email', 'max:255'],
+            'username' => ['required', 'string', 'min:3', 'max:30', 'regex:/^[a-z0-9._-]+$/'],
             'name' => ['nullable', 'string', 'max:255'],
-            'tatami' => ['required', 'integer', 'min:1', 'max:'.$event->tatamiCount()],
-        ]);
+            'email' => ['nullable', 'email', 'max:255'],
+            'password' => ['nullable', 'string', 'min:6', 'max:100'],
+            'tatamis' => ['required', 'array', 'min:1'],
+            'tatamis.*' => ['integer', 'min:1', 'max:'.$event->tatamiCount()],
+        ], ['username.regex' => 'El usuario solo puede llevar letras minúsculas, números, punto, guion y guion bajo.']);
 
-        $user = User::where('email', $data['email'])->first();
-        $password = null;
+        // Una cuenta ya existente (por usuario o, si se indica, por correo) solo recibe acceso: no se toca su contraseña ni sus datos.
+        $user = User::where('username', $data['username'])->first()
+            ?? (filled($data['email'] ?? null) ? User::where('email', $data['email'])->first() : null);
+        $created = false;
 
         if (! $user) {
-            // Cuenta nueva solo para puntuar: el organizador la crea y le entrega la contraseña provisional.
-            if (blank($data['name'] ?? null)) {
-                return back()->withInput()->withErrors(['name' => 'Indica el nombre para crear la cuenta del controlador.']);
+            // Cuenta nueva solo para puntuar: usuario y contraseña (correo opcional) que decide el organizador.
+            if (blank($data['password'] ?? null)) {
+                return back()->withInput()->withErrors(['password' => 'Indica una contraseña (mínimo 6 caracteres) para crear la cuenta.']);
             }
-            $password = Str::password(12, symbols: false);
-            $user = new User(['name' => $data['name'], 'email' => $data['email'], 'password' => $password]);
-            $user->forceFill(['role' => 'tatami'])->save();
+            $user = new User([
+                'name' => ($data['name'] ?? null) ?: $data['username'],
+                'username' => $data['username'],
+                'email' => ($data['email'] ?? null) ?: null,
+                'password' => $data['password'],
+            ]);
+            $user->forceFill(['role' => 'tatami', 'created_by_user_id' => $request->user()->id])->save();
+            $created = true;
         }
 
-        $operator = $event->operators()->firstOrCreate(['user_id' => $user->id, 'tatami' => (int) $data['tatami']]);
+        $added = 0;
+        foreach (array_unique(array_map('intval', $data['tatamis'])) as $tatami) {
+            $added += $event->operators()->firstOrCreate(['user_id' => $user->id, 'tatami' => $tatami])->wasRecentlyCreated ? 1 : 0;
+        }
 
-        $back = back()->with('status', $operator->wasRecentlyCreated
-            ? "{$data['email']} puede puntuar el tatami {$data['tatami']}."
-            : "{$data['email']} ya controlaba el tatami {$data['tatami']}.");
+        $list = implode(', ', array_unique(array_map('intval', $data['tatamis'])));
 
-        // La contraseña provisional se muestra una sola vez, solo al crear la cuenta.
-        return $password ? $back->with('new_operator', ['email' => $data['email'], 'password' => $password]) : $back;
+        return back()->with('status', ($created ? "Cuenta «{$data['username']}» creada. " : "«{$data['username']}» ya tenía cuenta (no se cambia su contraseña). ")
+            .($added > 0 ? "Puede puntuar los tatamis: {$list}." : "Ya tenía acceso a los tatamis: {$list}."));
+    }
+
+    /** El organizador que creó la cuenta de controlador puede fijarle una contraseña nueva (sin correo no hay «recuperar contraseña»). */
+    public function password(Request $request, Event $event, TatamiOperator $operator): RedirectResponse
+    {
+        $user = $operator->user;
+        abort_unless($user->isTatamiAccount() && (int) $user->created_by_user_id === (int) $request->user()->id, 403);
+
+        $data = $request->validate(['password' => ['required', 'string', 'min:6', 'max:100']]);
+        $user->forceFill(['password' => $data['password']])->save();
+
+        return back()->with('status', "Contraseña de «{$user->username}» actualizada.");
     }
 
     public function destroy(Event $event, TatamiOperator $operator): RedirectResponse

@@ -167,33 +167,61 @@
 
 <section id="controladores" class="mb-4">
     <h2 class="h5 mb-2">Controladores de tatami</h2>
-    <p class="text-muted small">Pueden puntuar el combate actual del tatami que se les asigne y no ven nada más del evento. Si el correo no tiene cuenta, se crea una cuenta limitada a tatamis y se te muestra su contraseña provisional una sola vez.</p>
-    @if (session('new_operator'))
-        <div class="alert alert-warning">
-            Cuenta creada para <strong>{{ session('new_operator')['email'] }}</strong>. Contraseña provisional (cópiala ahora; no se volverá a mostrar):
-            <code class="user-select-all">{{ session('new_operator')['password'] }}</code>
-        </div>
-    @endif
-    @if ($event->operators->isNotEmpty())
+    <p class="text-muted small">Pueden puntuar el combate actual de los tatamis que se les asignen y no ven nada más del evento. Les creas un usuario y una contraseña (el correo es opcional) y se lo entregas tú; pueden tener acceso a varios tatamis.</p>
+    @php $operatorsByUser = $event->operators->groupBy('user_id'); @endphp
+    @if ($operatorsByUser->isNotEmpty())
         <ul class="list-group mb-3">
-            @foreach ($event->operators as $operator)
-                <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <span>{{ $operator->user->name }} <span class="text-muted">({{ $operator->user->email }})</span> · Tatami {{ $operator->tatami }}</span>
-                    <form method="POST" action="{{ route('panel.operators.destroy', [$event, $operator]) }}" onsubmit="return confirm('¿Retirar el acceso a este tatami?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger btn-sm">Retirar</button>
-                    </form>
+            @foreach ($operatorsByUser as $rows)
+                @php $user = $rows->first()->user; @endphp
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                            <strong>{{ $user->name }}</strong>
+                            <span class="text-muted">{{ $user->username ? '@'.$user->username : '' }}{{ $user->email ? ' · '.$user->email : '' }}</span>
+                            <div class="mt-1 d-flex flex-wrap gap-1">
+                                @foreach ($rows->sortBy('tatami') as $operator)
+                                    <form method="POST" action="{{ route('panel.operators.destroy', [$event, $operator]) }}" class="d-inline" onsubmit="return confirm('¿Retirar el acceso al tatami {{ $operator->tatami }}?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <span class="badge text-bg-secondary d-inline-flex align-items-center gap-1">Tatami {{ $operator->tatami }}
+                                            <button type="submit" class="btn-close btn-close-white" style="font-size: .55rem" aria-label="Retirar el tatami {{ $operator->tatami }}"></button>
+                                        </span>
+                                    </form>
+                                @endforeach
+                            </div>
+                        </div>
+                        @if ($user->isTatamiAccount() && (int) $user->created_by_user_id === (int) auth()->id())
+                            <form method="POST" action="{{ route('panel.operators.password', [$event, $rows->first()]) }}" class="d-flex gap-2 align-items-center">
+                                @csrf
+                                @method('PATCH')
+                                <input type="text" name="password" class="form-control form-control-sm" placeholder="Nueva contraseña" minlength="6" required autocomplete="new-password" aria-label="Nueva contraseña de {{ $user->name }}">
+                                <button type="submit" class="btn btn-outline-secondary btn-sm text-nowrap">Cambiar contraseña</button>
+                            </form>
+                        @endif
+                    </div>
                 </li>
             @endforeach
         </ul>
     @endif
-    <form method="POST" action="{{ route('panel.operators.store', $event) }}" class="row g-2 align-items-end">
+    <form method="POST" action="{{ route('panel.operators.store', $event) }}" class="row g-2 align-items-start">
         @csrf
-        <div class="col-12 col-md-4"><x-field name="email" type="email" label="Correo" :value="old('email')" required /></div>
-        <div class="col-12 col-md-3"><x-field name="name" label="Nombre (si no tiene cuenta)" :value="old('name')" /></div>
-        <div class="col-6 col-md-2"><x-select name="tatami" label="Tatami" :options="array_combine(range(1, $event->tatamiCount()), range(1, $event->tatamiCount()))" :value="old('tatami', 1)" required /></div>
-        <div class="col-6 col-md-3 mb-3"><button type="submit" class="btn btn-outline-primary w-100">Añadir controlador</button></div>
+        <div class="col-12 col-md-3"><x-field name="username" label="Usuario" :value="old('username')" required autocomplete="off" help="Letras minúsculas, números, . - _" /></div>
+        <div class="col-12 col-md-3"><x-field name="password" type="text" label="Contraseña" :value="old('password')" autocomplete="new-password" help="Mínimo 6. Solo para cuentas nuevas." /></div>
+        <div class="col-12 col-md-3"><x-field name="name" label="Nombre (opcional)" :value="old('name')" /></div>
+        <div class="col-12 col-md-3"><x-field name="email" type="email" label="Correo (opcional)" :value="old('email')" /></div>
+        <div class="col-12">
+            <div class="form-label">Tatamis con acceso <span class="text-danger">*</span></div>
+            <div class="d-flex flex-wrap gap-3 mb-2">
+                @foreach (range(1, $event->tatamiCount()) as $n)
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="tatamis[]" value="{{ $n }}" id="op-tatami-{{ $n }}" @checked(in_array($n, (array) old('tatamis', [])))>
+                        <label class="form-check-label" for="op-tatami-{{ $n }}">Tatami {{ $n }}</label>
+                    </div>
+                @endforeach
+            </div>
+            @error('tatamis')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
+            <button type="submit" class="btn btn-outline-primary">Añadir controlador</button>
+        </div>
     </form>
 </section>
 @endsection
