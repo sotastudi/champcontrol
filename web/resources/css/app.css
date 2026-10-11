@@ -97,6 +97,7 @@
 .side-chip .side-text { max-width: 0; overflow: hidden; white-space: nowrap; font-size: .65rem; font-weight: 700; line-height: 1; transition: max-width .15s ease, padding .15s ease; }
 .side-chip.is-open .side-text { max-width: 3.5rem; padding: 0 .3rem; }
 @media (hover: hover) { .side-chip:hover .side-text { max-width: 3.5rem; padding: 0 .3rem; } }
+.score-help-toggle { width: 1.6rem; height: 1.6rem; padding: 0; line-height: 1; font-size: .8rem; }
 .bout-card .score-marks { font-size: .8rem; letter-spacing: .02em; }
 .bout-card .winner { font-weight: 600; background: var(--bs-success-bg-subtle); }
 

@@ -121,4 +121,16 @@ class BoutScorePanelTest extends TestCase
         $this->assertStringNotContainsString('data-bs-toggle="tooltip"', $html);
         $this->assertDoesNotMatchRegularExpression('#class="badge[^"]*"[^>]*>\s*(AKA|SHIRO)\s*<#', $html);
     }
+
+    public function test_scoring_help_is_a_collapsible_behind_a_question_mark_button(): void
+    {
+        [$user, $event, $category, $bout] = $this->setUpBracket();
+
+        $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
+
+        $this->assertStringContainsString('data-bs-target="#score-help-'.$bout->id.'"', $html);
+        $this->assertMatchesRegularExpression('#<div class="collapse" id="score-help-'.$bout->id.'">\s*<p class="text-muted mb-0">Jueces: bandera blanca = SHIRO#', $html);
+        $this->assertStringContainsString('2 wazari = 1 ippon', $html);
+        $this->assertDoesNotMatchRegularExpression('#<p class="text-muted mb-2">Jueces#', $html, 'la ayuda ya no se muestra siempre');
+    }
 }

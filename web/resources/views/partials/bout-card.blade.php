@@ -108,8 +108,13 @@
                         </div>
                     </div>
                 @endfor
-                <p class="text-muted mb-2">Jueces: bandera blanca = SHIRO, roja = AKA, blanca y roja = hikiwake (pulsa otra vez para quitar el voto). 2 wazari = 1 ippon. El ippon gana al instante; si no, decide la mayoría de jueces (el hikiwake no suma) y, sin jueces, la ventaja de wazari. Las faltas (F) solo se registran y solo las ve el organizador. En el cuadro: W = wazari, I = ippon, F = faltas.</p>
-                <button type="submit" class="btn btn-sm btn-outline-primary">Guardar puntuación</button>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Guardar puntuación</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle fw-bold score-help-toggle" data-bs-toggle="collapse" data-bs-target="#score-help-{{ $bout->id }}" aria-expanded="false" aria-controls="score-help-{{ $bout->id }}" title="Más información" aria-label="Más información sobre la puntuación">?</button>
+                </div>
+                <div class="collapse" id="score-help-{{ $bout->id }}">
+                    <p class="text-muted mb-0">Jueces: bandera blanca = SHIRO, roja = AKA, blanca y roja = hikiwake (pulsa otra vez para quitar el voto). 2 wazari = 1 ippon. El ippon gana al instante; si no, decide la mayoría de jueces (el hikiwake no suma) y, sin jueces, la ventaja de wazari. Las faltas (F) solo se registran y solo las ve el organizador. En el cuadro: W = wazari, I = ippon, F = faltas.</p>
+                </div>
             </form>
         </details>
     @endif
