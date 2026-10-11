@@ -11,6 +11,8 @@
     $scorePanel = 'score-panel-'.$bout->id;
     $showGana ??= true;
     $panelOpen ??= false;
+    $hasScore = $bout->a_wazari > 0 || $bout->b_wazari > 0 || $bout->a_ippon || $bout->b_ippon || $bout->a_warnings > 0 || $bout->b_warnings > 0 || $bout->abandoned_slot || ! empty($bout->judge_votes);
+    $resettable = $editable && $showGana && ! $bout->isBye() && ! $bout->isWalkover() && ($bout->isCompleted() || $hasScore);
 @endphp
 <div class="bout-card mb-2">
     <div class="small text-muted px-2 pt-1">
@@ -82,7 +84,16 @@
     @endif
     @if ($scorable)
         <div class="px-2 pb-2 no-print">
-            <button type="button" class="btn btn-link btn-sm p-0 small" data-bs-toggle="collapse" data-bs-target=".{{ $scorePanel }}" aria-expanded="false">Puntuación</button>
+            <div class="d-flex justify-content-between align-items-center gap-2">
+                <button type="button" class="btn btn-link btn-sm p-0 small" data-bs-toggle="collapse" data-bs-target=".{{ $scorePanel }}" aria-expanded="false">Puntuación</button>
+                @if ($resettable)
+                    <button type="button" class="btn btn-outline-danger btn-sm py-0 btn-icon" data-bs-toggle="modal" data-bs-target="#reset-modal"
+                            data-reset-url="{{ route('panel.bouts.reset', [$event, $category, $bout]) }}"
+                            data-reset-title="Reiniciar el resultado del combate {{ $bout->number }}"
+                            data-reset-message="Se borrarán el ganador, los puntos, las faltas y los votos de los jueces del combate {{ $bout->number }}, y se retirará de las rondas siguientes a quien avanzó de él. Si algún combate posterior ya tiene resultado, antes hay que reiniciarlo."
+                            title="Reiniciar el resultado de este combate"><svg width="14" height="14" aria-hidden="true"><use href="#undo"/></svg> Reiniciar</button>
+                @endif
+            </div>
             <form id="{{ $scoreForm }}" data-score-form method="POST" action="{{ $scoreAction ?? route('panel.bouts.score', [$event, $category, $bout]) }}" class="collapse{{ $panelOpen ? ' show' : '' }} {{ $scorePanel }} small mt-2">
                 @csrf @method('PUT')
                 @include('partials.score-form-fields')

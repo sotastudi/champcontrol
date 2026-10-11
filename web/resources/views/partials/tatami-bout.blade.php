@@ -14,7 +14,15 @@
 @if ($locked)
     <div class="alert alert-success d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 score-lock-banner" role="status">
         <span><strong>Resultado guardado.</strong> Para corregirlo, desbloquea la puntuación y vuelve a guardar.</span>
-        <button type="button" class="btn btn-warning btn-sm btn-icon" data-score-unlock>Desbloquear</button>
+        <span class="d-flex gap-2">
+            <button type="button" class="btn btn-warning btn-sm btn-icon" data-score-unlock>Desbloquear</button>
+            @can('manage', $bout->category->event)
+                <button type="button" class="btn btn-outline-danger btn-sm btn-icon" data-bs-toggle="modal" data-bs-target="#reset-modal"
+                        data-reset-url="{{ route('panel.bouts.reset', [$bout->category->event, $bout->category, $bout]) }}"
+                        data-reset-title="Reiniciar el resultado del combate {{ $bout->number }}"
+                        data-reset-message="Se borrarán el ganador, los puntos, las faltas y los votos de los jueces del combate {{ $bout->number }}, y se retirará de las rondas siguientes a quien avanzó de él. Si algún combate posterior ya tiene resultado, antes hay que reiniciarlo."><svg width="14" height="14" aria-hidden="true"><use href="#undo"/></svg> Reiniciar</button>
+            @endcan
+        </span>
     </div>
 @endif
 <div class="row g-3 tatami-bout">

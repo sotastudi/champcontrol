@@ -4,6 +4,7 @@ import './registration-form';
 import './judge-votes';
 import './offline-scores';
 import './score-lock';
+import './reset-modal';
 import './tatami-order';
 import './password-generator';
 

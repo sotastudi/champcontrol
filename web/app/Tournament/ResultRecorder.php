@@ -49,6 +49,51 @@ final class ResultRecorder
         });
     }
 
+    /** Valores iniciales de la puntuación de un combate (sin resultado). */
+    public const BLANK_SCORE = [
+        'a_wazari' => 0, 'b_wazari' => 0, 'a_ippon' => false, 'b_ippon' => false,
+        'a_warnings' => 0, 'b_warnings' => 0, 'abandoned_slot' => null, 'judge_votes' => null, 'result_type' => 'normal',
+    ];
+
+    /**
+     * Reinicia el resultado de un combate: borra ganador y puntuación y retira de los combates siguientes a quienes
+     * avanzaron de él. Igual que una corrección, se rechaza si algún combate posterior ya tiene resultado.
+     *
+     * @throws TournamentException
+     */
+    public function clear(Bout $bout): void
+    {
+        $bout = $bout->fresh();
+
+        if ($bout->category->event->status === EventStatus::Finished) {
+            throw new TournamentException('El evento está finalizado: reábrelo para reiniciar resultados.');
+        }
+        if ($bout->isBye()) {
+            throw new TournamentException('Un pase avanza automáticamente: no tiene resultado que reiniciar.');
+        }
+        if ($bout->isWalkover()) {
+            throw new TournamentException('Victoria por incomparecencia (por una baja): no se puede reiniciar.');
+        }
+        if (! $bout->isCompleted() && ! $this->hasScore($bout)) {
+            throw new TournamentException('Este combate no tiene resultado ni puntuación que reiniciar.');
+        }
+
+        DB::transaction(function () use ($bout) {
+            if ($bout->isCompleted()) {
+                $this->assertCorrectable($bout);
+                $this->retract($bout);
+                $bout->refresh();
+            }
+            $bout->forceFill(self::BLANK_SCORE)->save();
+        });
+    }
+
+    private function hasScore(Bout $bout): bool
+    {
+        return $bout->a_wazari > 0 || $bout->b_wazari > 0 || $bout->a_ippon || $bout->b_ippon
+            || $bout->a_warnings > 0 || $bout->b_warnings > 0 || $bout->abandoned_slot !== null || ! empty($bout->judge_votes);
+    }
+
     private function dependents(Bout $bout): array
     {
         return array_filter([

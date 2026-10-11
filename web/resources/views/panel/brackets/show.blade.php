@@ -36,6 +36,13 @@
         @if ($category->is_published && $event->isListed())
             <a href="{{ route('public.categories.show', [$event, $category]) }}" class="btn btn-outline-secondary btn-icon" title="Ver página pública" aria-label="Ver página pública"><svg width="16" height="16" aria-hidden="true"><use href="#eye"/></svg> Ver</a>
         @endif
+        @php $withResults = $bouts->filter(fn ($b) => $b->required_participants == 2 && ($b->winner_id || $b->a_wazari || $b->b_wazari || $b->a_ippon || $b->b_ippon || $b->a_warnings || $b->b_warnings || $b->abandoned_slot || ! empty($b->judge_votes)))->count(); @endphp
+        @if ($withResults > 0)
+            <button type="button" class="btn btn-outline-danger btn-icon" data-bs-toggle="modal" data-bs-target="#reset-modal"
+                    data-reset-url="{{ route('panel.categories.reset', [$event, $category]) }}"
+                    data-reset-title="Reiniciar TODOS los resultados de «{{ $category->name }}»"
+                    data-reset-message="Se borrarán los resultados y la puntuación de {{ $withResults }} {{ $withResults === 1 ? 'combate' : 'combates' }} de esta categoría y se retirará de las rondas siguientes a quienes avanzaron. El cuadro y los emparejamientos de la primera ronda se conservan."><svg width="16" height="16" aria-hidden="true"><use href="#undo"/></svg> Reiniciar resultados</button>
+        @endif
         <a href="{{ route('panel.exports.standings', $event) }}" class="btn btn-outline-secondary">Exportar clasificación (CSV)</a>
         <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Imprimir</button>
     </div>
@@ -171,4 +178,5 @@
         @endif
     </section>
 @endif
+@include('partials.reset-modal')
 @endsection

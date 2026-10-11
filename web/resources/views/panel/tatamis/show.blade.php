@@ -50,4 +50,7 @@
 @else
     <p class="text-muted">Sin combates en este tatami todavía (sin cuadro o a la espera de resultados).</p>
 @endif
+@can('manage', $event)
+    @include('partials.reset-modal')
+@endcan
 @endsection

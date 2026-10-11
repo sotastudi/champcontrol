@@ -14,6 +14,7 @@ use App\Http\Controllers\Panel\EventController;
 use App\Http\Controllers\Panel\ExportController;
 use App\Http\Controllers\Panel\PublicationController;
 use App\Http\Controllers\Panel\RegistrationController;
+use App\Http\Controllers\Panel\ResultResetController;
 use App\Http\Controllers\Panel\TatamiController;
 use App\Http\Controllers\Panel\TatamiOperatorController;
 use App\Http\Controllers\Panel\WithdrawalController;
@@ -96,6 +97,8 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::put('categorias/{category}/combates/{bout}/resultado', [BoutResultController::class, 'update'])->name('bouts.result');
         Route::put('categorias/{category}/combates/{bout}/puntuacion', [BoutScoreController::class, 'update'])->name('bouts.score');
         Route::post('categorias/{category}/bajas', [WithdrawalController::class, 'store'])->name('withdrawals.store');
+        Route::post('categorias/{category}/combates/{bout}/reiniciar', [ResultResetController::class, 'bout'])->name('bouts.reset');
+        Route::post('categorias/{category}/reiniciar', [ResultResetController::class, 'category'])->name('categories.reset');
         Route::patch('categorias/{category}/publicacion', [PublicationController::class, 'toggle'])->name('categories.publication');
         Route::get('exportar/clasificacion.csv', [ExportController::class, 'standings'])->name('exports.standings');
         // Las tareas siguientes añaden aquí categorías, inscripciones, cuadros, exportaciones…
