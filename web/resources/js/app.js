@@ -4,6 +4,7 @@ import './registration-form';
 import './judge-votes';
 import './offline-scores';
 import './tatami-order';
+import './password-generator';
 
 window.bootstrap = bootstrap;
 

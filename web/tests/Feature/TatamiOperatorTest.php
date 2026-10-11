@@ -189,4 +189,18 @@ class TatamiOperatorTest extends TestCase
         $this->assertStringNotContainsString('Controladores de tatami', $html);
         $this->assertStringNotContainsString('name="a_wazari"', $html);
     }
+
+    public function test_the_operator_form_offers_a_password_generator_and_copy_button(): void
+    {
+        [$owner, $event] = $this->setUpEvent();
+        $this->actingAs($owner)->post(route('panel.operators.store', $event), ['username' => 'juez', 'password' => 'clave-123', 'tatamis' => [1]]);
+        $operator = $event->operators()->firstOrFail();
+
+        $html = $this->actingAs($owner)->get(route('panel.events.show', $event))->getContent();
+
+        $this->assertStringContainsString('data-generate-password="#password"', $html);
+        $this->assertStringContainsString('data-copy-password="#password"', $html);
+        $this->assertStringContainsString('data-generate-password="#new-password-'.$operator->id.'"', $html, 'también al cambiar la contraseña');
+        $this->assertStringContainsString('Cópiala antes de guardar', $html);
+    }
 }

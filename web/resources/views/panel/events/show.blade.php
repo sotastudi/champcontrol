@@ -194,7 +194,8 @@
                             <form method="POST" action="{{ route('panel.operators.password', [$event, $rows->first()]) }}" class="d-flex gap-2 align-items-center">
                                 @csrf
                                 @method('PATCH')
-                                <input type="text" name="password" class="form-control form-control-sm" placeholder="Nueva contraseña" minlength="6" required autocomplete="new-password" aria-label="Nueva contraseña de {{ $user->name }}">
+                                <input type="text" name="password" id="new-password-{{ $rows->first()->id }}" class="form-control form-control-sm" placeholder="Nueva contraseña" minlength="6" required autocomplete="new-password" aria-label="Nueva contraseña de {{ $user->name }}">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-generate-password="#new-password-{{ $rows->first()->id }}" title="Generar una contraseña aleatoria">Generar</button>
                                 <button type="submit" class="btn btn-outline-secondary btn-sm text-nowrap">Cambiar contraseña</button>
                             </form>
                         @endif
@@ -206,7 +207,16 @@
     <form method="POST" action="{{ route('panel.operators.store', $event) }}" class="row g-2 align-items-start">
         @csrf
         <div class="col-12 col-md-3"><x-field name="username" label="Usuario" :value="old('username')" required autocomplete="off" help="Letras minúsculas, números, . - _" /></div>
-        <div class="col-12 col-md-3"><x-field name="password" type="text" label="Contraseña" :value="old('password')" autocomplete="new-password" help="Mínimo 6. Solo para cuentas nuevas." /></div>
+        <div class="col-12 col-md-3">
+            <label for="password" class="form-label">Contraseña</label>
+            <div class="input-group">
+                <input type="text" id="password" name="password" value="{{ old('password') }}" class="form-control @error('password') is-invalid @enderror" autocomplete="new-password" minlength="6">
+                <button type="button" class="btn btn-outline-secondary" data-generate-password="#password" title="Generar una contraseña aleatoria">Generar</button>
+                <button type="button" class="btn btn-outline-secondary" data-copy-password="#password" title="Copiar la contraseña" aria-label="Copiar la contraseña">Copiar</button>
+                @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="form-text">Mínimo 6. Solo para cuentas nuevas. Cópiala antes de guardar: después no se puede ver.</div>
+        </div>
         <div class="col-12 col-md-3"><x-field name="name" label="Nombre (opcional)" :value="old('name')" /></div>
         <div class="col-12 col-md-3"><x-field name="email" type="email" label="Correo (opcional)" :value="old('email')" /></div>
         <div class="col-12">
