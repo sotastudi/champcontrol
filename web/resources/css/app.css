@@ -1,9 +1,161 @@
-@import 'tailwindcss';
+@import 'bootstrap/dist/css/bootstrap.min.css';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/* Color de resalte: rojo en lugar del azul por defecto de Bootstrap. */
+:root, [data-bs-theme="light"] {
+    --bs-primary: #c8102e;
+    --bs-primary-rgb: 200, 16, 46;
+    --bs-primary-text-emphasis: #5a0713;
+    --bs-primary-bg-subtle: #f8d7dc;
+    --bs-primary-border-subtle: #f0aeb8;
+    --bs-link-color: #c8102e;
+    --bs-link-color-rgb: 200, 16, 46;
+    --bs-link-hover-color: #a00d25;
+    --bs-link-hover-color-rgb: 160, 13, 37;
+    --bs-focus-ring-color: rgba(200, 16, 46, .25);
 }
+[data-bs-theme="dark"] {
+    --bs-primary: #e8475f;
+    --bs-primary-rgb: 232, 71, 95;
+    --bs-primary-text-emphasis: #f29aa8;
+    --bs-primary-bg-subtle: #3a0b14;
+    --bs-primary-border-subtle: #7a1626;
+    --bs-link-color: #f06b80;
+    --bs-link-color-rgb: 240, 107, 128;
+    --bs-link-hover-color: #f48fa0;
+    --bs-link-hover-color-rgb: 244, 143, 160;
+    --bs-focus-ring-color: rgba(232, 71, 95, .25);
+}
+.btn-primary {
+    --bs-btn-bg: #c8102e; --bs-btn-border-color: #c8102e;
+    --bs-btn-hover-bg: #a00d25; --bs-btn-hover-border-color: #940c22;
+    --bs-btn-active-bg: #940c22; --bs-btn-active-border-color: #880b1f;
+    --bs-btn-disabled-bg: #c8102e; --bs-btn-disabled-border-color: #c8102e;
+    --bs-btn-focus-shadow-rgb: 215, 63, 87;
+}
+.btn-outline-primary {
+    --bs-btn-color: #c8102e; --bs-btn-border-color: #c8102e;
+    --bs-btn-hover-bg: #c8102e; --bs-btn-hover-border-color: #c8102e;
+    --bs-btn-active-bg: #c8102e; --bs-btn-active-border-color: #c8102e;
+    --bs-btn-disabled-color: #c8102e; --bs-btn-disabled-border-color: #c8102e;
+    --bs-btn-focus-shadow-rgb: 200, 16, 46;
+}
+[data-bs-theme="dark"] .btn-outline-primary { --bs-btn-color: #f06b80; --bs-btn-border-color: #e8475f; }
+.form-control:focus, .form-select:focus { border-color: #e17f8f; box-shadow: 0 0 0 .25rem rgba(200, 16, 46, .25); }
+.form-check-input:checked, .form-check-input[type="checkbox"]:indeterminate { background-color: #c8102e; border-color: #c8102e; }
+.form-check-input:focus { border-color: #e17f8f; box-shadow: 0 0 0 .25rem rgba(200, 16, 46, .25); }
+.dropdown-item.active, .dropdown-item:active { background-color: #c8102e; }
+.page-link { color: #c8102e; }
+.page-item.active .page-link { background-color: #c8102e; border-color: #c8102e; }
+
+/* Logo: icono en móvil, horizontal desde md; variante según el tema activo. */
+.brand-logo { display: none; }
+[data-bs-theme="light"] .brand-icon.brand-light { display: inline; }
+[data-bs-theme="dark"] .brand-icon.brand-dark { display: inline; }
+@media (min-width: 768px) {
+    .brand-icon { display: none !important; }
+    [data-bs-theme="light"] .brand-full.brand-light { display: inline; }
+    [data-bs-theme="dark"] .brand-full.brand-dark { display: inline; }
+}
+
+/* Selector de tema: el icono del botón refleja el modo elegido (light / dark / auto). */
+.theme-icon { display: none; }
+[data-theme-mode="light"] .theme-icon-light,
+[data-theme-mode="dark"] .theme-icon-dark,
+[data-theme-mode="auto"] .theme-icon-auto { display: inline; }
+
+/* Cuadro: una cuadrícula con una columna por ronda; cada combate abarca las filas de sus combates de origen y las líneas lo unen con ellos. */
+.bracket-wrap { overflow-x: auto; --bracket-line: var(--bs-secondary-color); }
+.bracket-grid { display: grid; grid-template-columns: repeat(var(--rounds), minmax(16rem, 1fr)); column-gap: 2rem; align-items: stretch; min-width: min-content; }
+.bracket-cell { position: relative; display: flex; flex-direction: column; justify-content: center; padding: .25rem 0; }
+.bracket-cell .bout-card { margin-bottom: 0 !important; }
+/* Salida hacia el combate siguiente: en una pareja, la mitad de arriba baja y la de abajo sube hasta unirse. */
+.bracket-cell.link-top::after, .bracket-cell.link-bottom::after, .bracket-cell.link-single::after { content: ''; position: absolute; right: -1rem; width: 1rem; }
+.bracket-cell.link-top::after { top: 50%; bottom: 0; border-top: 2px solid var(--bracket-line); border-right: 2px solid var(--bracket-line); }
+.bracket-cell.link-bottom::after { top: 0; bottom: 50%; border-bottom: 2px solid var(--bracket-line); border-right: 2px solid var(--bracket-line); }
+.bracket-cell.link-single::after { top: 50%; right: -2rem; width: 2rem; border-top: 2px solid var(--bracket-line); }
+/* Entrada desde dos combates: tramo final hasta la tarjeta. */
+.bracket-cell.has-in::before { content: ''; position: absolute; left: -1rem; width: 1rem; top: 50%; border-top: 2px solid var(--bracket-line); }
+
+.bout-card { margin-bottom: 0 !important; }
+
+/* Podio: 2.º - 1.º - 3.º con escalones de distinta altura. */
+.podium-col { flex: 1 1 0; max-width: 11rem; }
+.podium-step { border-radius: .5rem .5rem 0 0; color: #fff; font-weight: 700; font-size: 1.5rem; padding-top: .5rem; }
+.podium-1 .podium-step { height: 7rem; }
+.podium-2 .podium-step { height: 5rem; }
+.podium-3 .podium-step { height: 3.5rem; }
+.podium-gold { background: #d4a017; }
+.podium-silver { background: #8d949b; }
+.podium-bronze { background: #a8693a; }
+.bout-card { border: 1px solid var(--bs-border-color); border-radius: .5rem; background: var(--bs-body-bg); }
+.bout-card .slot { padding: .35rem .6rem; }
+.bout-card .slot + .slot { border-top: 1px solid var(--bs-border-color); }
+.bib-tag { display: inline-block; min-width: 2.6rem; padding: .05rem .5rem; border: 2px solid var(--bs-body-color); border-radius: .3rem; font-weight: 700; font-size: .85rem; line-height: 1.35; text-align: center; background: var(--bs-body-bg); color: var(--bs-body-color); white-space: nowrap; }
+.bib-tag-lg { font-size: 1.1rem; padding: .1rem .7rem; }
+.bout-number-tag { display: inline-block; padding: .2rem .7rem; border-radius: .3rem; background: var(--bs-body-color); color: var(--bs-body-bg); font-weight: 700; font-size: 1.05rem; letter-spacing: .02em; }
+.score-field-label { display: block; margin-bottom: .2rem; font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--bs-secondary-color); }
+.score-ippon { min-height: 1.95rem; display: flex; align-items: center; }
+.score-ippon .form-check-input { width: 1.4rem; height: 1.4rem; margin: 0; }
+.tatami-competitor { border-left-width: .5rem; }
+.tatami-competitor-aka { border-left-color: #d11a2a; }
+.tatami-competitor-shiro { border-left-color: #fff; }
+.tatami-competitor.is-winner { background: var(--bs-success-bg-subtle); }
+.side-chip { display: inline-flex; align-items: center; height: .9rem; min-width: .9rem; border: 1px solid #6c757d; border-radius: 0; vertical-align: middle; position: relative; top: -.1rem; margin-right: .3rem; cursor: pointer; overflow: hidden; }
+.side-aka { background: #d11a2a; color: #fff; }
+.side-shiro { background: #fff; color: #212529; }
+/* El texto está dentro del cuadrito y solo se ve al pasar el cursor o al tocarlo (unos segundos). */
+.side-chip .side-text { max-width: 0; overflow: hidden; white-space: nowrap; font-size: .65rem; font-weight: 700; line-height: 1; transition: max-width .15s ease, padding .15s ease; }
+.side-chip.is-open .side-text { max-width: 3.5rem; padding: 0 .3rem; }
+@media (hover: hover) { .side-chip:hover .side-text { max-width: 3.5rem; padding: 0 .3rem; } }
+.event-poster { max-height: 34rem; object-fit: contain; background: var(--bs-secondary-bg); }
+.event-info .display-6 { line-height: 1.15; }
+.event-rules { border-left: .25rem solid var(--bs-border-color); padding-left: .85rem; }
+.btn-icon { display: inline-flex; align-items: center; gap: .3rem; }
+/* En móvil, los botones «compactos» muestran solo el icono (el texto sigue en title/aria-label). */
+@media (max-width: 767.98px) {
+    .btn-compact { padding-left: .5rem; padding-right: .5rem; }
+    .btn-compact .btn-label { display: none; }
+}
+/* El color principal es rojo: el azul y el amarillo de las acciones de la tabla de categorías se definen aparte.
+   Como el resto de botones «outline»: fondo transparente, texto y borde de color; el relleno solo al pasar el cursor, pulsar o enfocar. */
+:root { --action-blue: #1f6feb; --action-blue-hover: #1a5fcb; --action-yellow: #a87b00; --action-yellow-fill: #f4d03f; --action-orange: #c2570c; --action-orange-fill: #fd7e14; }
+[data-bs-theme="dark"] { --action-blue: #5b9dff; --action-blue-hover: #3f86f5; --action-yellow: #f4d03f; --action-yellow-fill: #f4d03f; --action-orange: #ff9a45; --action-orange-fill: #fd7e14; }
+.btn-blue { --bs-btn-color: var(--action-blue); --bs-btn-bg: transparent; --bs-btn-border-color: var(--action-blue); --bs-btn-hover-color: #fff; --bs-btn-hover-bg: var(--action-blue-hover); --bs-btn-hover-border-color: var(--action-blue-hover); --bs-btn-active-color: #fff; --bs-btn-active-bg: var(--action-blue-hover); --bs-btn-active-border-color: var(--action-blue-hover); --bs-btn-focus-shadow-rgb: 31, 111, 235; --bs-btn-disabled-color: var(--action-blue); --bs-btn-disabled-bg: transparent; --bs-btn-disabled-border-color: var(--action-blue); }
+.btn-yellow { --bs-btn-color: var(--action-yellow); --bs-btn-bg: transparent; --bs-btn-border-color: var(--action-yellow); --bs-btn-hover-color: #3d3200; --bs-btn-hover-bg: var(--action-yellow-fill); --bs-btn-hover-border-color: var(--action-yellow-fill); --bs-btn-active-color: #3d3200; --bs-btn-active-bg: var(--action-yellow-fill); --bs-btn-active-border-color: var(--action-yellow-fill); --bs-btn-focus-shadow-rgb: 244, 208, 63; --bs-btn-disabled-color: var(--action-yellow); --bs-btn-disabled-bg: transparent; --bs-btn-disabled-border-color: var(--action-yellow); }
+.btn-orange { --bs-btn-color: var(--action-orange); --bs-btn-bg: transparent; --bs-btn-border-color: var(--action-orange); --bs-btn-hover-color: #fff; --bs-btn-hover-bg: var(--action-orange-fill); --bs-btn-hover-border-color: var(--action-orange-fill); --bs-btn-active-color: #fff; --bs-btn-active-bg: var(--action-orange-fill); --bs-btn-active-border-color: var(--action-orange-fill); --bs-btn-focus-shadow-rgb: 253, 126, 20; --bs-btn-disabled-color: var(--action-orange); --bs-btn-disabled-bg: transparent; --bs-btn-disabled-border-color: var(--action-orange); }
+.operator-create { border-left: .35rem solid var(--bs-primary); }
+.operator-tatami-option { min-width: 6.2rem; padding: .55rem .9rem; }
+.tatami-order { position: relative; z-index: 2; } /* por encima del enlace extendido del bloque del tatami */
+.tatami-order.is-reordering li { cursor: grab; border: 1px dashed var(--bs-border-color); border-radius: .25rem; padding: .15rem .35rem; background: var(--bs-body-bg); }
+.tatami-order.is-reordering li.dragging { opacity: .45; }
+.tatami-order.is-reordering li.drop-target { border-style: solid; border-color: var(--bs-primary); }
+.tatami-order.is-reordering .reorder-handle, .tatami-order.is-reordering .reorder-buttons { display: inline-flex !important; }
+.user-chip .user-chip-text { max-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; transition: max-width .15s ease, margin .15s ease; }
+.user-chip.is-open .user-chip-text, .user-chip:focus-visible .user-chip-text { max-width: 12rem; margin-left: .4rem; }
+@media (hover: hover) { .user-chip:hover .user-chip-text { max-width: 12rem; margin-left: .4rem; } }
+.sync-indicator { min-height: 2.25rem; }
+#sync-panel { position: fixed; top: 4rem; right: 1rem; z-index: 1080; max-width: 22rem; }
+.score-help-toggle { width: 1.6rem; height: 1.6rem; padding: 0; line-height: 1; font-size: .8rem; }
+.bout-card .score-marks { font-size: .8rem; letter-spacing: .02em; }
+.bout-card .winner { font-weight: 600; background: var(--bs-success-bg-subtle); }
+
+@media print {
+    .no-print, .navbar, .alert { display: none !important; }
+    body { background: #fff !important; }
+    .brand-dark { display: none !important; }
+    .bracket-wrap { overflow: visible !important; }
+    a { text-decoration: none; color: inherit; }
+}
+
+/* Votos de los jueces: banderas dentro de botones pegados. */
+.flag { display: inline-block; width: 1.25rem; height: 1.25rem; border: 1px solid #6c757d; border-radius: 0; background-clip: padding-box; vertical-align: middle; }
+.flag-sm { width: .85rem; height: .85rem; vertical-align: -.1rem; }
+.flag-shiro { background-color: #fff; }
+.flag-aka { background-color: #d11a2a; }
+/* Cuadrado partido en diagonal (triángulo blanco arriba a la izquierda, rojo abajo a la derecha), con bordes rectos. */
+.flag-hikiwake {
+    background-color: #fff;
+    background-size: 100% 100%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' preserveAspectRatio='none'%3E%3Cpath fill='%23fff' d='M0 0H10L0 10Z'/%3E%3Cpath fill='%23d11a2a' d='M10 0V10H0Z'/%3E%3C/svg%3E");
+}
+.judge-votes .btn-check:checked + .btn { background-color: var(--bs-secondary-bg); border-color: var(--bs-body-color); box-shadow: inset 0 0 0 2px var(--bs-body-color); }

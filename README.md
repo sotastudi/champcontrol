@@ -2,7 +2,7 @@
 
 Aplicación web ligera para organizar campeonatos de artes marciales: crear eventos y categorías, inscribir competidores, generar cuadros de eliminación, anotar combates y publicar clasificaciones.
 
-**Estado:** definición inicial del proyecto. Este documento describe la primera versión que se quiere construir; las funciones enumeradas todavía no están implementadas.
+**Estado:** primera versión implementada en `web/`. Las funciones descritas abajo están implementadas, salvo las decisiones pendientes de confirmar: ver [docs/decisiones-pendientes.md](docs/decisiones-pendientes.md) (la regla del bronce está aprobada; las retiradas y descalificaciones están implementadas, con deshacer baja y sanciones pendientes) y [docs/menores.md](docs/menores.md) (inscripción de menores).
 
 ## Objetivo y alcance
 
@@ -13,24 +13,37 @@ La primera versión cubre un flujo completo: **crear evento → definir categor�
 ### Funciones de la primera versión
 
 - **Cuentas de organizador:** registro, acceso, cierre de sesión, recuperación de contraseña y panel con los eventos propios. Cada evento pertenece a un organizador; no se puede acceder a los datos privados de otro.
-- **Eventos:** nombre, disciplina, lugar, fecha, descripción breve y estados `borrador`, `inscripciones abiertas`, `inscripciones cerradas`, `en curso` y `finalizado`. Página pública con la información que el organizador haya publicado.
-- **Categorías:** nombre y criterios configurados por el organizador, por ejemplo modalidad, edad, peso, sexo o nivel. En esta versión el organizador asigna o valida la categoría; no se necesita un motor universal para todas las federaciones. La edad, si se usa, se calcula en la fecha del evento.
+- **Eventos:** nombre, disciplina, lugar, fecha y hora de inicio (opcional), descripción breve y estados `borrador`, `inscripciones abiertas`, `inscripciones cerradas`, `en curso` y `finalizado`. Página pública con la información que el organizador haya publicado. La portada pública muestra los eventos en bloques con póster, lugar, fecha y botón «Inscribirse» (o «Ver evento» si no hay inscripción abierta).
+- **Categorías:** nombre y criterios configurados por el organizador, por ejemplo modalidad, edad, peso, sexo o nivel. En esta versión el organizador asigna o valida la categoría; no se necesita un motor universal para todas las federaciones. La edad, si se usa, se calcula en la fecha del evento. El nivel es un desplegable (10º kyu a 10º dan) y el criterio de sorteo se elige por evento y, si hace falta, por categoría.
 - **Competidores e inscripciones:** ficha básica (nombre, apellidos, club/equipo y datos necesarios para la categoría), alta manual por el organizador y formulario público opcional por evento. Una inscripción vincula un competidor con una categoría de un evento y pasa por `pendiente`, `confirmada` o `cancelada`. Se impiden duplicados de un mismo competidor en la misma categoría.
 - **Listas:** inscritos por evento/categoría, pendientes, orden de combates y resultados; filtros, impresión desde el navegador y exportación CSV de inscritos y clasificaciones.
-- **Cuadros o diagramas:** eliminación directa por categoría, con emparejamiento aleatorio inicial, posibilidad de ajustar emparejamientos antes de empezar, rondas, pases automáticos (*byes*) y vista imprimible. El organizador confirma la generación; si cambian las inscripciones, puede regenerar el cuadro mientras no haya resultados.
+- **Cuadros o diagramas:** eliminación directa por categoría, con emparejamiento inicial según los criterios de sorteo, posibilidad de ajustar emparejamientos antes de empezar, rondas, como mucho un pase automático (*bye*) por ronda y vista imprimible. El organizador confirma la generación; si cambian las inscripciones, puede regenerar el cuadro mientras no haya resultados.
 - **Combates:** número/orden, ronda, dos participantes y ganador. Se registran resultados uno a uno; el vencedor avanza automáticamente al siguiente combate. Una corrección exige editar el combate afectado y revisar los resultados dependientes antes de continuar.
-- **Clasificación y podio:** puestos 1.º, 2.º y 3.º; opción de mostrar también el 4.º. Para distinguir 3.º y 4.º se disputa un combate por el bronce entre quienes perdieron las semifinales. Si se elige un podio de tres puestos, se muestra solo el ganador de ese combate. Esta regla es una **propuesta inicial** y debe confirmarse según el reglamento de los campeonatos reales.
+- **Clasificación y podio:** puestos 1.º, 2.º y 3.º; opción de mostrar también el 4.º. Para distinguir 3.º y 4.º se disputa un combate por el bronce entre quienes perdieron las semifinales. Si se elige un podio de tres puestos, se muestra solo el ganador de ese combate. Esta regla está **aprobada**; por categoría puede elegirse también la alternativa de dos terceros sin combate.
+- **Retiradas y descalificaciones:** con el campeonato en marcha (ya hay resultados), el organizador registra una baja con motivo privado. Los combates pendientes del participante se dan por ganados al rival por incomparecencia. El retirado conserva su puesto; el descalificado sale del podio y del CSV y el puesto queda vacante para resolver según el reglamento.
+- **Reglas del campeonato por evento:** en el formulario del evento se eligen cuatro reglas dudosas (puesto vacante o no del descalificado, puesto del retirado que no llegó a combatir, regla del bronce por defecto y si se admite la baja antes de los resultados). Los valores por defecto reproducen el comportamiento descrito arriba. Ver [docs/decisiones-pendientes.md](docs/decisiones-pendientes.md).
+- **Puntuación del combate:** cada combate admite wazari (2 wazari = 1 ippon), ippon (gana al instante), abandono (gana el otro), el voto de cada juez con tres botones de bandera (blanca = SHIRO, roja = AKA, blanca y roja = hikiwake/empate) y faltas (F: 1 a 4). El ganador se deduce, por orden: abandono, ippon y mayoría de jueces; sin ippon ni abandono hay que marcar la bandera de todos los jueces para poder guardar, y quien gana por ippon (o 2 wazari) se lleva la bandera de todos los jueces. Si los jueces empatan, queda sin ganador para resolverlo a mano con «Gana». Dos participantes que se enfrentan no pueden tener ambos ippon (ni 2 wazari): con ippon en uno se bloquean los del otro hasta rectificar. AKA es el primer participante del combate y SHIRO el segundo. En el recuadro de cada participante del cuadro se ve W:1-2 (wazari), I (ippon) y F:1-4 (faltas, solo para el organizador); AKA (rojo) y SHIRO (blanco) se indican con un cuadrito de color que muestra su nombre al pasar el cursor o tocarlo.
+- **Tatamis y jueces:** el evento define cuántos tatamis hay; cada categoría se asigna a un tatami y a una configuración de jueces (2, 3 o 5; máximo 5: 4 esquinas + 1 central). El panel del evento muestra un bloque por tatami con el combate que toca ahora (el siguiente con los dos participantes definidos de sus categorías) y los tres siguientes. El orden de las categorías dentro de un tatami se fija desde el panel del evento: «Reordenar» activa arrastrar y soltar (y flechas subir/bajar para pantallas táctiles) y ese orden decide qué categoría compite antes. No hay calendario ni reparto automático de combates, ni un estado «en curso» explícito.
+- **Fechas de inscripción en la portada:** bajo el botón de cada evento se muestra «Inscripciones abiertas hasta …» (con el cierre) o «Las inscripciones abren el …» si aún no han empezado; y cuando faltan menos de 5 días para el cierre, una cuenta atrás en vivo (también en la página del evento) que se pone en rojo el último día.
+- **Inscripciones por fechas:** el evento puede fijar inicio y cierre de inscripciones con hora; fuera de esa ventana el formulario público no acepta inscripciones (el alta manual del organizador sí).
+- **Números de competidor:** con las inscripciones cerradas, el botón «Asignar números de competidor» numera a los confirmados agrupando por club (orden alfabético, sin club al final) y por apellidos dentro del club. El número aparece en la lista, la ficha, el CSV y el cuadro.
+- **Documentos del evento:** póster (se muestra en la portada y en la página del evento), normas en texto y PDF descargable. Los ficheros se guardan en disco privado y se sirven por rutas propias; no hace falta `storage:link`.
+- **Foto del participante:** opcional y privada; solo la ve el organizador (ficha y edición).
+- **Cuadro en PDF para papel:** desde el cuadro de una categoría, «PDF» (icono de descarga) genera un PDF A4 horizontal para rellenar a mano: en la primera ronda constan los nombres (con club y número de competidor) y en las siguientes solo hay casillas «Nº ____» para escribir el número del competidor. Cabe en una hoja hasta 16 combates en primera ronda; si hay más, se reparte en bloques de 16 (una hoja por bloque) más una hoja final con las rondas finales, el combate por el bronce y el podio, sin cortar nada. Se genera en el servidor con `dompdf/dompdf`.
+- **Puntuar sin conexión:** si falla internet al guardar una puntuación, se guarda en el navegador de ese dispositivo y se reenvía sola al volver la conexión (también con «Reintentar ahora»). La barra superior muestra una nube con check cuando todo está guardado en el servidor y un aviso con nube y el número de pendientes cuando no; cada combate muestra además su propio estado. Ver los límites en [docs/decisiones-pendientes.md](docs/decisiones-pendientes.md).
+- **Controladores de tatami:** el organizador crea cuentas para puntuar el combate actual de uno o varios tatamis: elige un usuario y una contraseña (el correo es opcional) y marca los tatamis a los que tendrá acceso. Entran con su usuario (o su correo) y solo ven y puntúan sus tatamis: no gestionan eventos ni ven otros tatamis. Sin correo no hay «recuperar contraseña»: quien creó la cuenta puede fijarle una nueva desde el panel del evento. El propietario puede abrir y puntuar cualquier tatami haciendo clic en su bloque del panel del evento. La vista del tatami muestra los dos participantes y la puntuación en tres columnas (una debajo de otra en móvil), con el número de combate y los dorsales en recuadros; se puede volver al combate anterior para revisarlo (queda bloqueado hasta pulsar «Desbloquear» y guardar de nuevo, siempre que el combate siguiente no dependa ya de ese resultado).
+- **Código de acceso a los resultados:** cada evento genera al crearse un código de 4 caracteres (A-Z, 0-9) que el organizador reparte a quien quiera. El público necesita ese código para ver cuadros, resultados, campeones y el estado de los tatamis; sin él solo ve la información del evento. El propietario y sus controladores no lo necesitan, y regenerarlo invalida el anterior.
 - **Publicación:** página pública de categorías, cuadros y resultados, controlada por el organizador. Un evento puede permanecer privado mientras se prepara.
 
 ### Fuera de la primera versión
 
-Pagos de inscripción, marcadores en directo, tatamis simultáneos, calendarios automáticos, rankings, clasificación por equipos, cabezas de serie, liguillas, doble eliminación, reglas de puntuación específicas de cada disciplina, aplicación móvil nativa y permisos para equipos de organizadores. Se podrán añadir tras validar el flujo básico con un campeonato real.
+Pagos de inscripción, marcadores en directo, calendario o reparto automático de combates por tatami, rankings, clasificación por equipos, cabezas de serie, liguillas, doble eliminación, reglas de puntuación específicas de cada federación (solo hay wazari/ippon, jueces y faltas sin sanciones automáticas por faltas), aplicación móvil nativa y permisos para equipos de organizadores. Se podrán añadir tras validar el flujo básico con un campeonato real.
 
 ## Reglas de funcionamiento
 
 1. Solo las inscripciones **confirmadas** entran en el cuadro; al generarlo, se guarda una versión estable de los participantes y emparejamientos.
-2. Una categoría con un solo inscrito no genera combates. Su clasificación se revisa manualmente según el reglamento; no se le asigna un oro automáticamente. Con dos inscritos se genera una final. Con más inscritos se completan las rondas con pases automáticos cuando sea necesario.
-3. El sorteo solo se modifica antes de anotar el primer resultado. Las bajas posteriores y sus efectos se resuelven manualmente por el organizador en la primera versión.
+2. Una categoría con un solo inscrito no genera combates. Su clasificación se revisa manualmente según el reglamento; no se le asigna un oro automáticamente. Con dos inscritos se genera una final. Con más inscritos, en cada ronda todos combaten salvo, como mucho, un participante suelto que recibe un pase automático (el de mayor nivel en la primera ronda); no se rellena el cuadro hasta una potencia de dos. Si para no dejar a nadie suelto hay que forzar una regla del sorteo (por ejemplo, enfrentar a dos del mismo club), el panel lo avisa para que se revise.
+3. El sorteo se genera con los criterios configurados (por defecto nivel > peso > club, con azar entre iguales) y solo se modifica antes de anotar el primer resultado. Las bajas posteriores y sus efectos se resuelven manualmente por el organizador en la primera versión.
 4. No se permite registrar el ganador de un combate hasta conocer ambos participantes, excepto el avance automático por un pase.
 5. El sistema calcula la clasificación a partir de resultados validados; al finalizar el evento, una corrección requiere reabrirlo y revisar las clasificaciones afectadas.
 6. Las páginas públicas muestran únicamente los datos necesarios: nombre deportivo, club, categoría, cuadro y resultado. Fecha de nacimiento, contacto y datos administrativos quedan fuera de la vista pública.
@@ -43,18 +56,18 @@ Pagos de inscripción, marcadores en directo, tatamis simultáneos, calendarios 
 | Organizador | Crear y gestionar solo sus eventos, inscripciones, cuadros, combates y publicaciones. |
 | Administrador de plataforma | Gestionar incidencias y cuentas. Puede añadirse más adelante si se necesita. |
 
-Los competidores no necesitan cuenta para la primera versión. Si se admiten inscripciones de menores, el formulario deberá recoger el consentimiento y los datos de contacto del representante que exija la normativa aplicable, sin publicarlos.
+Los competidores no necesitan cuenta para la primera versión. El formulario público admite menores (menos de `ADULT_AGE` años, 18 por defecto, en la fecha del evento) solo si se aportan los datos del representante legal y su consentimiento; esos datos son privados y nunca se publican. Los textos legales siguen pendientes de revisión: ver [docs/menores.md](docs/menores.md).
 
 ## Modelo de datos orientativo
 
 | Entidad | Datos principales | Relación |
 | --- | --- | --- |
 | `users` | nombre, email, contraseña | Organizador propietario de eventos. |
-| `events` | `user_id`, nombre, disciplina, fecha, lugar, estado, visibilidad | Tiene categorías. |
-| `categories` | `event_id`, nombre, criterios, tipo de podio, estado del cuadro | Pertenece a un evento. |
-| `competitors` | nombre, apellidos, club, datos privados mínimos | Puede inscribirse en varios eventos. |
+| `events` | `user_id`, nombre, disciplina, fecha, lugar, estado, visibilidad, reglas del campeonato, criterio de sorteo, tatamis, ventana de inscripción, póster, normas (texto y PDF) | Tiene categorías. |
+| `categories` | `event_id`, nombre, criterios, tipo de podio, criterio de sorteo propio, tatami, jueces, estado del cuadro | Pertenece a un evento. |
+| `competitors` | nombre, apellidos, club, sexo, nivel, número de competidor, foto y datos privados mínimos (incluido el representante legal) | Puede inscribirse en varios eventos. |
 | `registrations` | `event_id`, `category_id`, `competitor_id`, estado | Inscripción única por competidor, evento y categoría. |
-| `matches` | `category_id`, ronda, posición, participante A/B, ganador, estado | Modela el cuadro y el avance entre rondas. |
+| `bouts` (combates) | `category_id`, ronda, posición, participante A (AKA) / B (SHIRO), ganador, wazari/ippon, abandono, votos de jueces, amonestaciones | Modela el cuadro y el avance entre rondas. |
 
 Los resultados y asignaciones de combate deben persistirse en base de datos; no deben depender del HTML del diagrama. Las relaciones entre combates (destino del ganador y, cuando proceda, de los perdedores de semifinal) se definirán explícitamente al implementar el generador. Se usarán migraciones, índices y claves foráneas. Las autorizaciones se comprobarán en cada operación sobre recursos de un evento, no solo al mostrar botones.
 
@@ -72,36 +85,31 @@ Esta combinación favorece el desarrollo en PHP y permite una interfaz familiar 
 
 Requisitos: MAMP PRO con Apache, **PHP 8.4 tanto para el sitio como para la terminal**, MySQL compatible, Composer y Node.js con npm. Verificar en la terminal `php -v`, `composer --version` y `node -v`; si la terminal usa otro PHP, seleccionar el binario PHP 8.4 de MAMP antes de ejecutar Composer o Artisan.
 
-Cuando se inicie el código del proyecto:
+El código de la aplicación está en `web/`. Desde esa carpeta:
 
 ```bash
-composer create-project laravel/laravel:^13.0 champcontrol
-cd champcontrol
+cd web
+source scripts/dev-env.sh   # PHP 8.4 de MAMP y Node en el PATH (ver nota abajo)
+composer install
 cp .env.example .env
 php artisan key:generate
 npm install
 ```
 
-Crear una base de datos vacía y ajustar .env con los valores reales de MAMP:
-APP_NAME=ChampControl
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=https://champcontrol.test
+`scripts/dev-env.sh` tiene fijadas las rutas de esta máquina (MAMP PHP 8.4.17 y Node 26): hay que editarlo en otro equipo.
 
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=champcontrol
-DB_USERNAME=usuario_local
-DB_PASSWORD=clave_local
+Crear una base de datos MySQL vacía y ajustar `web/.env` con los valores reales de MAMP PRO (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `DB_PORT`; `APP_URL=https://champcontrol.test`). Después:
 
-El puerto, usuario y contraseña del ejemplo son marcadores: usar los que muestre MAMP PRO. Tras configurar la base de datos y crear las migraciones de la aplicación:
 ```bash
 php artisan migrate
 npm run dev
 ```
 
-En MAMP PRO, crear el host champcontrol.test y apuntar el DocumentRoot a champcontrol/public. Activar mod_rewrite y permitir las reglas .htaccess de Laravel. No poner la raíz del proyecto bajo el directorio público ni mover public/index.php. La configuración de correo puede usar un servicio local de pruebas o el controlador de registro (MAIL_MAILER=log) hasta configurar SMTP para recuperar contraseñas.
+En MAMP PRO, crear el host `champcontrol.test` y apuntar el **DocumentRoot a `champcontrol/web/public`**. Activar `mod_rewrite` y permitir las reglas `.htaccess` de Laravel. No mover `public/index.php`. La configuración de correo puede usar `MAIL_MAILER=log` hasta configurar SMTP para recuperar contraseñas.
+
+Pruebas y estilo: `php artisan test` y `vendor/bin/pint --test`.
+
+Datos de prueba para el sorteo: `php artisan champcontrol:demo-inscritos ID_CATEGORIA --count=12` crea inscritos ficticios (marcados «DEMO») solo con los datos obligatorios; con `--extras` añade club y peso (`--clubs=3` limita los clubes), con `--pending=N` deja N pendientes, con `--seed=1` repite los datos y con `--clean` borra los de prueba. Se niega a actuar en producción (salvo `--force`) y en categorías con resultados o bajas.
 
 ## Despliegue básico en Apache
 El servidor debe tener PHP 8.4 con las extensiones requeridas por Laravel, Composer disponible para instalar dependencias, MySQL, y permisos de escritura para storage/ y bootstrap/cache/. Configurar el host Apache para servir exclusivamente public/, subir el código sin .env, crear un .env propio en el servidor, instalar dependencias con composer install --no-dev, ejecutar las migraciones y compilar los recursos antes o durante el despliegue. Ajustar APP_ENV=production, APP_DEBUG=false, APP_URL con HTTPS y configurar copias de seguridad de base de datos.
@@ -115,10 +123,8 @@ El servidor debe tener PHP 8.4 con las extensiones requeridas por Laravel, Compo
 6. Impresión, CSV, revisión con datos de un evento real y despliegue.
 Primer hito verificable: un organizador crea un evento con una categoría, confirma cinco inscripciones, genera un cuadro con los pases necesarios, anota final y combate por el bronce, y publica la clasificación sin exponer datos privados.
 
-## Decisiones por confirmar antes de implementar el generador
-- Reglamento concreto de los primeros campeonatos: disciplinas, criterios de categoría y si hay un único bronce, dos terceros compartidos u otra regla.
-- Forma de resolver retiradas y descalificaciones: si cuentan como victoria automática y cómo se representan en resultados.
-- Si una persona puede estar en varias categorías del mismo evento y qué dato permite reconocer inscripciones repetidas sin recopilar más información personal de la necesaria.
+## Decisiones pendientes
+Ver [docs/decisiones-pendientes.md](docs/decisiones-pendientes.md) (regla del bronce, retiradas y descalificaciones, varias categorías por persona, etc.) y [docs/menores.md](docs/menores.md).
 
 ## Referencias
 - Smoothcomp y su explicación de cuadros y resultados: referencia de recorrido del participante y visualización pública.

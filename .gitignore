@@ -3,6 +3,8 @@
 Thumbs.db
 Desktop.ini
 
+/assets/*
+
 # Editores / IDE
 .idea/
 .vscode/
