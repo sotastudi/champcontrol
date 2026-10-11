@@ -8,9 +8,9 @@
             <div class="card h-100 shadow-sm">
                 <a href="{{ route('public.events.show', $event) }}" class="text-decoration-none">
                     @if ($event->hasPoster())
-                        <img src="{{ route('public.events.poster', $event) }}" class="card-img-top" alt="Póster de {{ $event->name }}" loading="lazy">
+                        <img src="{{ route('public.events.poster', $event) }}" class="card-img-top bg-body-secondary" style="max-height: 400px; object-fit: contain" alt="Póster de {{ $event->name }}" loading="lazy">
                     @else
-                        <div class="card-img-top bg-body-secondary d-flex align-items-center justify-content-center text-muted" style="aspect-ratio: 3 / 4">Sin póster</div>
+                        <div class="card-img-top bg-body-secondary d-flex align-items-center justify-content-center text-muted" style="height: 200px">Sin póster</div>
                     @endif
                 </a>
                 <div class="card-body d-flex flex-column">

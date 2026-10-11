@@ -2,7 +2,7 @@
 @section('title', $event->name)
 @section('content')
 @if ($event->hasPoster())
-    <img src="{{ route('public.events.poster', $event) }}" alt="Póster de {{ $event->name }}" class="img-fluid rounded mb-3" style="max-height: 28rem">
+    <img src="{{ route('public.events.poster', $event) }}" alt="Póster de {{ $event->name }}" class="img-fluid rounded mb-3" style="max-height: 400px">
 @endif
 <h1 class="h3">{{ $event->name }}</h1>
 <p class="text-muted">{{ $event->discipline }} · {{ $event->starts_on->translatedFormat('j \d\e F \d\e Y') }} · {{ $event->venue }}</p>
