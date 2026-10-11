@@ -153,13 +153,15 @@ document.addEventListener('change', (event) => {
 
 document.querySelectorAll('[data-score-form]').forEach(syncSave);
 
-// Botón de usuario: el texto se ve al pasar el cursor; en pantallas táctiles anchas (tablet) el primer toque lo muestra
-// unos segundos y el segundo toque navega. En móvil estrecho (menos de 768 px) navega directamente.
+// Botones de usuario y de salida: el texto se ve al pasar el cursor; en pantallas táctiles anchas (tablet) el primer toque lo
+// muestra unos segundos y el segundo actúa. En móvil estrecho el de usuario actúa directamente, pero el de salir (data-chip-two-tap)
+// también pide dos toques para evitar cerrar la sesión sin querer.
 document.addEventListener('click', (event) => {
     const chip = event.target.closest('[data-user-chip]');
     if (!chip) return;
-    const touchWide = window.matchMedia('(hover: none)').matches && window.innerWidth >= 768;
-    if (touchWide && !chip.classList.contains('is-open')) {
+    const touch = window.matchMedia('(hover: none)').matches;
+    const needsTwoTaps = touch && (window.innerWidth >= 768 || chip.hasAttribute('data-chip-two-tap'));
+    if (needsTwoTaps && !chip.classList.contains('is-open')) {
         event.preventDefault();
         chip.classList.add('is-open');
         clearTimeout(chip._hideTimer);

@@ -41,4 +41,16 @@ class HomeTest extends TestCase
 
         $this->actingAs($user)->get(route('home'))->assertSee('aria-label="Mi panel"', false)->assertSee('user-chip-text">Mi panel', false);
     }
+
+    public function test_logout_is_an_icon_button_in_the_header_that_reveals_its_text_and_not_a_menu_link(): void
+    {
+        $user = User::factory()->create(['name' => 'Ana Salida']);
+
+        $html = $this->actingAs($user)->get(route('home'))->getContent();
+
+        $this->assertMatchesRegularExpression('#<form method="POST" action="'.preg_quote(route('logout'), '#').'" class="d-flex">.*?<button type="submit" class="btn btn-outline-secondary btn-sm d-flex align-items-center user-chip" data-user-chip data-chip-two-tap aria-label="Cerrar sesión" title="Cerrar sesión \(Ana Salida\)">\s*<svg[^>]*><use href="\#logout"/></svg>\s*<span class="user-chip-text">Cerrar sesión</span>#s', $html);
+        $this->assertLessThan(strpos($html, 'id="nav"'), strpos($html, 'href="#logout"'), 'el botón está en la cabecera, fuera del menú plegable');
+        $this->assertDoesNotMatchRegularExpression('#nav-link">Cerrar sesión#', $html);
+        $this->assertStringNotContainsString('Cerrar sesión (Ana Salida)</button>', $html);
+    }
 }

@@ -41,6 +41,10 @@
         <path d="M12 9.5v5M12 17.5h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
     </symbol>
     {{-- Iconos de acciones: lápiz (editar), diagrama de árbol (cuadro), papelera (eliminar) y compartir (publicar). --}}
+    <symbol id="logout" viewBox="0 0 24 24">
+        <path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M15 8l4 4-4 4M19 12H9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
     <symbol id="eye" viewBox="0 0 24 24">
         <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
         <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.7"/>
@@ -121,6 +125,15 @@
                 <svg width="18" height="18" aria-hidden="true"><use href="#user"/></svg>
                 <span class="user-chip-text">{{ auth()->check() ? 'Mi panel' : 'Iniciar sesión' }}</span>
             </a>
+            @auth
+                {{-- Salir: icono; el texto aparece al pasar el cursor y, en pantallas táctiles, el primer toque lo muestra y el segundo sale. --}}
+                <form method="POST" action="{{ route('logout') }}" class="d-flex">@csrf
+                    <button type="submit" class="btn btn-outline-secondary btn-sm d-flex align-items-center user-chip" data-user-chip data-chip-two-tap aria-label="Cerrar sesión" title="Cerrar sesión ({{ auth()->user()->name }})">
+                        <svg width="18" height="18" aria-hidden="true"><use href="#logout"/></svg>
+                        <span class="user-chip-text">Cerrar sesión</span>
+                    </button>
+                </form>
+            @endauth
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Menú">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -129,11 +142,6 @@
             <ul class="navbar-nav ms-auto align-items-md-center gap-md-2">
                 @auth
                     <li class="nav-item"><a class="nav-link" href="{{ route('panel.events.index') }}">{{ auth()->user()->isTatamiAccount() ? 'Mis tatamis' : 'Mis eventos' }}</a></li>
-                    <li class="nav-item">
-                        <form method="POST" action="{{ route('logout') }}">@csrf
-                            <button class="btn btn-link nav-link">Cerrar sesión ({{ auth()->user()->name }})</button>
-                        </form>
-                    </li>
                 @else
                     <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Registrarse</a></li>
                 @endauth
