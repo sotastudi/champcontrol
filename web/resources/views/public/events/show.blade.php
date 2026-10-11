@@ -6,5 +6,12 @@
 <span class="badge text-bg-secondary mb-3">{{ $event->status->label() }}</span>
 @if ($event->description)<p style="white-space: pre-line">{{ $event->description }}</p>@endif
 @if ($event->acceptsPublicRegistrations())<a class="btn btn-primary" href="{{ route('public.registration.create', $event) }}">Inscribirse</a>@endif
-{{-- Task 13 añade la lista de categorías publicadas. --}}
+@if ($categories->isNotEmpty())
+    <h2 class="h5 mt-4">Cuadros y resultados</h2>
+    <div class="list-group">
+        @foreach ($categories as $category)
+            <a class="list-group-item list-group-item-action" href="{{ route('public.categories.show', [$event, $category]) }}">{{ $category->name }}</a>
+        @endforeach
+    </div>
+@endif
 @endsection

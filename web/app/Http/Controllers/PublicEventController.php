@@ -11,6 +11,9 @@ class PublicEventController extends Controller
     {
         abort_unless($event->isListed(), 404);
 
-        return view('public.events.show', ['event' => $event]);
+        return view('public.events.show', [
+            'event' => $event,
+            'categories' => $event->categories()->where('is_published', true)->orderBy('name')->get(),
+        ]);
     }
 }

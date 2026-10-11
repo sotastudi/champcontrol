@@ -12,6 +12,7 @@
     </div>
     <div class="d-flex gap-2 flex-wrap">
         <a href="{{ route('panel.registrations.index', $event) }}" class="btn btn-primary">Inscripciones</a>
+        <a href="{{ route('panel.exports.standings', $event) }}" class="btn btn-outline-secondary">Exportar clasificación (CSV)</a>
         <a href="{{ route('panel.events.edit', $event) }}" class="btn btn-outline-primary">Editar</a>
         @if ($event->isListed())
             <a href="{{ route('public.events.show', $event) }}" class="btn btn-outline-secondary">Ver página pública</a>
@@ -52,6 +53,14 @@
                         <td class="text-center"><a href="{{ route('panel.registrations.index', ['event' => $event, 'category_id' => $category->id]) }}">{{ $category->confirmed_count }}</a></td>
                         <td class="text-end">
                             <a href="{{ route('panel.brackets.show', [$event, $category]) }}" class="btn btn-outline-secondary btn-sm">Cuadro</a>
+                            @if ($category->is_published && $event->isListed())
+                                <a href="{{ route('public.categories.show', [$event, $category]) }}" class="btn btn-outline-secondary btn-sm">Ver página pública</a>
+                            @endif
+                            <form method="POST" action="{{ route('panel.categories.publication', [$event, $category]) }}" class="d-inline">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="btn btn-outline-success btn-sm">{{ $category->is_published ? 'Ocultar' : 'Publicar' }}</button>
+                            </form>
                             <a href="{{ route('panel.categories.edit', [$event, $category]) }}" class="btn btn-outline-primary btn-sm">Editar</a>
                             <form method="POST" action="{{ route('panel.categories.destroy', [$event, $category]) }}" class="d-inline" onsubmit="return confirm('¿Eliminar la categoría?')">
                                 @csrf

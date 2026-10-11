@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Registration;
 use App\Support\Csv;
+use App\Tournament\PodiumCalculator;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -28,5 +29,18 @@ class ExportController extends Controller
             ['Categoría', 'Apellidos', 'Nombre', 'Club', 'Fecha de nacimiento', 'Sexo', 'Peso', 'Email', 'Teléfono', 'Estado'],
             $rows,
         );
+    }
+
+    public function standings(Event $event, PodiumCalculator $podium): StreamedResponse
+    {
+        $rows = [];
+        foreach ($event->categories()->orderBy('name')->get() as $category) {
+            foreach ($podium->for($category) as $p) {
+                $c = $p->registration->competitor;
+                $rows[] = [$category->name, $p->place, $c->last_name, $c->first_name, $c->club];
+            }
+        }
+
+        return Csv::download('clasificacion-'.$event->slug.'.csv', ['Categoría', 'Puesto', 'Apellidos', 'Nombre', 'Club'], $rows);
     }
 }

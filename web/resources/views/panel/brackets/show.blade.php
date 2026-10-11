@@ -18,6 +18,17 @@
                 <button type="submit" class="btn btn-primary">{{ $bouts->isEmpty() ? 'Generar cuadro' : 'Regenerar cuadro' }}</button>
             </form>
         @endunless
+        @if ($bouts->isNotEmpty() || $category->is_published)
+            <form method="POST" action="{{ route('panel.categories.publication', [$event, $category]) }}">
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="btn btn-outline-success">{{ $category->is_published ? 'Ocultar' : 'Publicar' }}</button>
+            </form>
+        @endif
+        @if ($category->is_published && $event->isListed())
+            <a href="{{ route('public.categories.show', [$event, $category]) }}" class="btn btn-outline-secondary">Ver página pública</a>
+        @endif
+        <a href="{{ route('panel.exports.standings', $event) }}" class="btn btn-outline-secondary">Exportar clasificación (CSV)</a>
         <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Imprimir</button>
     </div>
 </div>

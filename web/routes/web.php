@@ -11,7 +11,9 @@ use App\Http\Controllers\Panel\CategoryController;
 use App\Http\Controllers\Panel\CompetitorController;
 use App\Http\Controllers\Panel\EventController;
 use App\Http\Controllers\Panel\ExportController;
+use App\Http\Controllers\Panel\PublicationController;
 use App\Http\Controllers\Panel\RegistrationController;
+use App\Http\Controllers\PublicCategoryController;
 use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\PublicRegistrationController;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +21,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', HomeController::class)->name('home');
 Route::get('eventos/{event:slug}', [PublicEventController::class, 'show'])->name('public.events.show');
 Route::get('eventos/{event:slug}/inscripcion', [PublicRegistrationController::class, 'create'])->name('public.registration.create');
+Route::get('eventos/{event:slug}/categorias/{category}', [PublicCategoryController::class, 'show'])
+    ->scopeBindings()->name('public.categories.show');
 Route::post('eventos/{event:slug}/inscripcion', [PublicRegistrationController::class, 'store'])
     ->middleware('throttle:10,1')->name('public.registration.store');
 
@@ -62,6 +66,8 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::post('categorias/{category}/cuadro', [BracketController::class, 'store'])->name('brackets.store');
         Route::post('categorias/{category}/cuadro/intercambio', [BracketController::class, 'swap'])->name('brackets.swap');
         Route::put('categorias/{category}/combates/{bout}/resultado', [BoutResultController::class, 'update'])->name('bouts.result');
+        Route::patch('categorias/{category}/publicacion', [PublicationController::class, 'toggle'])->name('categories.publication');
+        Route::get('exportar/clasificacion.csv', [ExportController::class, 'standings'])->name('exports.standings');
         // Las tareas siguientes añaden aquí categorías, inscripciones, cuadros, exportaciones…
     });
 });
