@@ -143,4 +143,27 @@ class EventTest extends TestCase
         }
         $this->actingAs($user)->get(route('panel.events.create'))->assertOk()->assertSee('name="dq_podium_rule"', false);
     }
+
+    public function test_registration_window_is_saved_shown_and_validated(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('panel.events.store'), $this->payload([
+            'registration_opens_at' => '2026-11-01T10:00', 'registration_closes_at' => '2026-11-10T20:30',
+        ]))->assertSessionHasNoErrors();
+        $event = $user->events()->firstOrFail();
+        $this->assertSame('2026-11-01 10:00', $event->registration_opens_at->format('Y-m-d H:i'));
+
+        $this->actingAs($user)->get(route('panel.events.edit', $event))
+            ->assertSee('value="2026-11-01T10:00"', false)->assertSee('value="2026-11-10T20:30"', false)
+            ->assertSee('Inicio de inscripciones')->assertSee('Cierre de inscripciones');
+
+        $this->actingAs($user)->put(route('panel.events.update', $event), $this->payload([
+            'registration_opens_at' => '2026-11-10T20:30', 'registration_closes_at' => '2026-11-01T10:00',
+        ]))->assertSessionHasErrors('registration_closes_at');
+
+        $this->actingAs($user)->put(route('panel.events.update', $event), $this->payload(['registration_opens_at' => '', 'registration_closes_at' => '']))
+            ->assertSessionHasNoErrors();
+        $this->assertNull($event->fresh()->registration_opens_at);
+    }
 }

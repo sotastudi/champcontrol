@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 #[Fillable(['name', 'discipline', 'description', 'starts_on', 'venue', 'status', 'is_public', 'registration_form_enabled',
-    'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule', 'draw_criteria'])]
+    'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule', 'draw_criteria', 'registration_opens_at', 'registration_closes_at'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
@@ -38,6 +38,8 @@ class Event extends Model
             'default_bronze_rule' => BronzeRule::class,
             'withdrawal_before_results_rule' => PreResultsWithdrawalRule::class,
             'draw_criteria' => DrawCriteria::class,
+            'registration_opens_at' => 'datetime',
+            'registration_closes_at' => 'datetime',
         ];
     }
 
@@ -82,7 +84,17 @@ class Event extends Model
     {
         return $this->isListed()
             && $this->registration_form_enabled
-            && $this->status === EventStatus::RegistrationOpen;
+            && $this->status === EventStatus::RegistrationOpen
+            && $this->isInsideRegistrationWindow();
+    }
+
+    /** Sin fechas, la ventana está siempre abierta; con fechas, solo entre apertura y cierre (ambos incluidos). */
+    public function isInsideRegistrationWindow(): bool
+    {
+        $now = now();
+
+        return ($this->registration_opens_at === null || $now->gte($this->registration_opens_at))
+            && ($this->registration_closes_at === null || $now->lte($this->registration_closes_at));
     }
 
     /** Reglas del campeonato: nunca null (tras create() el atributo puede estar sin refrescar y la BD aplica el DEFAULT). */

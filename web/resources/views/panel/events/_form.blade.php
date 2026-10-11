@@ -21,6 +21,10 @@
          help="Un evento público y no en borrador aparece en la portada y tiene página pública." />
 <x-check name="registration_form_enabled" label="Habilitar formulario público de inscripción" :checked="$event?->registration_form_enabled ?? false"
          help="Solo funciona con el evento público y en estado «Inscripciones abiertas». Ver docs/menores.md." />
+<div class="row">
+    <div class="col-md-6"><x-field name="registration_opens_at" type="datetime-local" label="Inicio de inscripciones" :value="$event?->registration_opens_at?->format('Y-m-d\TH:i')" help="Opcional. Hora local del evento. Sin fecha, las inscripciones se abren en cuanto el estado es «Inscripciones abiertas»." /></div>
+    <div class="col-md-6"><x-field name="registration_closes_at" type="datetime-local" label="Cierre de inscripciones" :value="$event?->registration_closes_at?->format('Y-m-d\TH:i')" help="Opcional. Pasada esta fecha y hora el formulario público deja de aceptar inscripciones." /></div>
+</div>
 
 <fieldset class="mt-4">
     <legend class="h5">Reglas del campeonato</legend>

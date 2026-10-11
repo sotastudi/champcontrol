@@ -32,6 +32,8 @@ class EventRequest extends FormRequest
             'dq_podium_rule' => ['sometimes', 'required', Rule::enum(DisqualifiedPodiumRule::class)],
             'unfought_withdrawal_rule' => ['sometimes', 'required', Rule::enum(UnfoughtWithdrawalRule::class)],
             'default_bronze_rule' => ['sometimes', 'required', Rule::enum(BronzeRule::class)],
+            'registration_opens_at' => ['nullable', 'date'],
+            'registration_closes_at' => ['nullable', 'date', Rule::when($this->filled('registration_opens_at'), ['after:registration_opens_at'])],
             'poster' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'remove_poster' => ['boolean'],
             'draw_criteria' => ['sometimes', 'required', Rule::enum(DrawCriteria::class)],
