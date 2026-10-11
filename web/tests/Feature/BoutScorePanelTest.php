@@ -92,7 +92,7 @@ class BoutScorePanelTest extends TestCase
         ]);
         auth()->logout();
 
-        $html = $this->get(route('public.categories.show', [$event, $category]))
+        $html = $this->seeResults($event)->get(route('public.categories.show', [$event, $category]))
             ->assertOk()->assertSee('W:1')->assertDontSee('F:4')->assertDontSee('Falta')->assertDontSee('name="a_warnings"', false)->getContent();
 
         // Votos de los jueces con banderas (sin la palabra «hikiwake»): roja 2, blanca 1, partida 0.
@@ -114,7 +114,7 @@ class BoutScorePanelTest extends TestCase
         $this->assertStringNotContainsString('Amonest', $panel);
 
         auth()->logout();
-        $public = $this->get(route('public.categories.show', [$event, $category]))->getContent();
+        $public = $this->seeResults($event)->get(route('public.categories.show', [$event, $category]))->getContent();
         $this->assertStringContainsString('W:1', $public);
         $this->assertStringNotContainsString('F:3', $public);
         $this->assertMatchesRegularExpression('#score-marks">I</small>#', $public);

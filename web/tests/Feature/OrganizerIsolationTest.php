@@ -48,7 +48,11 @@ class OrganizerIsolationTest extends TestCase
                 continue;
             }
 
-            $this->assertContains('can:manage,event', $route->gatherMiddleware(), $route->uri().' sin policy');
+            $middleware = $route->gatherMiddleware();
+            $this->assertTrue(
+                in_array('can:manage,event', $middleware, true) || in_array('can:operate,event,tatami', $middleware, true),
+                $route->uri().' sin policy',
+            );
 
             $uri = $route->uri();
             foreach ($route->parameterNames() as $name) {
@@ -74,8 +78,10 @@ class OrganizerIsolationTest extends TestCase
 
         $bout = Bout::create(['category_id' => $category->id, 'round' => 1, 'position' => 1]);
 
+        $operator = $event->operators()->create(['user_id' => User::factory()->create()->id, 'tatami' => 1]);
+
         return [
-            'event' => $event->id, 'category' => $category->id, 'bout' => $bout->id,
+            'event' => $event->id, 'category' => $category->id, 'bout' => $bout->id, 'tatami' => 1, 'operator' => $operator->id,
             'registration' => $registration->id, 'competitor' => $registration->competitor_id,
         ];
     }

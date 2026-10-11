@@ -68,7 +68,7 @@
                     </ul>
                 </li>
                 @auth
-                    <li class="nav-item"><a class="nav-link" href="{{ route('panel.events.index') }}">Mis eventos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('panel.events.index') }}">{{ auth()->user()->isTatamiAccount() ? 'Mis tatamis' : 'Mis eventos' }}</a></li>
                     <li class="nav-item">
                         <form method="POST" action="{{ route('logout') }}">@csrf
                             <button class="btn btn-link nav-link">Cerrar sesión ({{ auth()->user()->name }})</button>

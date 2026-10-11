@@ -18,20 +18,31 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EventController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        // Una cuenta de controlador con un único tatami va directa a él.
+        $user = $request->user();
+        if ($user->isTatamiAccount() && ($operations = $user->tatamiOperations()->get())->count() === 1) {
+            return redirect()->route('panel.tatamis.show', [$operations[0]->event_id, $operations[0]->tatami]);
+        }
+
         return view('panel.events.index', [
             'events' => $request->user()->events()->orderByDesc('starts_on')->get(),
+            'operations' => $request->user()->tatamiOperations()->with('event')->get()->sortBy(fn ($o) => [$o->event->starts_on, $o->tatami])->values(),
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
+        abort_if($request->user()->isTatamiAccount(), 403);
+
         return view('panel.events.create');
     }
 
     public function store(EventRequest $request): RedirectResponse
     {
+        abort_if($request->user()->isTatamiAccount(), 403);
+
         $event = $request->user()->events()->create($request->safe()->except(['poster', 'remove_poster', 'rules_pdf', 'remove_rules_pdf']));
         $this->savePoster($request, $event);
 
@@ -41,7 +52,7 @@ class EventController extends Controller
     public function show(Event $event, TatamiBoard $board): View
     {
         return view('panel.events.show', [
-            'event' => $event->load(['categories' => fn ($q) => $q->orderBy('name')->withCount([
+            'event' => $event->load(['operators.user', 'categories' => fn ($q) => $q->orderBy('name')->withCount([
                 'registrations as confirmed_count' => fn ($r) => $r->where('status', RegistrationStatus::Confirmed->value),
             ])]),
             'tatamis' => $board->for($event),
@@ -100,6 +111,14 @@ class EventController extends Controller
             $this->deleteRulesPdf($event);
             $event->forceFill(['rules_pdf_path' => null, 'rules_pdf_name' => null])->save();
         }
+    }
+
+    /** Genera un código nuevo: el anterior deja de valer y las sesiones que lo introdujeron dejan de ver los resultados. */
+    public function regenerateAccessCode(Event $event): RedirectResponse
+    {
+        $event->forceFill(['access_code' => Event::newAccessCode()])->save();
+
+        return back()->with('status', 'Código de acceso regenerado: el anterior ya no funciona.');
     }
 
     public function assignBibs(Event $event, BibNumberAssigner $bibs): RedirectResponse

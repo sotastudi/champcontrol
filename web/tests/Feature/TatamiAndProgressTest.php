@@ -75,7 +75,7 @@ class TatamiAndProgressTest extends TestCase
         app(ResultRecorder::class)->record($final, $final->slot_a_id);
         $champion = $final->fresh()->winner->competitor->displayName();
 
-        $this->get(route('public.events.show', $event))
+        $this->seeResults($event)->get(route('public.events.show', $event))
             ->assertSee('Cat Final')->assertSee('Finalizada')->assertSee($champion)->assertSee('Tatami 2')
             ->assertSee('Cat Curso')->assertSee('0/1 combates')
             ->assertDontSee('Cat Oculta');

@@ -88,7 +88,7 @@ class FirstMilestoneTest extends TestCase
         $this->assertTrue($category->fresh()->is_published);
         auth()->logout();
 
-        $html = $this->get(route('public.categories.show', [$event, $category]))->assertOk()->getContent();
+        $html = $this->seeResults($event)->get(route('public.categories.show', [$event, $category]))->assertOk()->getContent();
 
         // Solo el bloque del podio (columnas 1.º-3.º): el cuadro y los resultados de debajo listan a todos.
         $this->assertSame(1, preg_match('#<div class="podium d-flex.*?(?=<section)#s', $html, $block));

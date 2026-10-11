@@ -51,6 +51,7 @@ class PublicResultsTest extends TestCase
     public function test_public_pages_show_bracket_and_podium_but_never_private_data(): void
     {
         $category = $this->playedCategory();
+        $this->seeResults($category->event);
         $category->forceFill(['is_published' => true])->save();
         $event = $category->event;
 
@@ -77,6 +78,7 @@ class PublicResultsTest extends TestCase
     public function test_unpublished_private_or_draft_content_is_not_public(): void
     {
         $category = $this->playedCategory();
+        $this->seeResults($category->event);
         $event = $category->event;
 
         $this->get(route('public.categories.show', [$event, $category]))->assertNotFound(); // sin publicar
@@ -94,6 +96,7 @@ class PublicResultsTest extends TestCase
     public function test_category_from_another_event_is_not_reachable(): void
     {
         $category = $this->playedCategory();
+        $this->seeResults($category->event);
         $category->forceFill(['is_published' => true])->save();
         $other = Event::factory()->registrationOpen()->create();
 
@@ -103,6 +106,7 @@ class PublicResultsTest extends TestCase
     public function test_event_page_lists_only_published_categories(): void
     {
         $category = $this->playedCategory();
+        $this->seeResults($category->event);
         $hidden = Category::factory()->for($category->event)->create(['name' => 'Categoría oculta']);
         $category->forceFill(['is_published' => true])->save();
 
@@ -113,6 +117,7 @@ class PublicResultsTest extends TestCase
     public function test_standings_csv_for_owner(): void
     {
         $category = $this->playedCategory();
+        $this->seeResults($category->event);
         $owner = $category->event->user;
 
         $csv = $this->actingAs($owner)->get(route('panel.exports.standings', $category->event))->assertOk()->streamedContent();
@@ -129,6 +134,7 @@ class PublicResultsTest extends TestCase
     public function test_standings_csv_excludes_a_disqualified_competitor(): void
     {
         $category = $this->playedCategory();
+        $this->seeResults($category->event);
         $final = $category->bouts()->where('is_bronze', false)->orderByDesc('round')->first();
         $loser = Registration::with('competitor')->find($final->loserId());
         $loser->forceFill(['withdrawal_type' => WithdrawalType::Disqualified, 'withdrawn_at' => now()])->save();
@@ -152,6 +158,7 @@ class PublicResultsTest extends TestCase
     public function test_a_withdrawn_finalist_keeps_the_podium_place_without_revealing_the_withdrawal(): void
     {
         $category = $this->playedCategory();
+        $this->seeResults($category->event);
         $category->forceFill(['is_published' => true])->save();
         $final = $category->bouts()->where('is_bronze', false)->orderByDesc('round')->first();
         $loser = Registration::with('competitor')->find($final->loserId());
@@ -168,6 +175,7 @@ class PublicResultsTest extends TestCase
     public function test_guardian_data_never_appears_on_public_pages(): void
     {
         $category = $this->playedCategory();
+        $this->seeResults($category->event);
         $category->forceFill(['is_published' => true])->save();
         Competitor::query()->where('event_id', $category->event_id)->get()->each(fn ($c, $i) => $c->forceFill([
             'guardian_name' => "Tutor Reconocible{$i}", 'guardian_contact' => "tutor{$i}@familia.test 677000{$i}11",

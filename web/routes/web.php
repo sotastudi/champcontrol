@@ -14,10 +14,13 @@ use App\Http\Controllers\Panel\EventController;
 use App\Http\Controllers\Panel\ExportController;
 use App\Http\Controllers\Panel\PublicationController;
 use App\Http\Controllers\Panel\RegistrationController;
+use App\Http\Controllers\Panel\TatamiController;
+use App\Http\Controllers\Panel\TatamiOperatorController;
 use App\Http\Controllers\Panel\WithdrawalController;
 use App\Http\Controllers\PublicCategoryController;
 use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\PublicRegistrationController;
+use App\Http\Middleware\EnsureResultsAccess;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -25,8 +28,10 @@ Route::get('eventos/{event:slug}', [PublicEventController::class, 'show'])->name
 Route::get('eventos/{event:slug}/poster', [PublicEventController::class, 'poster'])->name('public.events.poster');
 Route::get('eventos/{event:slug}/normas.pdf', [PublicEventController::class, 'rules'])->name('public.events.rules');
 Route::get('eventos/{event:slug}/inscripcion', [PublicRegistrationController::class, 'create'])->name('public.registration.create');
+Route::post('eventos/{event:slug}/codigo', [PublicEventController::class, 'access'])
+    ->middleware('throttle:10,1')->name('public.events.access');
 Route::get('eventos/{event:slug}/categorias/{category}', [PublicCategoryController::class, 'show'])
-    ->scopeBindings()->name('public.categories.show');
+    ->middleware(EnsureResultsAccess::class)->scopeBindings()->name('public.categories.show');
 Route::post('eventos/{event:slug}/inscripcion', [PublicRegistrationController::class, 'store'])
     ->middleware('throttle:10,1')->name('public.registration.store');
 
@@ -48,10 +53,19 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
     Route::get('eventos/crear', [EventController::class, 'create'])->name('events.create');
     Route::post('eventos', [EventController::class, 'store'])->name('events.store');
 
+    // Tatami: el propietario o un controlador asignado a ese tatami puntúa el combate actual (policy operate).
+    Route::middleware('can:operate,event,tatami')->prefix('eventos/{event}/tatamis/{tatami}')->whereNumber('tatami')->name('tatamis.')->group(function () {
+        Route::get('/', [TatamiController::class, 'show'])->name('show');
+        Route::put('combates/{bout}/puntuacion', [TatamiController::class, 'score'])->name('score');
+    });
+
     // Todo lo que cuelga de un evento exige ser su propietario; scopeBindings impide mezclar recursos de otro evento.
     Route::middleware('can:manage,event')->scopeBindings()->prefix('eventos/{event}')->group(function () {
         Route::get('/', [EventController::class, 'show'])->name('events.show');
         Route::post('dorsales', [EventController::class, 'assignBibs'])->name('events.bibs');
+        Route::post('codigo-acceso', [EventController::class, 'regenerateAccessCode'])->name('events.access-code');
+        Route::post('controladores-tatami', [TatamiOperatorController::class, 'store'])->name('operators.store');
+        Route::delete('controladores-tatami/{operator}', [TatamiOperatorController::class, 'destroy'])->name('operators.destroy');
         Route::get('normas.pdf', [EventController::class, 'rules'])->name('events.rules');
         Route::get('poster', [EventController::class, 'poster'])->name('events.poster');
         Route::get('editar', [EventController::class, 'edit'])->name('events.edit');

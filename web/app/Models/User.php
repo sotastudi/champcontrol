@@ -31,6 +31,18 @@ class User extends Authenticatable
         ];
     }
 
+    /** Cuenta creada por un organizador solo para puntuar tatamis: no crea ni gestiona eventos. */
+    public function isTatamiAccount(): bool
+    {
+        return $this->role === 'tatami';
+    }
+
+    /** Tatamis que el usuario controla (puede puntuar su combate actual) en eventos de otros organizadores. */
+    public function tatamiOperations(): HasMany
+    {
+        return $this->hasMany(TatamiOperator::class);
+    }
+
     public function events(): HasMany
     {
         return $this->hasMany(Event::class);

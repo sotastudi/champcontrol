@@ -23,6 +23,45 @@
     <h2 class="h5 mt-4">Normas</h2>
     <p style="white-space: pre-line">{{ $event->rules_text }}</p>
 @endif
+@unless ($canSeeResults)
+    <div class="card mt-4">
+        <div class="card-body">
+            <h2 class="h5">Resultados</h2>
+            <p class="text-muted">Para ver los cuadros, resultados y el estado de los tatamis necesitas el código de acceso que te facilitará el organizador.</p>
+            <form method="POST" action="{{ route('public.events.access', $event) }}" class="row g-2 align-items-start">
+                @csrf
+                <div class="col-12 col-sm-6 col-md-4">
+                    <input type="text" name="code" value="{{ old('code') }}" class="form-control text-uppercase @error('code') is-invalid @enderror" placeholder="Código de acceso" autocomplete="off" autocapitalize="characters" aria-label="Código de acceso" required>
+                    @error('code')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-auto"><button type="submit" class="btn btn-primary">Ver resultados</button></div>
+            </form>
+        </div>
+    </div>
+@endunless
+@if (collect($tatamis)->contains(fn ($t) => $t['categories']->isNotEmpty()))
+    <h2 class="h5 mt-4">Tatamis ahora</h2>
+    <div class="row g-3">
+        @foreach ($tatamis as $tatami)
+            @continue($tatami['categories']->isEmpty())
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card h-100 tatami-block">
+                    <div class="card-header"><strong>Tatami {{ $tatami['number'] }}</strong></div>
+                    <div class="card-body">
+                        @if ($tatami['now'])
+                            @php $bout = $tatami['now']; @endphp
+                            <div class="small text-muted mb-1">{{ $bout->category->name }} · Combate {{ $bout->number }}</div>
+                            <div><span class="side-chip side-aka" role="img" aria-label="AKA (rojo)"></span>{{ $bout->slotA->competitor->displayName() }}@if ($bout->slotA->competitor->club) <small class="text-muted">({{ $bout->slotA->competitor->club }})</small>@endif</div>
+                            <div><span class="side-chip side-shiro" role="img" aria-label="SHIRO (blanco)"></span>{{ $bout->slotB->competitor->displayName() }}@if ($bout->slotB->competitor->club) <small class="text-muted">({{ $bout->slotB->competitor->club }})</small>@endif</div>
+                        @else
+                            <p class="text-muted mb-0">Sin combate en este momento.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+@endif
 @if ($categories->isNotEmpty())
     <h2 class="h5 mt-4">Cuadros y resultados</h2>
     <div class="list-group">

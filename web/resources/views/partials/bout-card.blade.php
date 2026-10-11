@@ -9,6 +9,8 @@
     $scorable = $editable && $canRecord && $bout->filledSlots() === 2 && ! $bout->isBye() && ! $bout->isWalkover();
     $scoreForm = 'score-form-'.$bout->id;
     $scorePanel = 'score-panel-'.$bout->id;
+    $showGana ??= true;
+    $panelOpen ??= false;
 @endphp
 <div class="bout-card mb-2">
     <div class="small text-muted px-2 pt-1">
@@ -44,7 +46,7 @@
                 @php $opponentIppon = (bool) $bout->{($slot === 'a' ? 'b' : 'a').'_ippon'}; @endphp
                 @if ($scorable)
                     {{-- Controles de wazari, ippon y falta de este participante: viven en el formulario de puntuación (atributo form). --}}
-                    <div class="collapse {{ $scorePanel }} no-print small mt-1">
+                    <div class="collapse{{ $panelOpen ? ' show' : '' }} {{ $scorePanel }} no-print small mt-1">
                         <div class="score-controls d-flex flex-column gap-1 align-items-start">
                             <div class="d-flex align-items-center gap-2">
                                 <span>W</span>
@@ -66,7 +68,7 @@
                     </div>
                 @endif
             </span>
-            @if ($scorable)
+            @if ($scorable && $showGana)
                 <form method="POST" action="{{ route('panel.bouts.result', [$event, $category, $bout]) }}" class="no-print">
                     @csrf @method('PUT')
                     <input type="hidden" name="winner_id" value="{{ $registrationId }}">
@@ -103,7 +105,7 @@
         @endphp
         <div class="px-2 pb-2 no-print">
             <button type="button" class="btn btn-link btn-sm p-0 small" data-bs-toggle="collapse" data-bs-target=".{{ $scorePanel }}" aria-expanded="false">Puntuación</button>
-            <form id="{{ $scoreForm }}" data-score-form method="POST" action="{{ route('panel.bouts.score', [$event, $category, $bout]) }}" class="collapse {{ $scorePanel }} small mt-2">
+            <form id="{{ $scoreForm }}" data-score-form method="POST" action="{{ $scoreAction ?? route('panel.bouts.score', [$event, $category, $bout]) }}" class="collapse{{ $panelOpen ? ' show' : '' }} {{ $scorePanel }} small mt-2">
                 @csrf @method('PUT')
                 <div class="mb-1">
                     <label>Abandona

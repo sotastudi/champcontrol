@@ -12,4 +12,11 @@ class EventPolicy
     {
         return (int) $event->user_id === (int) $user->getKey();
     }
+
+    /** Puntuar el combate actual de un tatami: el propietario del evento o un controlador asignado a ese tatami. */
+    public function operate(User $user, Event $event, int|string $tatami): bool
+    {
+        return $this->manage($user, $event)
+            || $event->operators()->where('user_id', $user->getKey())->where('tatami', (int) $tatami)->exists();
+    }
 }

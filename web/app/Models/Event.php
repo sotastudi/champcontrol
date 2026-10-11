@@ -47,7 +47,36 @@ class Event extends Model
     {
         static::creating(function (Event $event) {
             $event->slug ??= (Str::slug($event->name) ?: 'evento').'-'.Str::lower(Str::random(6));
+            $event->access_code ??= static::newAccessCode();
         });
+    }
+
+    /** Código sencillo de 4 caracteres alfanuméricos (A-Z, 0-9), único entre eventos. */
+    public static function newAccessCode(): string
+    {
+        $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        do {
+            $code = '';
+            for ($i = 0; $i < 4; $i++) {
+                $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+            }
+        } while (static::where('access_code', $code)->exists());
+
+        return $code;
+    }
+
+    /** Comprueba un código escrito por una persona (sin distinguir mayúsculas ni espacios/guiones). */
+    public function matchesAccessCode(string $input): bool
+    {
+        $clean = strtoupper(preg_replace('/[\s-]+/', '', $input));
+
+        return $this->access_code !== null && hash_equals($this->access_code, $clean);
+    }
+
+    /** Valor que se guarda en la sesión al introducir el código; cambia si el organizador regenera el código. */
+    public function accessToken(): string
+    {
+        return hash('sha256', 'event-access|'.$this->id.'|'.$this->access_code);
     }
 
     public function user(): BelongsTo
@@ -63,6 +92,11 @@ class Event extends Model
     public function competitors(): HasMany
     {
         return $this->hasMany(Competitor::class);
+    }
+
+    public function operators(): HasMany
+    {
+        return $this->hasMany(TatamiOperator::class);
     }
 
     public function registrations(): HasManyThrough

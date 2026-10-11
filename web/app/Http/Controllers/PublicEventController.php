@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Support\ResultsAccess;
 use App\Tournament\PodiumCalculator;
+use App\Tournament\TatamiBoard;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -11,27 +14,37 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PublicEventController extends Controller
 {
-    public function show(Request $request, Event $event, PodiumCalculator $podium): View
+    public function show(Request $request, Event $event, PodiumCalculator $podium, TatamiBoard $board, ResultsAccess $access): View
     {
         abort_unless($event->isListed(), 404);
 
-        // El propietario ve también las categorías sin publicar (con enlace al panel); el resto, solo las publicadas.
+        // Sin el código de acceso (ni ser propietario o controlador) no se ven cuadros, resultados ni tatamis.
+        $canSeeResults = $access->allows($request, $event);
         $isOwner = (bool) $request->user()?->can('manage', $event);
-        $categories = $event->categories()
-            ->when(! $isOwner, fn ($q) => $q->where('is_published', true))
-            ->withCount([
-                'bouts as total_bouts' => fn ($q) => $q->where('required_participants', 2),
-                'bouts as played_bouts' => fn ($q) => $q->where('required_participants', 2)->whereNotNull('winner_id'),
-            ])
-            ->orderBy('name')->get();
-
-        // Campeón solo cuando ya se han jugado todos los combates.
+        $categories = collect();
         $champions = [];
-        foreach ($categories as $category) {
-            if ($category->total_bouts > 0 && $category->played_bouts === $category->total_bouts) {
-                $first = collect($podium->for($category))->firstWhere('place', 1);
-                $champions[$category->id] = $first?->registration->competitor->displayName();
+        $tatamis = [];
+
+        if ($canSeeResults) {
+            // El propietario ve también las categorías sin publicar (con enlace al panel); el resto, solo las publicadas.
+            $categories = $event->categories()
+                ->when(! $isOwner, fn ($q) => $q->where('is_published', true))
+                ->withCount([
+                    'bouts as total_bouts' => fn ($q) => $q->where('required_participants', 2),
+                    'bouts as played_bouts' => fn ($q) => $q->where('required_participants', 2)->whereNotNull('winner_id'),
+                ])
+                ->orderBy('name')->get();
+
+            // Campeón solo cuando ya se han jugado todos los combates.
+            foreach ($categories as $category) {
+                if ($category->total_bouts > 0 && $category->played_bouts === $category->total_bouts) {
+                    $first = collect($podium->for($category))->firstWhere('place', 1);
+                    $champions[$category->id] = $first?->registration->competitor->displayName();
+                }
             }
+
+            // Solo el estado actual de cada tatami (categorías publicadas): combate en curso, sin siguientes ni controles.
+            $tatamis = $board->for($event, publishedOnly: true);
         }
 
         return view('public.events.show', [
@@ -39,7 +52,24 @@ class PublicEventController extends Controller
             'categories' => $categories,
             'champions' => $champions,
             'isOwner' => $isOwner,
+            'tatamis' => $tatamis,
+            'canSeeResults' => $canSeeResults,
         ]);
+    }
+
+    /** El visitante introduce el código que le dio el organizador; queda guardado en su sesión. */
+    public function access(Request $request, Event $event, ResultsAccess $access): RedirectResponse
+    {
+        abort_unless($event->isListed(), 404);
+        $data = $request->validate(['code' => ['required', 'string', 'max:30']]);
+
+        if (! $event->matchesAccessCode($data['code'])) {
+            return back()->withErrors(['code' => 'Código no válido. Pídeselo al organizador del evento.']);
+        }
+
+        $access->grant($request, $event);
+
+        return redirect()->route('public.events.show', $event)->with('status', 'Código correcto: ya puedes ver los resultados.');
     }
 
     public function poster(Event $event): StreamedResponse

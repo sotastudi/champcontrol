@@ -15,7 +15,8 @@ class EventRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // La propiedad se comprueba en el middleware can:manage,event; crear solo exige sesión.
+        // La propiedad se comprueba en el middleware can:manage,event; crear solo exige sesión y no ser una cuenta de controlador de tatami.
+        return ! $this->user()?->isTatamiAccount();
     }
 
     public function rules(): array

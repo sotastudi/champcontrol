@@ -31,6 +31,18 @@
 </div>
 @if ($event->description)<p style="white-space: pre-line">{{ $event->description }}</p>@endif
 
+<section id="acceso" class="mb-4">
+    <h2 class="h5 mb-2">Código de acceso a los resultados</h2>
+    <div class="d-flex align-items-center flex-wrap gap-3">
+        <code class="fs-4 user-select-all" aria-label="Código de acceso">{{ $event->access_code }}</code>
+        <form method="POST" action="{{ route('panel.events.access-code', $event) }}" onsubmit="return confirm('El código actual dejará de funcionar y quien lo tenga tendrá que pedir el nuevo. ¿Regenerarlo?')">
+            @csrf
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Regenerar código</button>
+        </form>
+    </div>
+    <p class="text-muted small mt-1 mb-0">Se genera con el evento. El público lo necesita para ver cuadros, resultados y tatamis; tú decides a quién dárselo. Tú y tus controladores de tatami no lo necesitáis.</p>
+</section>
+
 <section id="categorias" class="mb-4">
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h2 class="h5 mb-0">Categorías</h2>
@@ -90,7 +102,7 @@
             <div class="col-12 col-md-6 col-xl-4">
                 <div class="card h-100 tatami-block">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <strong>Tatami {{ $tatami['number'] }}</strong>
+                        <strong><a href="{{ route('panel.tatamis.show', [$event, $tatami['number']]) }}" class="stretched-link text-decoration-none text-body" title="Abrir el tatami y puntuar el combate actual">Tatami {{ $tatami['number'] }}</a></strong>
                         <span class="small text-muted">{{ $tatami['categories']->count() }} {{ $tatami['categories']->count() === 1 ? 'categoría' : 'categorías' }}@if ($tatami['categories']->count()) · {{ $tatami['pending'] }} {{ $tatami['pending'] === 1 ? 'combate listo' : 'combates listos' }}@endif</span>
                     </div>
                     <div class="card-body">
@@ -129,5 +141,37 @@
             </div>
         @endforeach
     </div>
+</section>
+
+<section id="controladores" class="mb-4">
+    <h2 class="h5 mb-2">Controladores de tatami</h2>
+    <p class="text-muted small">Pueden puntuar el combate actual del tatami que se les asigne y no ven nada más del evento. Si el correo no tiene cuenta, se crea una cuenta limitada a tatamis y se te muestra su contraseña provisional una sola vez.</p>
+    @if (session('new_operator'))
+        <div class="alert alert-warning">
+            Cuenta creada para <strong>{{ session('new_operator')['email'] }}</strong>. Contraseña provisional (cópiala ahora; no se volverá a mostrar):
+            <code class="user-select-all">{{ session('new_operator')['password'] }}</code>
+        </div>
+    @endif
+    @if ($event->operators->isNotEmpty())
+        <ul class="list-group mb-3">
+            @foreach ($event->operators as $operator)
+                <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <span>{{ $operator->user->name }} <span class="text-muted">({{ $operator->user->email }})</span> · Tatami {{ $operator->tatami }}</span>
+                    <form method="POST" action="{{ route('panel.operators.destroy', [$event, $operator]) }}" onsubmit="return confirm('¿Retirar el acceso a este tatami?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Retirar</button>
+                    </form>
+                </li>
+            @endforeach
+        </ul>
+    @endif
+    <form method="POST" action="{{ route('panel.operators.store', $event) }}" class="row g-2 align-items-end">
+        @csrf
+        <div class="col-12 col-md-4"><x-field name="email" type="email" label="Correo" :value="old('email')" required /></div>
+        <div class="col-12 col-md-3"><x-field name="name" label="Nombre (si no tiene cuenta)" :value="old('name')" /></div>
+        <div class="col-6 col-md-2"><x-select name="tatami" label="Tatami" :options="array_combine(range(1, $event->tatamiCount()), range(1, $event->tatamiCount()))" :value="old('tatami', 1)" required /></div>
+        <div class="col-6 col-md-3 mb-3"><button type="submit" class="btn btn-outline-primary w-100">Añadir controlador</button></div>
+    </form>
 </section>
 @endsection

@@ -106,7 +106,7 @@ class WithdrawalPanelTest extends TestCase
 
         $this->actingAs($category->event->user)->get(route('panel.brackets.show', [$category->event, $category]))
             ->assertSee('Puesto vacante (descalificación o retirada sin combatir): resolver según el reglamento.');
-        $this->get(route('public.categories.show', [$category->event, $category]))
+        $this->seeResults($category->event)->get(route('public.categories.show', [$category->event, $category]))
             ->assertOk()->assertDontSee('vacante');
     }
 
@@ -117,7 +117,7 @@ class WithdrawalPanelTest extends TestCase
         app(WithdrawalRecorder::class)->record(Registration::find($this->bout($category, 1, 1)->slot_a_id), WithdrawalType::Disqualified, 'motivo-secreto-xyz');
         app(ResultRecorder::class)->record($s2, $s2->slot_a_id);   // la final se gana por walkover
 
-        $response = $this->get(route('public.categories.show', [$category->event, $category]))->assertOk();
+        $response = $this->seeResults($category->event)->get(route('public.categories.show', [$category->event, $category]))->assertOk();
 
         $response->assertSee('Gana por incomparecencia')
             ->assertDontSee('motivo-secreto-xyz')

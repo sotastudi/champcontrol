@@ -15,10 +15,12 @@ final class TatamiBoard
 {
     public const UPCOMING = 3;
 
-    /** @return list<array{number:int, categories:Collection, now:?Bout, next:Collection, pending:int}> */
-    public function for(Event $event): array
+    /**
+     * @param  bool  $publishedOnly  solo categorías publicadas (para la página pública)
+     * @return list<array{number:int, categories:Collection, now:?Bout, next:Collection, pending:int}> */
+    public function for(Event $event, bool $publishedOnly = false): array
     {
-        $categories = $event->categories()->orderBy('id')->get();
+        $categories = $event->categories()->when($publishedOnly, fn ($q) => $q->where('is_published', true))->orderBy('id')->get();
         $ready = Bout::whereIn('category_id', $categories->pluck('id'))
             ->where('required_participants', 2)->whereNull('winner_id')
             ->whereNotNull('slot_a_id')->whereNotNull('slot_b_id')
