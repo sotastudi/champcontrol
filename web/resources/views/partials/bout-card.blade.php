@@ -18,16 +18,18 @@
         @php $registration = $slot === 'a' ? $bout->slotA : $bout->slotB; @endphp
         <div class="slot d-flex justify-content-between gap-2 {{ $registrationId && $registrationId === $bout->winner_id ? 'winner' : '' }}">
             <span class="{{ $registrationId ? '' : 'text-muted fst-italic' }}">
+                @if ($registration?->competitor->bib_number)
+                    <small class="d-block text-muted bib-number">Nº {{ $registration->competitor->bib_number }}</small>
+                @endif
                 @if (! $bout->isBye())
                     <span class="side-chip {{ $slot === 'a' ? 'side-aka' : 'side-shiro' }}" tabindex="0" role="img" aria-label="{{ $slot === 'a' ? 'AKA (rojo)' : 'SHIRO (blanco)' }}"><span class="side-text">{{ $slot === 'a' ? 'AKA' : 'SHIRO' }}</span></span>
                 @endif
-                @if ($registration?->competitor->bib_number)<small class="text-muted">{{ $registration->competitor->bibLabel() }}</small>@endif
                 {{ $names[$slot] ?? $empty }}
                 @if ($editable && $registration?->isWithdrawn())
                     <small class="text-danger">({{ $registration->isDisqualified() ? 'descalificado' : 'retirado' }})</small>
                 @endif
-                @if ($registration?->competitor->club)
-                    <small class="d-block text-muted">{{ $registration->competitor->club }}</small>
+                @if ($registration)
+                    <small class="d-block text-muted{{ $registration->competitor->club ? '' : ' fst-italic' }}">{{ $registration->competitor->club ?: 'Sin club' }}</small>
                 @endif
                 @php
                     // W: wazari (1-2), I: ippon, F: faltas (1-4, solo en el panel).

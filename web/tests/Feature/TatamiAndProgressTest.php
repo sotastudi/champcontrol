@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\EventStatus;
 use App\Models\Category;
+use App\Models\Competitor;
 use App\Models\Event;
 use App\Models\Registration;
 use App\Models\User;
@@ -99,5 +100,25 @@ class TatamiAndProgressTest extends TestCase
         $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
         $this->assertStringContainsString('<small class="d-block text-muted">'.e($club).'</small>', $html, 'el club va en su propia línea bajo el nombre');
         $this->assertStringNotContainsString('('.e($club).')', $html);
+    }
+
+    public function test_participant_box_shows_number_above_the_name_and_club_below_with_a_fallback(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create(['status' => EventStatus::RegistrationClosed]);
+        $category = Category::factory()->for($event)->create();
+        $withClub = Competitor::factory()->create(['event_id' => $event->id, 'first_name' => 'Ana', 'last_name' => 'Con', 'club' => 'Dojo Sur']);
+        $noClub = Competitor::factory()->create(['event_id' => $event->id, 'first_name' => 'Bea', 'last_name' => 'Sin', 'club' => null]);
+        foreach ([$withClub, $noClub] as $c) {
+            Registration::factory()->create(['category_id' => $category->id, 'competitor_id' => $c->id, 'status' => 'confirmed']);
+        }
+        $this->actingAs($user)->post(route('panel.events.bibs', $event));
+        app(BracketGenerator::class)->generate($category);
+
+        $html = $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->getContent();
+
+        $this->assertMatchesRegularExpression('#<small class="d-block text-muted bib-number">Nº \d</small>\s*<span class="side-chip[^>]*>.*?</span></span>\s*Ana Con#s', $html, 'número encima del nombre');
+        $this->assertStringContainsString('Dojo Sur</small>', $html);
+        $this->assertStringContainsString('text-muted fst-italic">Sin club</small>', $html);
     }
 }

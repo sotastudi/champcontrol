@@ -84,7 +84,7 @@ class BibNumbersTest extends TestCase
         $this->assertMatchesRegularExpression('/\n2;.*;Roca;Lia;"Club X"/u', $csv);
 
         app(BracketGenerator::class)->generate($category, fn ($ids) => $ids->values());
-        $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->assertSee('#2')->assertSee('#1');
+        $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->assertSee('Nº 2')->assertSee('Nº 1');
 
         $this->actingAs(User::factory()->create())->post(route('panel.events.bibs', $event))->assertForbidden();
     }
