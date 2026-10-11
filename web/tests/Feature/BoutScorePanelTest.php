@@ -107,7 +107,7 @@ class BoutScorePanelTest extends TestCase
         $this->actingAs($user)->put(route('panel.bouts.score', [$event, $category, $bout]), ['a_warnings' => 4])->assertSessionHasNoErrors();
     }
 
-    public function test_aka_and_shiro_are_colour_chips_with_a_tooltip_and_no_visible_text(): void
+    public function test_aka_and_shiro_are_colour_chips_with_hidden_text_inside_the_box(): void
     {
         [$user, $event, $category] = $this->setUpBracket();
 
@@ -115,8 +115,10 @@ class BoutScorePanelTest extends TestCase
 
         $this->assertStringContainsString('class="side-chip side-aka"', $html);
         $this->assertStringContainsString('class="side-chip side-shiro"', $html);
-        $this->assertStringContainsString('data-bs-title="AKA (rojo)"', $html);
-        $this->assertStringContainsString('data-bs-title="SHIRO (blanco)"', $html);
-        $this->assertDoesNotMatchRegularExpression('#class="badge[^"]*"[^>]*>\s*(AKA|SHIRO)\s*<#', $html, 'sin etiqueta de texto AKA/SHIRO');
+        $this->assertStringContainsString('<span class="side-text">AKA</span>', $html);
+        $this->assertStringContainsString('<span class="side-text">SHIRO</span>', $html);
+        $this->assertStringContainsString('aria-label="SHIRO (blanco)"', $html);
+        $this->assertStringNotContainsString('data-bs-toggle="tooltip"', $html);
+        $this->assertDoesNotMatchRegularExpression('#class="badge[^"]*"[^>]*>\s*(AKA|SHIRO)\s*<#', $html);
     }
 }

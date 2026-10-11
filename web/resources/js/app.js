@@ -5,8 +5,14 @@ import './judge-votes';
 
 window.bootstrap = bootstrap;
 
-// Colores AKA/SHIRO sin texto: el nombre aparece al pasar el cursor o al tocar (también con el teclado).
-document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => new bootstrap.Tooltip(el, { trigger: 'hover focus' }));
+// Cuadritos AKA/SHIRO: al pulsar muestran su texto unos segundos y vuelven a ocultarlo (en pantallas táctiles no hay «hover»).
+document.addEventListener('click', (event) => {
+    const chip = event.target.closest('.side-chip');
+    if (!chip) return;
+    chip.classList.add('is-open');
+    clearTimeout(chip._hideTimer);
+    chip._hideTimer = setTimeout(() => chip.classList.remove('is-open'), 3000);
+});
 
 const root = document.documentElement;
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
