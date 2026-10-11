@@ -76,12 +76,14 @@ El código de la aplicación está en `web/`. Desde esa carpeta:
 
 ```bash
 cd web
-source scripts/dev-env.sh   # PHP 8.4 de MAMP y Node en el PATH
+source scripts/dev-env.sh   # PHP 8.4 de MAMP y Node en el PATH (ver nota abajo)
 composer install
 cp .env.example .env
 php artisan key:generate
 npm install
 ```
+
+`scripts/dev-env.sh` tiene fijadas las rutas de esta máquina (MAMP PHP 8.4.17 y Node 26): hay que editarlo en otro equipo.
 
 Crear una base de datos MySQL vacía y ajustar `web/.env` con los valores reales de MAMP PRO (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `DB_PORT`; `APP_URL=https://champcontrol.test`). Después:
 
@@ -106,10 +108,8 @@ El servidor debe tener PHP 8.4 con las extensiones requeridas por Laravel, Compo
 6. Impresión, CSV, revisión con datos de un evento real y despliegue.
 Primer hito verificable: un organizador crea un evento con una categoría, confirma cinco inscripciones, genera un cuadro con los pases necesarios, anota final y combate por el bronce, y publica la clasificación sin exponer datos privados.
 
-## Decisiones por confirmar antes de implementar el generador
-- Reglamento concreto de los primeros campeonatos: disciplinas, criterios de categoría y si hay un único bronce, dos terceros compartidos u otra regla.
-- Forma de resolver retiradas y descalificaciones: si cuentan como victoria automática y cómo se representan en resultados.
-- Si una persona puede estar en varias categorías del mismo evento y qué dato permite reconocer inscripciones repetidas sin recopilar más información personal de la necesaria.
+## Decisiones pendientes
+Ver [docs/decisiones-pendientes.md](docs/decisiones-pendientes.md) (regla del bronce, retiradas y descalificaciones, varias categorías por persona, etc.) y [docs/menores.md](docs/menores.md).
 
 ## Referencias
 - Smoothcomp y su explicación de cuadros y resultados: referencia de recorrido del participante y visualización pública.
