@@ -66,4 +66,11 @@ class EventTest extends TestCase
         $this->actingAs($owner)->delete(route('panel.events.destroy', $event))->assertRedirect(route('panel.events.index'));
         $this->assertModelMissing($event);
     }
+
+    public function test_slug_falls_back_when_name_has_no_sluggable_characters(): void
+    {
+        $event = Event::factory()->create(['name' => '!!!']);
+
+        $this->assertMatchesRegularExpression('/^evento-[a-z0-9]{6}$/', $event->slug);
+    }
 }

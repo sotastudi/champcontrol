@@ -30,7 +30,7 @@ class Event extends Model
     protected static function booted(): void
     {
         static::creating(function (Event $event) {
-            $event->slug ??= Str::slug($event->name).'-'.Str::lower(Str::random(6));
+            $event->slug ??= (Str::slug($event->name) ?: 'evento').'-'.Str::lower(Str::random(6));
         });
     }
 
