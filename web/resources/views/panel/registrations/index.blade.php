@@ -41,11 +41,12 @@
 @else
     <div class="table-responsive">
         <table class="table align-middle">
-            <thead><tr><th>Competidor</th><th>Club</th><th>Categoría</th><th>Estado</th><th class="no-print"></th></tr></thead>
+            <thead><tr><th>N.º</th><th>Competidor</th><th>Club</th><th>Categoría</th><th>Estado</th><th class="no-print"></th></tr></thead>
             <tbody>
             @foreach ($registrations as $registration)
                 @php($warnings = $registration->category->mismatchesFor($registration->competitor))
                 <tr>
+                    <td class="text-muted">{{ $registration->competitor->bib_number }}</td>
                     <td>
                         {{ $registration->competitor->last_name }}, {{ $registration->competitor->first_name }}
                         @if ($registration->competitor->isMinorOn($event->starts_on))

@@ -29,6 +29,7 @@
             <img src="{{ route('panel.competitors.photo', [$event, $competitor]) }}?v={{ $competitor->updated_at?->timestamp }}" alt="Foto de {{ $competitor->first_name }}" class="img-thumbnail mb-3" style="max-height: 12rem">
         @endif
         <dl class="row mb-0">
+            <dt class="col-5">Número</dt><dd class="col-7">{{ $competitor->bib_number ?: '—' }}</dd>
             <dt class="col-5">Club</dt><dd class="col-7">{{ $competitor->club ?: '—' }}</dd>
             <dt class="col-5">Fecha de nacimiento</dt><dd class="col-7">{{ $competitor->birth_date->format('d/m/Y') }}</dd>
             <dt class="col-5">Edad en el evento</dt><dd class="col-7">{{ $age }} años ({{ $event->starts_on->format('d/m/Y') }})</dd>

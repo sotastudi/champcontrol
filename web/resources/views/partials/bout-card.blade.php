@@ -18,6 +18,7 @@
                 @if (! $bout->isBye())
                     <span class="badge {{ $slot === 'a' ? 'text-bg-danger' : 'bg-light text-dark border' }}">{{ $slot === 'a' ? 'AKA' : 'SHIRO' }}</span>
                 @endif
+                @if ($registration?->competitor->bib_number)<small class="text-muted">{{ $registration->competitor->bibLabel() }}</small>@endif
                 {{ $names[$slot] ?? $empty }}
                 @if ($editable && $registration?->isWithdrawn())
                     <small class="text-danger">({{ $registration->isDisqualified() ? 'descalificado' : 'retirado' }})</small>

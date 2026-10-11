@@ -6,6 +6,8 @@ use App\Enums\RegistrationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EventRequest;
 use App\Models\Event;
+use App\Registrations\BibNumberAssigner;
+use App\Registrations\RegistrationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -94,6 +96,17 @@ class EventController extends Controller
             $this->deleteRulesPdf($event);
             $event->forceFill(['rules_pdf_path' => null, 'rules_pdf_name' => null])->save();
         }
+    }
+
+    public function assignBibs(Event $event, BibNumberAssigner $bibs): RedirectResponse
+    {
+        try {
+            $count = $bibs->assign($event);
+        } catch (RegistrationException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return back()->with('status', "Números de competidor asignados a {$count} participantes (agrupados por club).");
     }
 
     public function rules(Event $event): StreamedResponse

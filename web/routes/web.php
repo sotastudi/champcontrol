@@ -51,6 +51,7 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
     // Todo lo que cuelga de un evento exige ser su propietario; scopeBindings impide mezclar recursos de otro evento.
     Route::middleware('can:manage,event')->scopeBindings()->prefix('eventos/{event}')->group(function () {
         Route::get('/', [EventController::class, 'show'])->name('events.show');
+        Route::post('dorsales', [EventController::class, 'assignBibs'])->name('events.bibs');
         Route::get('normas.pdf', [EventController::class, 'rules'])->name('events.rules');
         Route::get('poster', [EventController::class, 'poster'])->name('events.poster');
         Route::get('editar', [EventController::class, 'edit'])->name('events.edit');

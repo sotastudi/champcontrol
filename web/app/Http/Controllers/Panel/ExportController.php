@@ -19,7 +19,7 @@ class ExportController extends Controller
             ->orderBy('categories.name')->orderBy('registrations.id')->get();
 
         $rows = $registrations->map(fn (Registration $r) => [
-            $r->category->name, $r->competitor->last_name, $r->competitor->first_name, $r->competitor->club,
+            $r->competitor->bib_number, $r->category->name, $r->competitor->last_name, $r->competitor->first_name, $r->competitor->club,
             $r->competitor->birth_date->format('d/m/Y'), $r->competitor->sex?->label(), $r->competitor->weight,
             $r->competitor->email, $r->competitor->phone, $r->status->label(),
             $r->competitor->isMinorOn($event->starts_on) ? 'Sí' : 'No',
@@ -28,7 +28,7 @@ class ExportController extends Controller
 
         return Csv::download(
             'inscritos-'.$event->slug.'.csv',
-            ['Categoría', 'Apellidos', 'Nombre', 'Club', 'Fecha de nacimiento', 'Sexo', 'Peso', 'Email', 'Teléfono', 'Estado', 'Menor', 'Representante', 'Contacto representante', 'Consentimiento'],
+            ['N.º', 'Categoría', 'Apellidos', 'Nombre', 'Club', 'Fecha de nacimiento', 'Sexo', 'Peso', 'Email', 'Teléfono', 'Estado', 'Menor', 'Representante', 'Contacto representante', 'Consentimiento'],
             $rows,
         );
     }

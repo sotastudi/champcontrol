@@ -12,6 +12,11 @@
     </div>
     <div class="d-flex gap-2 flex-wrap">
         <a href="{{ route('panel.registrations.index', $event) }}" class="btn btn-primary">Inscripciones</a>
+        <form method="POST" action="{{ route('panel.events.bibs', $event) }}"
+              onsubmit="return confirm('Se asignarán (o reasignarán) los números de competidor agrupando por club. ¿Continuar?')">
+            @csrf
+            <button type="submit" class="btn btn-outline-secondary">Asignar números de competidor</button>
+        </form>
         <a href="{{ route('panel.exports.standings', $event) }}" class="btn btn-outline-secondary">Exportar clasificación (CSV)</a>
         <a href="{{ route('panel.events.edit', $event) }}" class="btn btn-outline-primary">Editar</a>
         @if ($event->isListed())

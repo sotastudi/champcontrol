@@ -71,6 +71,12 @@ class Competitor extends Model
         return $this->ageOn($date) < config('champcontrol.adult_age');
     }
 
+    /** Número de competidor para mostrar (`#12`) o cadena vacía si aún no se ha asignado. */
+    public function bibLabel(): string
+    {
+        return $this->bib_number ? '#'.$this->bib_number : '';
+    }
+
     public function hasPhoto(): bool
     {
         return filled($this->photo_path) && Storage::disk('local')->exists($this->photo_path);
