@@ -58,6 +58,11 @@ class Category extends Model
         $problems = [];
         $age = $competitor->ageOn($this->event->starts_on);
 
+        if ($age < 0) {
+            $problems[] = 'Fecha de nacimiento posterior a la fecha del evento';
+
+            return $problems;
+        }
         if ($this->min_age !== null && $age < $this->min_age) {
             $problems[] = "Edad {$age}: inferior al mínimo ({$this->min_age})";
         }

@@ -113,4 +113,26 @@ class MinorsPanelTest extends TestCase
         $this->assertStringContainsString(";Sí;\"Rosa Roca\";'=cmd;\"01/10/2026 09:30\"", $csv);
         $this->assertMatchesRegularExpression('/Adulto.*;No;;;\R/', $csv);
     }
+
+    public function test_birth_date_after_the_event_date_is_rejected(): void
+    {
+        [$user, $event, $category] = $this->setUpEvent();
+        $event->forceFill(['starts_on' => now()->subDays(10)->toDateString()])->save();
+        $eventDay = $event->starts_on;
+
+        $this->actingAs($user)->post(route('panel.registrations.store', $event), $this->data($category, ['birth_date' => $eventDay->copy()->addDay()->toDateString()]))
+            ->assertSessionHasErrors('birth_date');
+        $this->assertSame(0, Registration::count());
+
+        $this->actingAs($user)->post(route('panel.registrations.store', $event), $this->data($category, ['birth_date' => $eventDay->toDateString()]))
+            ->assertSessionDoesntHaveErrors('birth_date');
+    }
+
+    public function test_negative_age_gets_a_clear_mismatch_message(): void
+    {
+        [, , $category] = $this->setUpEvent();
+        $competitor = new Competitor(['birth_date' => '2030-01-01']);
+
+        $this->assertSame(['Fecha de nacimiento posterior a la fecha del evento'], $category->mismatchesFor($competitor));
+    }
 }

@@ -20,7 +20,7 @@ class RegistrationRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'club' => ['nullable', 'string', 'max:150'],
-            'birth_date' => ['required', 'date', 'before_or_equal:today'],
+            'birth_date' => ['required', 'date', 'before_or_equal:today', 'before_or_equal:'.$this->route('event')->starts_on->toDateString()],
             'sex' => ['nullable', Rule::enum(Sex::class)],
             'weight' => ['nullable', 'numeric', 'min:0', 'max:300'],
             'level' => ['nullable', Rule::in(MartialLevels::values())],
@@ -30,6 +30,13 @@ class RegistrationRequest extends FormRequest
             'guardian_contact' => ['nullable', 'string', 'max:255'],
             'guardian_consent' => ['nullable', 'boolean'],
             'category_id' => ['required', Rule::exists('categories', 'id')->where('event_id', $this->route('event')->id)],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'birth_date.before_or_equal' => 'La fecha de nacimiento no puede ser posterior a hoy ni a la fecha del evento.',
         ];
     }
 }
