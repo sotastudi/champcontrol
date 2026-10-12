@@ -13,6 +13,7 @@ use App\Http\Controllers\Panel\CategoryController;
 use App\Http\Controllers\Panel\CompetitorController;
 use App\Http\Controllers\Panel\EventController;
 use App\Http\Controllers\Panel\ExportController;
+use App\Http\Controllers\Panel\ProfileController;
 use App\Http\Controllers\Panel\PublicationController;
 use App\Http\Controllers\Panel\RegistrationController;
 use App\Http\Controllers\Panel\ResultResetController;
@@ -53,6 +54,9 @@ Route::post('salir', [LoginController::class, 'destroy'])->middleware('auth')->n
 Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
     // Token CSRF nuevo para reenviar resultados guardados en local tras estar sin conexión (sesión iniciada).
     Route::get('csrf', fn () => response()->json(['token' => csrf_token()]))->name('csrf');
+    Route::get('perfil', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('perfil', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('perfil/contrasena', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1')->name('profile.password');
     Route::get('eventos', [EventController::class, 'index'])->name('events.index');
     Route::get('eventos/crear', [EventController::class, 'create'])->name('events.create');
     Route::post('eventos', [EventController::class, 'store'])->name('events.store');

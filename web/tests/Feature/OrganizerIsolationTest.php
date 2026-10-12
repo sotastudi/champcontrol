@@ -41,7 +41,8 @@ class OrganizerIsolationTest extends TestCase
             if (! str_starts_with($route->uri(), 'panel/eventos/{event}')) {
                 $this->assertContains(
                     $route->methods()[0].' '.$route->uri(),
-                    ['GET panel/csrf', 'GET panel/eventos', 'GET panel/eventos/crear', 'POST panel/eventos'],
+                    ['GET panel/csrf', 'GET panel/eventos', 'GET panel/eventos/crear', 'POST panel/eventos',
+                        'GET panel/perfil', 'PUT panel/perfil', 'PUT panel/perfil/contrasena'],
                     'Ruta del panel fuera de panel/eventos/{event} sin comprobación de propiedad: '.$route->uri(),
                 );
 

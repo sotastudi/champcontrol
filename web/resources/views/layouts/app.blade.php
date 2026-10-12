@@ -22,7 +22,7 @@
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-body-tertiary">
+<body class="bg-body-tertiary d-flex flex-column min-vh-100">
 <svg xmlns="http://www.w3.org/2000/svg" class="d-none" aria-hidden="true">
     <defs>
         <clipPath id="bulb-left-half"><rect x="0" y="0" width="12" height="24"/></clipPath>
@@ -44,6 +44,9 @@
     <symbol id="calendar" viewBox="0 0 24 24">
         <rect x="3.5" y="5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
         <path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="flag" viewBox="0 0 24 24">
+        <path d="M5 21V4M5 4.5h12l-2.5 4 2.5 4H5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
     <symbol id="pin" viewBox="0 0 24 24">
         <path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
@@ -157,7 +160,7 @@
                 </ul>
             </div>
             {{-- Usuario: solo el icono; el texto aparece al pasar el cursor o al tocar (en tablet, un primer toque lo muestra y el segundo entra). --}}
-            <a class="btn btn-outline-secondary btn-sm d-flex align-items-center user-chip" href="{{ auth()->check() ? route('panel.events.index') : route('login') }}" aria-label="{{ auth()->check() ? 'Mi panel ('.auth()->user()->name.')' : 'Iniciar sesión' }}" title="{{ auth()->check() ? 'Mi panel' : 'Iniciar sesión' }}" data-user-chip>
+            <a class="btn btn-outline-secondary btn-sm d-flex align-items-center user-chip" href="{{ auth()->check() ? route('panel.profile.edit') : route('login') }}" aria-label="{{ auth()->check() ? 'Mi perfil ('.auth()->user()->name.')' : 'Iniciar sesión' }}" title="{{ auth()->check() ? 'Mi perfil' : 'Iniciar sesión' }}" data-user-chip>
                 <svg width="18" height="18" aria-hidden="true"><use href="#user"/></svg>
                 <span class="user-chip-text">{{ auth()->check() ? auth()->user()->name : 'Iniciar sesión' }}</span>
             </a>
@@ -177,7 +180,7 @@
         <div class="collapse navbar-collapse" id="nav">
             <ul class="navbar-nav ms-auto align-items-md-center gap-md-2">
                 @auth
-                    <li class="nav-item"><a class="nav-link" href="{{ route('panel.events.index') }}">{{ auth()->user()->isTatamiAccount() ? 'Mis tatamis' : 'Mis eventos' }}</a></li>
+                    <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2" href="{{ route('panel.events.index') }}"><svg width="18" height="18" aria-hidden="true"><use href="#{{ auth()->user()->isTatamiAccount() ? 'flag' : 'calendar' }}"/></svg>{{ auth()->user()->isTatamiAccount() ? 'Mis tatamis' : 'Mis eventos' }}</a></li>
                 @else
                     <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Registrarse</a></li>
                 @endauth
@@ -200,5 +203,17 @@
     @endforeach
     @yield('content')
 </main>
+<footer class="mt-auto border-top bg-body py-3 no-print">
+    <div class="container text-center small text-body-secondary">
+        <p class="mb-1">
+            <strong>Sitio en pruebas.</strong> Los datos introducidos son ficticios y pueden eliminarse en cualquier momento,
+            incluidos los registros e inscripciones realizados.
+        </p>
+        <p class="mb-0">
+            Web by <a href="https://sotastudi.com" target="_blank" rel="noopener" class="link-secondary">sotastudi</a>
+            · v{{ config('app.version') }}@if (config('app.version_stage')) ({{ config('app.version_stage') }})@endif
+        </p>
+    </div>
+</footer>
 </body>
 </html>

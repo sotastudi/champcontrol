@@ -39,7 +39,7 @@ class HomeTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user)->get(route('home'))->assertSee('aria-label="Mi panel ('.$user->name.')"', false)->assertSee('user-chip-text">'.e($user->name).'<', false)->assertDontSee('user-chip-text">Mi panel', false);
+        $this->actingAs($user)->get(route('home'))->assertSee('aria-label="Mi perfil ('.$user->name.')"', false)->assertSee('user-chip-text">'.e($user->name).'<', false)->assertDontSee('user-chip-text">Mi panel', false);
     }
 
     public function test_logout_is_an_icon_button_in_the_header_that_reveals_its_text_and_not_a_menu_link(): void
