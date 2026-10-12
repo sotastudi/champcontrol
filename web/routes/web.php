@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', HomeController::class)->name('home');
 Route::get('eventos/{event:slug}', [PublicEventController::class, 'show'])->name('public.events.show');
 Route::get('eventos/{event:slug}/poster', [PublicEventController::class, 'poster'])->name('public.events.poster');
+Route::get('eventos/{event:slug}/clubes/{club}/logo', [PublicEventController::class, 'clubLogo'])->scopeBindings()->name('public.clubs.logo');
 Route::get('eventos/{event:slug}/normas.pdf', [PublicEventController::class, 'rules'])->name('public.events.rules');
 Route::get('eventos/{event:slug}/inscripcion', [PublicRegistrationController::class, 'create'])->name('public.registration.create');
 Route::post('eventos/{event:slug}/codigo', [PublicEventController::class, 'access'])
@@ -63,6 +64,8 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
     Route::get('csrf', fn () => response()->json(['token' => csrf_token()]))->name('csrf');
     Route::get('perfil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('perfil', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('perfil/logo', [ProfileController::class, 'logo'])->name('profile.logo.show');
+    Route::put('perfil/logo', [ProfileController::class, 'updateLogo'])->name('profile.logo');
     Route::put('perfil/contrasena', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1')->name('profile.password');
     Route::get('eventos', [EventController::class, 'index'])->name('events.index');
     Route::get('eventos/crear', [EventController::class, 'create'])->name('events.create');

@@ -10,9 +10,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 #[Fillable(['name', 'email', 'password', 'username'])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'logo_path'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -41,6 +42,19 @@ class User extends Authenticatable
     public function isClubAccount(): bool
     {
         return $this->role === 'club';
+    }
+
+    public function hasLogo(): bool
+    {
+        return filled($this->logo_path) && Storage::disk('local')->exists($this->logo_path);
+    }
+
+    public function deleteLogo(): void
+    {
+        if (filled($this->logo_path)) {
+            Storage::disk('local')->delete($this->logo_path);
+        }
+        $this->forceFill(['logo_path' => null])->save();
     }
 
     /** Registro del club en el evento, si lo hay (cualquier estado). */

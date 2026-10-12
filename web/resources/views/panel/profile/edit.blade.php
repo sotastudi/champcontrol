@@ -4,6 +4,32 @@
 <div class="col-md-8 col-lg-6 mx-auto">
     <h1 class="h3 mb-3">Mi perfil</h1>
 
+    @if ($user->isClubAccount())
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Logo del club</h2>
+                <p class="text-muted small">Se muestra junto al nombre del club en las vistas de tatami de los campeonatos donde estés aprobado. JPG, PNG o WebP, máximo 2 MB.</p>
+                @if ($user->hasLogo())
+                    <div class="mb-3"><img src="{{ route('panel.profile.logo.show') }}?v={{ $user->updated_at?->timestamp }}" alt="Logo actual de {{ $user->name }}" class="img-thumbnail" style="max-height: 8rem"></div>
+                @endif
+                <form method="POST" enctype="multipart/form-data" action="{{ route('panel.profile.logo') }}">@csrf @method('PUT')
+                    <div class="mb-3">
+                        <label for="logo" class="form-label">{{ $user->hasLogo() ? 'Cambiar logo' : 'Subir logo' }}</label>
+                        <input type="file" id="logo" name="logo" accept="image/jpeg,image/png,image/webp" class="form-control @error('logo') is-invalid @enderror" required>
+                        @error('logo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <button class="btn btn-primary">Guardar logo</button>
+                </form>
+                @if ($user->hasLogo())
+                    <form method="POST" action="{{ route('panel.profile.logo') }}" class="mt-2">@csrf @method('PUT')
+                        <input type="hidden" name="remove_logo" value="1">
+                        <button class="btn btn-outline-danger btn-sm">Quitar logo</button>
+                    </form>
+                @endif
+            </div>
+        </div>
+    @endif
+
     <div class="card mb-4">
         <div class="card-body">
             <h2 class="h5 mb-3">Datos de la cuenta</h2>

@@ -24,6 +24,9 @@ use Illuminate\Support\Str;
     'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule', 'draw_criteria', 'registration_opens_at', 'registration_closes_at', 'tatami_count', 'rules_text'])]
 class Event extends Model
 {
+    /** @var array<string,int>|null cache por petición de clubLogoUrl() */
+    private ?array $clubLogoIds = null;
+
     /** @use HasFactory<EventFactory> */
     use HasFactory;
 
@@ -119,6 +122,22 @@ class Event extends Model
     public function clubs(): HasMany
     {
         return $this->hasMany(EventClub::class);
+    }
+
+    /** URL del logo del club en este evento (club aprobado con logo, por nombre sin distinguir mayúsculas ni acentos), o null. */
+    public function clubLogoUrl(?string $club): ?string
+    {
+        if (blank($club)) {
+            return null;
+        }
+
+        $this->clubLogoIds ??= $this->clubs()->where('status', 'approved')->with('user')->get()
+            ->filter(fn (EventClub $c) => $c->user->hasLogo())
+            ->mapWithKeys(fn (EventClub $c) => [Competitor::normalizeName($c->user->name) => $c->id])->all();
+
+        $id = $this->clubLogoIds[Competitor::normalizeName($club)] ?? null;
+
+        return $id ? route('public.clubs.logo', [$this, $id]) : null;
     }
 
     public function acceptsPublicRegistrations(): bool
