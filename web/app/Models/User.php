@@ -37,6 +37,18 @@ class User extends Authenticatable
         return $this->role === 'tatami';
     }
 
+    /** Cuenta de un club: se registra en los campeonatos y, una vez aprobada, inscribe a sus competidores. */
+    public function isClubAccount(): bool
+    {
+        return $this->role === 'club';
+    }
+
+    /** Registro del club en el evento, si lo hay (cualquier estado). */
+    public function clubRegistrationFor(Event $event): ?EventClub
+    {
+        return EventClub::where('event_id', $event->id)->where('user_id', $this->id)->first();
+    }
+
     /** Tatamis que el usuario controla (puede puntuar su combate actual) en eventos de otros organizadores. */
     public function tatamiOperations(): HasMany
     {

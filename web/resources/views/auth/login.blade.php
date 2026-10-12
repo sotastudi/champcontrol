@@ -11,5 +11,6 @@
     </form>
     <p class="mt-3 mb-1"><a href="{{ route('password.request') }}">¿Olvidaste tu contraseña?</a></p>
     <p class="mb-0">¿No tienes cuenta? <a href="{{ route('register') }}" class="fw-semibold">Registrarse (crear cuenta)</a></p>
+    <p class="mb-0 mt-1">¿Eres un club? <a href="{{ route('register.club') }}" class="fw-semibold">Registrar mi club</a></p>
 </div>
 @endsection

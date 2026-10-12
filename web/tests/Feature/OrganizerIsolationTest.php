@@ -79,10 +79,12 @@ class OrganizerIsolationTest extends TestCase
 
         $bout = Bout::create(['category_id' => $category->id, 'round' => 1, 'position' => 1]);
 
+        $club = \App\Models\EventClub::create(['event_id' => $event->id, 'user_id' => User::factory()->create()->id]);
+
         $operator = $event->operators()->create(['user_id' => User::factory()->create()->id, 'tatami' => 1]);
 
         return [
-            'event' => $event->id, 'category' => $category->id, 'bout' => $bout->id, 'tatami' => 1, 'operator' => $operator->id,
+            'event' => $event->id, 'category' => $category->id, 'bout' => $bout->id, 'tatami' => 1, 'operator' => $operator->id, 'club' => $club->id,
             'registration' => $registration->id, 'competitor' => $registration->competitor_id,
         ];
     }

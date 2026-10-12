@@ -115,6 +115,11 @@ class Event extends Model
         return $this->is_public && $this->status !== EventStatus::Draft;
     }
 
+    public function clubs(): HasMany
+    {
+        return $this->hasMany(EventClub::class);
+    }
+
     public function acceptsPublicRegistrations(): bool
     {
         return $this->isListed()

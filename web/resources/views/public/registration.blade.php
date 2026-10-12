@@ -2,14 +2,14 @@
 @section('title', 'Inscripción · '.$event->name)
 @section('content')
 <h1 class="h3 mb-3">Inscripción: {{ $event->name }}</h1>
-<div class="alert alert-info">Tus datos de contacto, fecha de nacimiento y foto no se publican.</div>
+<div class="alert alert-info">Inscribes como club <strong>{{ $clubName }}</strong>. Los datos de contacto, la fecha de nacimiento y la foto no se publican.</div>
 @if ($categories->isEmpty())
     <div class="alert alert-warning">Este evento aún no tiene categorías disponibles.</div>
 @endif
 <form method="POST" enctype="multipart/form-data" action="{{ route('public.registration.store', $event) }}" @include('panel.competitors._form_data', ['categoryModels' => $categories])>
     @csrf
     <x-select name="category_id" label="Categoría" :options="$categories->pluck('name', 'id')" placeholder="Selecciona una categoría" required />
-    @include('panel.competitors._fields')
+    @include('panel.competitors._fields', ['lockedClub' => $clubName])
     <div data-guardian-section>
         <h2 class="h5 mt-4">Datos del representante legal (obligatorios al ser menor de edad)</h2>
         @include('panel.competitors._guardian')

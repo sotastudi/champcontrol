@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Competitor;
 use App\Models\Event;
 use App\Models\Registration;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -28,10 +29,13 @@ class PublicRegistrationTest extends TestCase
     {
         $event = Event::factory()->registrationOpen()->create(['starts_on' => '2026-11-20']);
 
+        // Solo inscribe un club con el registro aprobado en el evento.
+        $this->actingAs($this->clubFor($event));
+
         return [$event, Category::factory()->for($event)->create()];
     }
 
-    public function test_visitor_registers_without_account_and_is_always_pending(): void
+    public function test_approved_club_registers_a_competitor_and_it_is_always_pending(): void
     {
         [$event, $category] = $this->openEvent();
 
@@ -39,9 +43,20 @@ class PublicRegistrationTest extends TestCase
 
         // `status=confirmed` inyectado debe ignorarse.
         $this->post(route('public.registration.store', $event), $this->data($category, ['status' => 'confirmed']))
-            ->assertRedirect(route('public.events.show', $event));
+            ->assertRedirect(route('public.registration.create', $event));
 
         $this->assertSame(RegistrationStatus::Pending, Registration::firstOrFail()->status);
+    }
+
+    public function test_club_field_is_the_account_club_and_cannot_be_overridden(): void
+    {
+        [$event, $category] = $this->openEvent();
+
+        $this->get(route('public.registration.create', $event))->assertOk()->assertSee('Club Sur')->assertSee('readonly', false);
+        $this->post(route('public.registration.store', $event), $this->data($category, ['club' => 'Otro Club']))->assertSessionHasNoErrors();
+        $this->post(route('public.registration.store', $event), array_diff_key($this->data($category, ['first_name' => 'Ana']), ['club' => 1]))->assertSessionHasNoErrors();
+
+        $this->assertSame(['Club Sur'], Competitor::pluck('club')->unique()->all());
     }
 
     public function test_form_is_not_available_when_event_is_private_closed_or_disabled(): void
@@ -76,7 +91,7 @@ class PublicRegistrationTest extends TestCase
 
         // 17 años y 364 días el día del evento.
         $this->post(route('public.registration.store', $event), $this->data($category, ['birth_date' => '2008-11-21'] + $this->guardian()))
-            ->assertSessionHasNoErrors()->assertRedirect(route('public.events.show', $event));
+            ->assertSessionHasNoErrors()->assertRedirect(route('public.registration.create', $event));
 
         $competitor = Competitor::firstOrFail();
         $this->assertSame('Marta Gil Pérez', $competitor->guardian_name);
@@ -184,6 +199,8 @@ class PublicRegistrationTest extends TestCase
 
     public function test_invalid_payload_to_unavailable_event_is_404_not_validation_redirect(): void
     {
+        $this->actingAs(User::factory()->create());
+
         foreach ([
             ['is_public' => false],
             ['status' => EventStatus::Draft],

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\ClubRegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Panel\BoutScoreController;
 use App\Http\Controllers\Panel\BracketController;
 use App\Http\Controllers\Panel\BracketPdfController;
 use App\Http\Controllers\Panel\CategoryController;
+use App\Http\Controllers\Panel\ClubController;
 use App\Http\Controllers\Panel\CompetitorController;
 use App\Http\Controllers\Panel\EventController;
 use App\Http\Controllers\Panel\ExportController;
@@ -36,11 +38,15 @@ Route::post('eventos/{event:slug}/codigo', [PublicEventController::class, 'acces
 Route::get('eventos/{event:slug}/categorias/{category}', [PublicCategoryController::class, 'show'])
     ->middleware(EnsureResultsAccess::class)->scopeBindings()->name('public.categories.show');
 Route::post('eventos/{event:slug}/inscripcion', [PublicRegistrationController::class, 'store'])
-    ->middleware('throttle:10,1')->name('public.registration.store');
+    ->middleware(['auth', 'throttle:10,1'])->name('public.registration.store');
+Route::post('eventos/{event:slug}/club', [PublicRegistrationController::class, 'joinClub'])
+    ->middleware(['auth', 'throttle:10,1'])->name('public.clubs.store');
 
 Route::middleware('guest')->group(function () {
     Route::get('registro', [RegisterController::class, 'create'])->name('register');
     Route::post('registro', [RegisterController::class, 'store'])->middleware('throttle:10,1');
+    Route::get('registro-club', [ClubRegisterController::class, 'create'])->name('register.club');
+    Route::post('registro-club', [ClubRegisterController::class, 'store'])->middleware('throttle:10,1');
     Route::get('acceso', [LoginController::class, 'create'])->name('login');
     Route::post('acceso', [LoginController::class, 'store'])->middleware('throttle:6,1');
     Route::get('recuperar-contrasena', [PasswordResetLinkController::class, 'create'])->name('password.request');
@@ -75,6 +81,8 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::post('controladores-tatami', [TatamiOperatorController::class, 'store'])->name('operators.store');
         Route::delete('controladores-tatami/{operator}', [TatamiOperatorController::class, 'destroy'])->name('operators.destroy');
         Route::put('controladores-tatami/{operator}', [TatamiOperatorController::class, 'update'])->name('operators.update');
+        Route::get('clubes', [ClubController::class, 'index'])->name('clubs.index');
+        Route::put('clubes/{club}', [ClubController::class, 'update'])->name('clubs.update');
         Route::get('normas.pdf', [EventController::class, 'rules'])->name('events.rules');
         Route::get('poster', [EventController::class, 'poster'])->name('events.poster');
         Route::get('editar', [EventController::class, 'edit'])->name('events.edit');

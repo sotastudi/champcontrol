@@ -12,6 +12,8 @@
     </div>
     <div class="d-flex gap-2 flex-wrap">
         <a href="{{ route('panel.registrations.index', $event) }}" class="btn btn-primary">Inscripciones</a>
+        @php $pendingClubs = $event->clubs()->where('status', 'pending')->count(); @endphp
+        <a href="{{ route('panel.clubs.index', $event) }}" class="btn btn-outline-primary">Clubes @if ($pendingClubs)<span class="badge text-bg-warning">{{ $pendingClubs }}</span>@endif</a>
         <form method="POST" action="{{ route('panel.events.bibs', $event) }}"
               onsubmit="return confirm('Se asignarán (o reasignarán) los números de competidor agrupando por club. ¿Continuar?')">
             @csrf
@@ -70,7 +72,7 @@
                         </td>
                         <td class="text-center"><a href="{{ route('panel.registrations.index', ['event' => $event, 'category_id' => $category->id]) }}">{{ $category->confirmed_count }}</a></td>
                         <td class="text-end">
-                            <a href="{{ route('panel.brackets.show', [$event, $category]) }}" class="btn btn-blue btn-sm btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#sitemap"/></svg> Cuadro</a>
+                        <a href="{{ route('panel.brackets.show', [$event, $category]) }}" class="btn btn-blue btn-sm btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#sitemap"/></svg> Cuadro</a>
                             @if ($category->is_published && $event->isListed())
                                 <a href="{{ route('public.categories.show', [$event, $category]) }}" class="btn btn-outline-secondary btn-sm btn-icon" title="Ver página pública" aria-label="Ver página pública"><svg width="16" height="16" aria-hidden="true"><use href="#eye"/></svg> Ver</a>
                             @endif

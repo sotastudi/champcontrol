@@ -256,9 +256,9 @@ class RegistrationTest extends TestCase
         $this->actingAs($user)->put(route('panel.competitors.update', [$event, $competitor]), ['club' => ''] + $edit)->assertSessionHasErrors('club');
         $this->actingAs($user)->put(route('panel.competitors.update', [$event, $competitor]), ['club' => 'Dojo Norte'] + $edit)->assertSessionHasNoErrors();
 
+        // En el formulario público el club es siempre el de la cuenta del club aprobada (ver ClubRegistrationTest).
         auth()->logout();
-        $this->post(route('public.registration.store', $event), ['club' => ''] + $payload)->assertSessionHasErrors('club');
-        $this->get(route('public.registration.create', $event))->assertSee('Club');
+        $this->post(route('public.registration.store', $event), ['club' => ''] + $payload)->assertRedirect(route('login'));
     }
 
     public function test_registration_action_buttons_have_their_colours_and_icons_in_the_list_and_in_the_card(): void

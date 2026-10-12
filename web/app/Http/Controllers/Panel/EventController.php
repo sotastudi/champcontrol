@@ -22,6 +22,10 @@ class EventController extends Controller
     {
         // Una cuenta de controlador con un único tatami va directa a él.
         $user = $request->user();
+        // Una cuenta de club no gestiona eventos: va a la portada, donde se registra en los campeonatos.
+        if ($user->isClubAccount()) {
+            return redirect()->route('home');
+        }
         if ($user->isTatamiAccount() && ($operations = $user->tatamiOperations()->get())->count() === 1) {
             return redirect()->route('panel.tatamis.show', [$operations[0]->event_id, $operations[0]->tatami]);
         }
@@ -34,14 +38,14 @@ class EventController extends Controller
 
     public function create(Request $request): View
     {
-        abort_if($request->user()->isTatamiAccount(), 403);
+        abort_if($request->user()->isTatamiAccount() || $request->user()->isClubAccount(), 403);
 
         return view('panel.events.create');
     }
 
     public function store(EventRequest $request): RedirectResponse
     {
-        abort_if($request->user()->isTatamiAccount(), 403);
+        abort_if($request->user()->isTatamiAccount() || $request->user()->isClubAccount(), 403);
 
         $event = $request->user()->events()->create($request->safe()->except(['poster', 'remove_poster', 'rules_pdf', 'remove_rules_pdf']));
         $this->savePoster($request, $event);
