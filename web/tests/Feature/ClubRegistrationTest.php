@@ -108,4 +108,55 @@ class ClubRegistrationTest extends TestCase
         $this->actingAs($this->clubFor($event))->get(route('panel.events.create'))->assertForbidden();
         $this->get(route('panel.events.index'))->assertRedirect(route('home'));
     }
+
+    public function test_organizer_creates_a_club_account_already_approved_in_the_event(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->for($owner)->registrationOpen()->create();
+
+        $this->actingAs($owner)->post(route('panel.clubs.store', $event), [
+            'name' => 'Dojo Este', 'email' => 'este@example.com', 'password' => 'clave-segura-1',
+        ])->assertSessionHasNoErrors();
+
+        $club = User::firstWhere('email', 'este@example.com');
+        $this->assertTrue($club->isClubAccount());
+        $this->assertSame($owner->id, (int) $club->created_by_user_id);
+        $this->assertSame(ClubStatus::Approved, $club->clubRegistrationFor($event)->status);
+
+        // El club ya puede entrar y ver el formulario de inscripción.
+        auth()->logout();
+        $this->post('/acceso', ['email' => 'este@example.com', 'password' => 'clave-segura-1'])->assertRedirect();
+        $this->get(route('public.registration.create', $event))->assertSee('name="first_name"', false);
+    }
+
+    public function test_existing_club_account_is_only_approved_and_keeps_its_password(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->for($owner)->registrationOpen()->create();
+        $other = Event::factory()->registrationOpen()->create();
+        $club = $this->clubFor($other);
+        $hash = $club->password;
+
+        $this->actingAs($owner)->post(route('panel.clubs.store', $event), ['name' => 'Otro', 'email' => $club->email, 'password' => 'otra-clave-22'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame($hash, $club->fresh()->password);
+        $this->assertSame(ClubStatus::Approved, $club->clubRegistrationFor($event)->status);
+    }
+
+    public function test_club_creation_validations(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->for($owner)->registrationOpen()->create();
+        $existing = $this->clubFor($event, name: 'Dojo Norte');
+        $plain = User::factory()->create(['email' => 'persona@example.com']);
+
+        $this->actingAs($owner);
+        $this->post(route('panel.clubs.store', $event), ['name' => 'X', 'email' => $plain->email, 'password' => 'clave-segura-1'])->assertSessionHasErrors('email');
+        $this->post(route('panel.clubs.store', $event), ['name' => 'Y', 'email' => 'nuevo@example.com'])->assertSessionHasErrors('password');
+        $this->post(route('panel.clubs.store', $event), ['name' => 'Dojo Norte', 'email' => 'nuevo@example.com', 'password' => 'clave-segura-1'])->assertSessionHasErrors('name');
+        $this->assertDatabaseMissing('users', ['email' => 'nuevo@example.com']);
+
+        $this->actingAs(User::factory()->create())->post(route('panel.clubs.store', $event), ['name' => 'Z', 'email' => 'z@example.com', 'password' => 'clave-segura-1'])->assertForbidden();
+    }
 }

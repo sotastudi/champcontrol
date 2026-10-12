@@ -89,6 +89,7 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::post('pruebas/inscripciones', [TestDataController::class, 'registrations'])->name('test.registrations');
         Route::delete('pruebas/inscripciones', [TestDataController::class, 'clean'])->name('test.clean');
         Route::get('clubes', [ClubController::class, 'index'])->name('clubs.index');
+        Route::post('clubes', [ClubController::class, 'store'])->name('clubs.store');
         Route::put('clubes/{club}', [ClubController::class, 'update'])->name('clubs.update');
         Route::get('normas.pdf', [EventController::class, 'rules'])->name('events.rules');
         Route::get('poster', [EventController::class, 'poster'])->name('events.poster');
