@@ -12,6 +12,16 @@
         <a href="{{ route('panel.registrations.create', $event) }}" class="btn btn-primary">Nueva inscripción</a>
     </div>
 </div>
+@php $pendingCount = $registrations->where('status', \App\Enums\RegistrationStatus::Pending)->count(); @endphp
+@if ($pendingCount > 0)
+    <form method="POST" action="{{ route('panel.registrations.confirm-all', $event) }}" class="mb-3 no-print"
+          onsubmit="return confirm('Se confirmarán {{ $pendingCount }} inscripciones pendientes ({{ $filters ? 'según el filtro actual' : 'todas' }}). ¿Continuar?')">@csrf
+        @foreach ($filters as $name => $value)
+            @if (filled($value))<input type="hidden" name="{{ $name }}" value="{{ $value }}">@endif
+        @endforeach
+        <button type="submit" class="btn btn-success btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#check"/></svg> Confirmar todos ({{ $pendingCount }} pendientes{{ collect($filters)->filter()->isNotEmpty() ? ' con el filtro actual' : '' }})</button>
+    </form>
+@endif
 <h1 class="h4 d-none d-print-block">{{ $event->name }} — Inscritos</h1>
 @error('status')<div class="alert alert-danger">{{ $message }}</div>@enderror
 

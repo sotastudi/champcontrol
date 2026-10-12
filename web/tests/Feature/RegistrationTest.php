@@ -305,4 +305,43 @@ class RegistrationTest extends TestCase
             $this->assertStringContainsString('<symbol id="printer"', $html);
         }
     }
+
+    public function test_confirm_all_confirms_only_pending_registrations_matching_the_current_filter(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create();
+        $a = Category::factory()->for($event)->create(['name' => 'Categoría A']);
+        $b = Category::factory()->for($event)->create(['name' => 'Categoría B']);
+        $pendingA1 = Registration::factory()->forCategory($a)->create(['status' => 'pending']);
+        $pendingA2 = Registration::factory()->forCategory($a)->create(['status' => 'pending']);
+        $cancelledA = Registration::factory()->forCategory($a)->create(['status' => 'cancelled']);
+        $pendingB = Registration::factory()->forCategory($b)->create(['status' => 'pending']);
+
+        $this->actingAs($user)->get(route('panel.registrations.index', ['event' => $event, 'category_id' => $a->id]))
+            ->assertSee('Confirmar todos (2 pendientes con el filtro actual)');
+
+        $this->post(route('panel.registrations.confirm-all', $event), ['category_id' => $a->id])
+            ->assertRedirect(route('panel.registrations.index', ['event' => $event, 'category_id' => $a->id]));
+
+        $this->assertSame('confirmed', $pendingA1->fresh()->status->value);
+        $this->assertSame('confirmed', $pendingA2->fresh()->status->value);
+        $this->assertSame('cancelled', $cancelledA->fresh()->status->value);
+        $this->assertSame('pending', $pendingB->fresh()->status->value);
+
+        // Sin filtro confirma el resto de pendientes; con nada pendiente el botón desaparece.
+        $this->post(route('panel.registrations.confirm-all', $event));
+        $this->assertSame('confirmed', $pendingB->fresh()->status->value);
+        $this->get(route('panel.registrations.index', $event))->assertDontSee('Confirmar todos');
+    }
+
+    public function test_confirm_all_is_limited_to_the_own_event(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->for($owner)->create();
+        $foreign = Registration::factory()->forCategory(Category::factory()->for(Event::factory()->create())->create())->create(['status' => 'pending']);
+
+        $this->actingAs(User::factory()->create())->post(route('panel.registrations.confirm-all', $event))->assertForbidden();
+        $this->actingAs($owner)->post(route('panel.registrations.confirm-all', $event));
+        $this->assertSame('pending', $foreign->fresh()->status->value);
+    }
 }

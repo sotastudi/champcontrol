@@ -122,6 +122,7 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::get('inscripciones', [RegistrationController::class, 'index'])->name('registrations.index');
         Route::get('inscripciones/crear', [RegistrationController::class, 'create'])->name('registrations.create');
         Route::post('inscripciones', [RegistrationController::class, 'store'])->name('registrations.store');
+        Route::post('inscripciones/confirmar-todas', [RegistrationController::class, 'confirmAll'])->name('registrations.confirm-all');
         Route::get('inscripciones/{registration}', [RegistrationController::class, 'show'])->name('registrations.show');
         Route::patch('inscripciones/{registration}', [RegistrationController::class, 'update'])->name('registrations.update');
         Route::get('competidores/{competitor}/editar', [CompetitorController::class, 'edit'])->name('competitors.edit');
