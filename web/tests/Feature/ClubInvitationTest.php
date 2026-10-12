@@ -106,4 +106,23 @@ class ClubInvitationTest extends TestCase
         // El organizador no puede aprobar por su cuenta una invitación pendiente.
         $this->put(route('panel.clubs.update', [$event, $club->clubRegistrationFor($event)]), ['status' => 'invited'])->assertSessionHasErrors('status');
     }
+
+    public function test_club_account_lists_the_events_it_is_linked_to_with_their_status(): void
+    {
+        $owner = User::factory()->create(['name' => 'Federación Norte']);
+        $approved = Event::factory()->for($owner)->registrationOpen()->create(['name' => 'Copa Confirmada']);
+        $pending = Event::factory()->for($owner)->registrationOpen()->create(['name' => 'Copa Pendiente']);
+        $invited = Event::factory()->for($owner)->registrationOpen()->create(['name' => 'Copa Invitada']);
+        $other = Event::factory()->registrationOpen()->create(['name' => 'Copa Ajena']);
+        $club = $this->clubFor($approved);
+        EventClub::create(['event_id' => $pending->id, 'user_id' => $club->id, 'status' => ClubStatus::Pending]);
+        EventClub::create(['event_id' => $invited->id, 'user_id' => $club->id, 'status' => ClubStatus::Invited]);
+
+        $this->actingAs($club)->get('/')->assertSee('Mis eventos');
+        $this->get(route('panel.events.index'))->assertOk()
+            ->assertSee('Copa Confirmada')->assertSee('Confirmado')->assertSee('Inscribir competidores')
+            ->assertSee('Copa Pendiente')->assertSee('Pendiente de confirmar por el organizador')
+            ->assertSee('Copa Invitada')->assertSee('Invitación pendiente de tu confirmación')
+            ->assertDontSee('Copa Ajena');
+    }
 }

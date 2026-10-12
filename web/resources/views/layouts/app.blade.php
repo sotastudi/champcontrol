@@ -183,9 +183,7 @@
                     @if (auth()->user()->isClubAccount())
                     <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2" href="{{ route('panel.athletes.index') }}"><svg width="18" height="18" aria-hidden="true"><use href="#user"/></svg>Mis competidores</a></li>
                     @endif
-                    @if (! auth()->user()->isClubAccount())
                     <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2" href="{{ route('panel.events.index') }}"><svg width="18" height="18" aria-hidden="true"><use href="#{{ auth()->user()->isTatamiAccount() ? 'flag' : 'calendar' }}"/></svg>{{ auth()->user()->isTatamiAccount() ? 'Mis tatamis' : 'Mis eventos' }}</a></li>
-                    @endif
                 @else
                     <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Registrarse</a></li>
                 @endauth

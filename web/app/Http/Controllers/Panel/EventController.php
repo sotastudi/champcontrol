@@ -22,9 +22,11 @@ class EventController extends Controller
     {
         // Una cuenta de controlador con un único tatami va directa a él.
         $user = $request->user();
-        // Una cuenta de club no gestiona eventos: va a la portada, donde se registra en los campeonatos.
+        // Una cuenta de club no gestiona eventos: ve aquellos a los que está vinculado (confirmados, pendientes o invitaciones).
         if ($user->isClubAccount()) {
-            return redirect()->route('home');
+            return view('panel.events.club-index', [
+                'links' => $user->clubRegistrations()->with('event.user')->get()->sortByDesc(fn ($link) => $link->event->starts_on)->values(),
+            ]);
         }
         if ($user->isTatamiAccount() && ($operations = $user->tatamiOperations()->get())->count() === 1) {
             return redirect()->route('panel.tatamis.show', [$operations[0]->event_id, $operations[0]->tatami]);

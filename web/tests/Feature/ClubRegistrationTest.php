@@ -106,7 +106,7 @@ class ClubRegistrationTest extends TestCase
         $event = Event::factory()->registrationOpen()->create();
 
         $this->actingAs($this->clubFor($event))->get(route('panel.events.create'))->assertForbidden();
-        $this->get(route('panel.events.index'))->assertRedirect(route('home'));
+        $this->get(route('panel.events.index'))->assertOk()->assertSee('Mis eventos');
     }
 
     public function test_organizer_creates_a_club_account_already_approved_in_the_event(): void
