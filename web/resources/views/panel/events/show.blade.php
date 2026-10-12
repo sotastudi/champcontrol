@@ -62,7 +62,7 @@
                         <td>{{ $category->name }}@if ($category->tatami)<div><span class="badge text-bg-secondary">Tatami {{ $category->tatami }}</span></div>@endif</td>
                         <td class="text-muted small">
                             {{ collect([
-                                $category->modality,
+                                $category->modalityEnum()->label(),
                                 $category->sex?->label(),
                                 ($category->min_age !== null || $category->max_age !== null) ? 'Edad '.($category->min_age ?? '…').'–'.($category->max_age ?? '…') : null,
                                 ($category->min_weight !== null || $category->max_weight !== null) ? 'Peso '.($category->min_weight ?? '…').'–'.($category->max_weight ?? '…').' kg' : null,
@@ -72,7 +72,9 @@
                         </td>
                         <td class="text-center"><a href="{{ route('panel.registrations.index', ['event' => $event, 'category_id' => $category->id]) }}">{{ $category->confirmed_count }}</a></td>
                         <td class="text-end">
-                        <a href="{{ route('panel.brackets.show', [$event, $category]) }}" class="btn btn-blue btn-sm btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#sitemap"/></svg> Cuadro</a>
+                            @if ($category->modalityEnum()->hasBracket())
+                                <a href="{{ route('panel.brackets.show', [$event, $category]) }}" class="btn btn-blue btn-sm btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#sitemap"/></svg> Cuadro</a>
+                            @endif
                             @if ($category->is_published && $event->isListed())
                                 <a href="{{ route('public.categories.show', [$event, $category]) }}" class="btn btn-outline-secondary btn-sm btn-icon" title="Ver página pública" aria-label="Ver página pública"><svg width="16" height="16" aria-hidden="true"><use href="#eye"/></svg> Ver</a>
                             @endif

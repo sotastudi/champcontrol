@@ -1,6 +1,6 @@
 @php($event ??= null)
 <x-field name="name" label="Nombre" :value="$event?->name" required />
-<x-field name="discipline" label="Disciplina" :value="$event?->discipline" required />
+<x-field name="discipline" label="Disciplina" :value="$event?->discipline ?? 'KARATE KYOKUSHIN'" required />
 <div class="row">
     <div class="col-12 col-md-6"><x-field name="starts_on" type="date" label="Fecha" :value="$event?->starts_on?->format('Y-m-d')" required /></div>
     <div class="col-12 col-md-6"><x-field name="start_time" type="time" label="Hora de inicio" :value="$event?->startTime()" help="Opcional. Se muestra junto a la fecha del evento." /></div>

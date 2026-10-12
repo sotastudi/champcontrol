@@ -21,6 +21,10 @@ final class BracketGenerator
      */
     public function generate(Category $category, ?Closure $shuffler = null): void
     {
+        if (! $category->modalityEnum()->hasBracket()) {
+            throw new TournamentException('La modalidad «'.$category->modalityEnum()->label().'» no tiene cuadro: se gestiona solo con las inscripciones.');
+        }
+
         if ($category->isRegenerationLocked()) {
             throw new TournamentException('Hay resultados o bajas registradas: el cuadro ya no se puede regenerar.');
         }

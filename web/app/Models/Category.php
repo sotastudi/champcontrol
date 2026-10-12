@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BronzeRule;
 use App\Enums\DrawCriteria;
+use App\Enums\Modality;
 use App\Enums\Sex;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -31,6 +32,11 @@ class Category extends Model
             'is_published' => 'boolean',
             'bracket_generated_at' => 'datetime',
         ];
+    }
+
+    public function modalityEnum(): Modality
+    {
+        return Modality::tryFrom((string) $this->modality) ?? Modality::Kumite;
     }
 
     /** Criterio propio de la categoría o, si no tiene, el del evento. */
