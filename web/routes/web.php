@@ -20,6 +20,7 @@ use App\Http\Controllers\Panel\PublicationController;
 use App\Http\Controllers\Panel\RegistrationController;
 use App\Http\Controllers\Panel\ResultResetController;
 use App\Http\Controllers\Panel\TatamiController;
+use App\Http\Controllers\Panel\TestDataController;
 use App\Http\Controllers\Panel\TatamiOperatorController;
 use App\Http\Controllers\Panel\WithdrawalController;
 use App\Http\Controllers\PublicCategoryController;
@@ -81,6 +82,9 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::post('controladores-tatami', [TatamiOperatorController::class, 'store'])->name('operators.store');
         Route::delete('controladores-tatami/{operator}', [TatamiOperatorController::class, 'destroy'])->name('operators.destroy');
         Route::put('controladores-tatami/{operator}', [TatamiOperatorController::class, 'update'])->name('operators.update');
+        Route::post('pruebas/categorias', [TestDataController::class, 'categories'])->name('test.categories');
+        Route::post('pruebas/inscripciones', [TestDataController::class, 'registrations'])->name('test.registrations');
+        Route::delete('pruebas/inscripciones', [TestDataController::class, 'clean'])->name('test.clean');
         Route::get('clubes', [ClubController::class, 'index'])->name('clubs.index');
         Route::put('clubes/{club}', [ClubController::class, 'update'])->name('clubs.update');
         Route::get('normas.pdf', [EventController::class, 'rules'])->name('events.rules');

@@ -33,6 +33,8 @@
     @endif
 </div>
 <x-select name="status" label="Estado" :options="\App\Enums\EventStatus::options()" :value="$event?->status?->value ?? 'draft'" required />
+<x-check name="is_test" label="Evento de prueba (Test)" :checked="$event?->is_test ?? false"
+         help="Habilita en el panel del evento la generación de categorías e inscripciones ficticias para probarlo." />
 <x-check name="is_public" label="Evento público" :checked="$event?->is_public ?? false"
          help="Un evento público y no en borrador aparece en la portada y tiene página pública." />
 <x-check name="registration_form_enabled" label="Habilitar formulario público de inscripción" :checked="$event?->registration_form_enabled ?? false"

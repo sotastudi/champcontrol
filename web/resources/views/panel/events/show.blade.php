@@ -8,6 +8,7 @@
         <div class="mt-2">
             <span class="badge text-bg-secondary">{{ $event->status->label() }}</span>
             <span class="badge text-bg-{{ $event->is_public ? 'success' : 'light' }}">{{ $event->is_public ? 'Público' : 'Privado' }}</span>
+            @if ($event->is_test)<span class="badge text-bg-warning">Test</span>@endif
         </div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
@@ -44,6 +45,10 @@
     </div>
     <p class="text-muted small mt-1 mb-0">Se genera con el evento. El público lo necesita para ver cuadros, resultados y tatamis; tú decides a quién dárselo. Tú y tus controladores de tatami no lo necesitáis.</p>
 </section>
+
+@if ($event->is_test)
+    @include('panel.events._test-data')
+@endif
 
 <section id="categorias" class="mb-4">
     <div class="d-flex justify-content-between align-items-center mb-2">

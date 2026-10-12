@@ -31,6 +31,7 @@ class EventRequest extends FormRequest
             'status' => ['required', Rule::enum(EventStatus::class)],
             'is_public' => ['boolean'],
             'registration_form_enabled' => ['boolean'],
+            'is_test' => ['boolean'],
             'dq_podium_rule' => ['sometimes', 'required', Rule::enum(DisqualifiedPodiumRule::class)],
             'unfought_withdrawal_rule' => ['sometimes', 'required', Rule::enum(UnfoughtWithdrawalRule::class)],
             'default_bronze_rule' => ['sometimes', 'required', Rule::enum(BronzeRule::class)],

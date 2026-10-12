@@ -20,7 +20,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'discipline', 'description', 'starts_on', 'start_time', 'venue', 'status', 'is_public', 'registration_form_enabled',
+#[Fillable(['name', 'discipline', 'description', 'starts_on', 'start_time', 'venue', 'status', 'is_public', 'registration_form_enabled', 'is_test',
     'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule', 'draw_criteria', 'registration_opens_at', 'registration_closes_at', 'tatami_count', 'rules_text'])]
 class Event extends Model
 {
@@ -33,6 +33,7 @@ class Event extends Model
             'starts_on' => 'date',
             'status' => EventStatus::class,
             'is_public' => 'boolean',
+            'is_test' => 'boolean',
             'registration_form_enabled' => 'boolean',
             'dq_podium_rule' => DisqualifiedPodiumRule::class,
             'unfought_withdrawal_rule' => UnfoughtWithdrawalRule::class,
