@@ -60,6 +60,9 @@
                             @if (! empty($step['link']) && \Illuminate\Support\Facades\Route::has($step['link'][1]))
                                 <a href="{{ route($step['link'][1]) }}" class="small">{{ $step['link'][0] }} &rarr;</a>
                             @endif
+                            @foreach ($step['links'] ?? [] as [$label, $url])
+                                <a href="{{ $url }}" class="small me-3">{{ $label }} &rarr;</a>
+                            @endforeach
                         </div>
                     </li>
                 @endforeach

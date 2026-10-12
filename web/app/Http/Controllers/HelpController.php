@@ -17,10 +17,10 @@ class HelpController extends Controller
         return view('help.index', [
             'query' => mb_substr($query, 0, 100),
             'results' => $query === '' ? null : HelpContent::search(mb_substr($query, 0, 100)),
-            'guides' => HelpContent::guides(),
+            'guides' => HelpContent::guides($user),
             'faqs' => HelpContent::faqs(),
             // Guía que corresponde al usuario con sesión iniciada, para destacarla.
-            'mine' => $user ? ($user->isClubAccount() ? 'club' : ($user->isTatamiAccount() ? 'tatami' : 'organizador')) : null,
+            'mine' => $user ? HelpContent::profileOf($user) : null,
         ]);
     }
 }

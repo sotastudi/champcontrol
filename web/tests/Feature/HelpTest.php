@@ -52,4 +52,43 @@ class HelpTest extends TestCase
         auth()->logout();
         $this->get(route('help'))->assertDontSee('Tu perfil');
     }
+
+    public function test_guest_sees_no_panel_links_in_the_help(): void
+    {
+        $this->get(route('help'))->assertOk()
+            ->assertDontSee(route('panel.events.index'), false)->assertDontSee(route('panel.athletes.index'), false)
+            ->assertSee(route('register'), false);
+    }
+
+    public function test_organizer_gets_links_to_the_sections_it_can_open_only(): void
+    {
+        $html = $this->actingAs(User::factory()->create())->get(route('help'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('href="'.route('panel.events.create').'"', $html);
+        $this->assertStringContainsString('href="'.route('panel.events.index').'"', $html);
+        $this->assertStringContainsString('href="'.route('panel.profile.edit').'"', $html);
+        // Guías de otros perfiles: ni «Mis competidores» ni invitaciones (solo clubes).
+        $this->assertStringNotContainsString('href="'.route('panel.athletes.index').'"', $html);
+        $this->assertStringNotContainsString('href="'.route('panel.invitations.index').'"', $html);
+        // Con sesión iniciada sobran los enlaces de crear cuenta.
+        $this->assertStringNotContainsString('href="'.route('register').'"', $html);
+    }
+
+    public function test_club_and_tatami_accounts_get_their_own_links(): void
+    {
+        $event = Event::factory()->create();
+        $club = $this->clubFor($event);
+
+        $html = $this->actingAs($club)->get(route('help'))->getContent();
+        $this->assertStringContainsString('href="'.route('panel.athletes.index').'"', $html);
+        $this->assertStringContainsString('href="'.route('panel.invitations.index').'"', $html);
+        $this->assertStringNotContainsString('href="'.route('panel.events.create').'"', $html);
+
+        $tatami = User::factory()->create();
+        $tatami->forceFill(['role' => 'tatami'])->save();
+        $html = $this->actingAs($tatami)->get(route('help'))->getContent();
+        $this->assertStringContainsString('Mis tatamis', $html);
+        $this->assertStringNotContainsString('href="'.route('panel.events.create').'"', $html);
+        $this->assertStringNotContainsString('href="'.route('panel.athletes.index').'"', $html);
+    }
 }

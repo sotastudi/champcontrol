@@ -2,16 +2,87 @@
 
 namespace App\Support;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
 /**
  * Contenido de la página de Ayuda: guías paso a paso por tipo de usuario y preguntas frecuentes.
- * Cada paso puede llevar un enlace (`link` => [texto, nombre de ruta]).
+ * Cada paso puede llevar un enlace (`link` => [texto, nombre de ruta]) para quien aún no tiene sesión y, con sesión iniciada,
+ * enlaces a las secciones del panel que menciona, solo si el perfil del usuario tiene acceso a ellas (ver `LINKS`).
  */
 final class HelpContent
 {
+    /**
+     * Enlaces del panel por guía y número de paso (base 1): [texto, ruta sin parámetros, perfiles con acceso].
+     * Perfiles: organizador, club, tatami. Las páginas de un evento concreto se alcanzan desde «Mis eventos».
+     */
+    private const LINKS = [
+        'organizador' => [
+            1 => [['Mi perfil', 'panel.profile.edit', ['organizador', 'club', 'tatami']]],
+            2 => [['Nuevo evento', 'panel.events.create', ['organizador']], ['Mis eventos', 'panel.events.index', ['organizador']]],
+            3 => [['Mis eventos', 'panel.events.index', ['organizador']]],
+            4 => [['Mis eventos', 'panel.events.index', ['organizador']]],
+            5 => [['Mis eventos', 'panel.events.index', ['organizador']]],
+            6 => [['Mis eventos', 'panel.events.index', ['organizador']]],
+            7 => [['Mis eventos', 'panel.events.index', ['organizador']]],
+            8 => [['Mis eventos', 'panel.events.index', ['organizador']]],
+            9 => [['Mis eventos', 'panel.events.index', ['organizador']]],
+            10 => [['Mis eventos', 'panel.events.index', ['organizador']]],
+            11 => [['Mis eventos', 'panel.events.index', ['organizador']]],
+            12 => [['Mis eventos', 'panel.events.index', ['organizador']]],
+        ],
+        'club' => [
+            2 => [['Mi perfil', 'panel.profile.edit', ['club']]],
+            3 => [['Mis competidores', 'panel.athletes.index', ['club']]],
+            4 => [['Invitaciones', 'panel.invitations.index', ['club']], ['Portada con los campeonatos', 'home', ['club']]],
+            5 => [['Mis eventos', 'panel.events.index', ['club']]],
+            6 => [['Mis eventos', 'panel.events.index', ['club']], ['Mis competidores', 'panel.athletes.index', ['club']]],
+            7 => [['Mis eventos', 'panel.events.index', ['club']]],
+        ],
+        'tatami' => [
+            1 => [['Mis tatamis', 'panel.events.index', ['tatami']]],
+            2 => [['Mis tatamis', 'panel.events.index', ['tatami']]],
+            3 => [['Mis tatamis', 'panel.events.index', ['tatami']]],
+            4 => [['Mis tatamis', 'panel.events.index', ['tatami']]],
+        ],
+    ];
+
+    /** Perfil del usuario a efectos de acceso: club, tatami u organizador. */
+    public static function profileOf(User $user): string
+    {
+        return $user->isClubAccount() ? 'club' : ($user->isTatamiAccount() ? 'tatami' : 'organizador');
+    }
+
+    /**
+     * Guías con, en cada paso, `links` ya resueltos para el usuario: [texto, url] solo de las secciones a las que su perfil accede.
+     * Sin sesión iniciada no hay enlaces del panel (quedan los de «Crear cuenta» / «Iniciar sesión»).
+     *
+     * @return array<string, array<string,mixed>>
+     */
+    public static function guides(?User $user = null): array
+    {
+        $guides = self::baseGuides();
+        if (! $user) {
+            return $guides;
+        }
+
+        $profile = self::profileOf($user);
+        foreach ($guides as $key => &$guide) {
+            foreach ($guide['steps'] as $i => &$step) {
+                // Con sesión iniciada los enlaces de registro y acceso (solo para invitados) sobran.
+                unset($step['link']);
+                $step['links'] = collect(self::LINKS[$key][$i + 1] ?? [])
+                    ->filter(fn (array $l) => in_array($profile, $l[2], true) && Route::has($l[1]))
+                    ->map(fn (array $l) => [$l[0], route($l[1])])->values()->all();
+            }
+        }
+
+        return $guides;
+    }
+
     /** @return array<string, array{title: string, intro: string, steps: list<array{title: string, text: string, link?: array{0: string, 1: string}}>}> */
-    public static function guides(): array
+    private static function baseGuides(): array
     {
         return [
             'organizador' => [
