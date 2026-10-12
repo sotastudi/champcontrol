@@ -17,11 +17,26 @@ use Illuminate\Support\Str;
  */
 final class BibNumberAssigner
 {
+    /** Motivo por el que aún no se pueden asignar los números (inscripciones sin cerrar o con pendientes de aprobar), o null. */
+    public function blockingProblem(Event $event): ?string
+    {
+        if (! in_array($event->status, [EventStatus::RegistrationClosed, EventStatus::InProgress], true)) {
+            return 'Cierra las inscripciones (estado «Inscripciones cerradas» o «En curso») antes de asignar los números de competidor.';
+        }
+
+        $pending = $event->registrations()->where('registrations.status', RegistrationStatus::Pending->value)->count();
+        if ($pending > 0) {
+            return 'Quedan '.$pending.($pending === 1 ? ' inscripción pendiente' : ' inscripciones pendientes').': confírmalas o cancélalas antes de asignar los números de competidor.';
+        }
+
+        return null;
+    }
+
     /** @throws RegistrationException */
     public function assign(Event $event): int
     {
-        if (! in_array($event->status, [EventStatus::RegistrationClosed, EventStatus::InProgress], true)) {
-            throw new RegistrationException('Cierra las inscripciones (estado «Inscripciones cerradas» o «En curso») antes de asignar los números de competidor.');
+        if ($problem = $this->blockingProblem($event)) {
+            throw new RegistrationException($problem);
         }
 
         $competitors = Competitor::where('event_id', $event->id)

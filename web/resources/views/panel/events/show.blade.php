@@ -14,12 +14,16 @@
     <div class="d-flex gap-2 flex-wrap">
         <a href="{{ route('panel.registrations.index', $event) }}" class="btn btn-primary">Inscripciones</a>
         @php $pendingClubs = $event->clubs()->where('status', 'pending')->count(); @endphp
-        <a href="{{ route('panel.clubs.index', $event) }}" class="btn btn-outline-primary">Clubes @if ($pendingClubs)<span class="badge text-bg-warning">{{ $pendingClubs }}</span>@endif</a>
-        <form method="POST" action="{{ route('panel.events.bibs', $event) }}"
-              onsubmit="return confirm('Se asignarán (o reasignarán) los números de competidor agrupando por club. ¿Continuar?')">
-            @csrf
-            <button type="submit" class="btn btn-blue">Asignar números de competidor</button>
-        </form>
+        <a href="{{ route('panel.clubs.index', $event) }}" class="btn btn-outline-primary">Clubes @if ($pendingClubs)<span class="badge text-bg-orange">{{ $pendingClubs }}</span>@endif</a>
+        @if ($bibsProblem)
+            <button type="button" class="btn btn-blue" disabled>Asignar números de competidor</button>
+        @else
+            <form method="POST" action="{{ route('panel.events.bibs', $event) }}"
+                  onsubmit="return confirm('Se asignarán (o reasignarán) los números de competidor agrupando por club. ¿Continuar?')">
+                @csrf
+                <button type="submit" class="btn btn-blue">Asignar números de competidor</button>
+            </form>
+        @endif
         <a href="{{ route('panel.exports.standings', $event) }}" class="btn btn-outline-secondary">Exportar clasificación (CSV)</a>
         <a href="{{ route('panel.events.edit', $event) }}" class="btn btn-yellow btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#pencil"/></svg> Editar</a>
         @if ($event->isListed())
@@ -32,6 +36,9 @@
         </form>
     </div>
 </div>
+@if ($bibsProblem && $event->status->value !== 'draft')
+    <div class="alert alert-warning no-print">{{ $bibsProblem }} <a href="{{ route('panel.registrations.index', ['event' => $event, 'status' => 'pending']) }}" class="alert-link">Ver pendientes</a></div>
+@endif
 @if ($event->description)<p style="white-space: pre-line">{{ $event->description }}</p>@endif
 
 <section id="acceso" class="mb-4">

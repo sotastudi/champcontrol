@@ -55,13 +55,14 @@ class EventController extends Controller
         return redirect()->route('panel.events.show', $event)->with('status', 'Evento creado.');
     }
 
-    public function show(Event $event, TatamiBoard $board): View
+    public function show(Event $event, TatamiBoard $board, BibNumberAssigner $bibs): View
     {
         return view('panel.events.show', [
             'event' => $event->load(['operators.user', 'categories' => fn ($q) => $q->orderBy('name')->withCount([
                 'registrations as confirmed_count' => fn ($r) => $r->where('status', RegistrationStatus::Confirmed->value),
             ])]),
             'tatamis' => $board->for($event),
+            'bibsProblem' => $bibs->blockingProblem($event),
         ]);
     }
 
