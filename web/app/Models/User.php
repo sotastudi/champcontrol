@@ -18,9 +18,6 @@ use Illuminate\Support\Facades\Storage;
 #[Hidden(['password', 'remember_token', 'logo_path'])]
 class User extends Authenticatable
 {
-    /** Paleta de colores de club fáciles de distinguir entre sí (Okabe-Ito ampliada), todos con buen contraste. */
-    public const CLUB_PALETTE = ['#0072b2', '#d55e00', '#009e73', '#cc79a7', '#e69f00', '#6a3d9a', '#b2182b', '#56b4e9', '#7a7a00', '#1b7837', '#8c564b', '#000000'];
-
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 

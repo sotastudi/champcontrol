@@ -68,11 +68,19 @@
 @else
     <div class="table-responsive">
         <table class="table align-middle">
-            <thead><tr><th>Club</th><th>Correo</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+            <thead><tr><th>Club</th><th>Color</th><th>Correo</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
             <tbody>
             @foreach ($clubs as $club)
                 <tr>
-                    <td>{{ $club->user->name }}</td>
+                    <td>@if ($club->isApproved() && $club->user->hasLogo())<img src="{{ route('public.clubs.logo', [$event, $club]) }}?v={{ $club->user->updated_at?->timestamp }}" alt="Logo de {{ $club->user->name }}" class="club-logo me-2">@endif{{ $club->user->name }}</td>
+                    <td>
+                        @php($shown = $event->clubColor($club->user->name))
+                        <form method="POST" action="{{ route('panel.clubs.color', [$event, $club]) }}" class="d-flex align-items-center gap-2">@csrf @method('PUT')
+                            <input type="color" name="color" value="{{ $club->color ?? $shown ?? '#0072b2' }}" class="form-control form-control-color" aria-label="Color de {{ $club->user->name }}" oninput="document.getElementById('club-auto-{{ $club->id }}').checked = false">
+                            <div class="form-check mb-0"><input type="checkbox" class="form-check-input" id="club-auto-{{ $club->id }}" name="auto_color" value="1" @checked(! $club->color)><label class="form-check-label small" for="club-auto-{{ $club->id }}">Auto</label></div>
+                            <button class="btn btn-sm btn-outline-primary">Guardar</button>
+                        </form>
+                    </td>
                     <td>{{ $club->user->email }}</td>
                     <td><span class="badge {{ $club->status->badgeClass() }}">{{ $club->status->label() }}</span></td>
                     <td class="text-end">
@@ -96,7 +104,7 @@
                 </tr>
                 @if ($club->user->created_by_user_id === auth()->id())
                     <tr class="collapse" id="edit-club-{{ $club->id }}">
-                        <td colspan="4">
+                        <td colspan="5">
                             <form method="POST" enctype="multipart/form-data" action="{{ route('panel.clubs.account', [$event, $club]) }}" class="row g-2 align-items-start">@csrf @method('PUT')
                                 <div class="col-md-4"><label class="form-label small mb-1" for="club-name-{{ $club->id }}">Nombre del club</label><input id="club-name-{{ $club->id }}" name="name" value="{{ $club->user->name }}" class="form-control" required></div>
                                 <div class="col-md-4"><label class="form-label small mb-1" for="club-email-{{ $club->id }}">Correo</label><input id="club-email-{{ $club->id }}" type="email" name="email" value="{{ $club->user->email }}" class="form-control" required></div>
@@ -115,12 +123,7 @@
                                         </div>
                                     @endif
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small mb-1" for="club-color-{{ $club->id }}">Color del número</label>
-                                    <input id="club-color-{{ $club->id }}" type="color" name="club_color" value="{{ $club->user->club_color ?? $event->clubColor($club->user->name) ?? '#0072b2' }}" class="form-control form-control-color" oninput="document.getElementById('club-auto-{{ $club->id }}').checked = false">
-                                    <div class="form-check mt-1"><input type="checkbox" class="form-check-input" id="club-auto-{{ $club->id }}" name="auto_color" value="1" @checked(! $club->user->club_color)><label class="form-check-label small" for="club-auto-{{ $club->id }}">Color automático</label></div>
-                                </div>
-                                <div class="col-12"><button class="btn btn-primary">Guardar</button></div>
+                                <div class="col-md-4 d-flex align-items-end"><button class="btn btn-primary">Guardar</button></div>
                             </form>
                         </td>
                     </tr>

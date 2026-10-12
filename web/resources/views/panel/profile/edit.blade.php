@@ -26,14 +26,6 @@
                         <button class="btn btn-outline-danger btn-sm">Quitar logo</button>
                     </form>
                 @endif
-                <hr>
-                <h2 class="h5 mb-3">Color del club</h2>
-                <p class="text-muted small">Colorea el número de tus participantes en los listados para distinguir los clubes. Si no eliges ninguno se propone uno automático.</p>
-                <form method="POST" action="{{ route('panel.profile.color') }}" class="d-flex flex-wrap align-items-center gap-3">@csrf @method('PUT')
-                    <input type="color" name="club_color" value="{{ $user->club_color ?? '#0072b2' }}" class="form-control form-control-color" aria-label="Color del club" oninput="document.getElementById('auto_color').checked = false">
-                    <div class="form-check"><input type="checkbox" class="form-check-input" id="auto_color" name="auto_color" value="1" @checked(! $user->club_color)><label class="form-check-label" for="auto_color">Color automático</label></div>
-                    <button class="btn btn-primary">Guardar color</button>
-                </form>
             </div>
         </div>
     @endif

@@ -80,7 +80,6 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
     Route::put('perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('perfil/logo', [ProfileController::class, 'logo'])->name('profile.logo.show');
     Route::put('perfil/logo', [ProfileController::class, 'updateLogo'])->name('profile.logo');
-    Route::put('perfil/color', [ProfileController::class, 'updateColor'])->name('profile.color');
     Route::put('perfil/contrasena', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1')->name('profile.password');
     Route::get('eventos', [EventController::class, 'index'])->name('events.index');
     Route::get('eventos/crear', [EventController::class, 'create'])->name('events.create');
@@ -109,6 +108,7 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::post('clubes/invitar', [ClubController::class, 'invite'])->middleware('throttle:20,1')->name('clubs.invite');
         Route::post('clubes/{club}/reenviar', [ClubController::class, 'resend'])->middleware('throttle:20,1')->name('clubs.resend');
         Route::put('clubes/{club}/cuenta', [ClubController::class, 'account'])->name('clubs.account');
+        Route::put('clubes/{club}/color', [ClubController::class, 'color'])->name('clubs.color');
         Route::put('clubes/{club}', [ClubController::class, 'update'])->name('clubs.update');
         Route::get('normas.pdf', [EventController::class, 'rules'])->name('events.rules');
         Route::get('poster', [EventController::class, 'poster'])->name('events.poster');

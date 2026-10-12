@@ -144,7 +144,7 @@ class Event extends Model
     }
 
     /**
-     * Color (#rrggbb) del club en este evento: el que eligió o, si no, uno propuesto de la paleta
+     * Color (#rrggbb) del club en este evento: el que le asignó el organizador o, si no, uno propuesto de la paleta
      * (los clubes sin color propio reciben, por orden de alta, colores que ningún otro club use aún). Null si el club no está aprobado.
      */
     public function clubColor(?string $club): ?string
@@ -155,12 +155,12 @@ class Event extends Model
 
         if ($this->clubColors === null) {
             $clubs = $this->clubs()->where('status', 'approved')->with('user')->orderBy('id')->get();
-            $taken = $clubs->map(fn (EventClub $c) => $c->user->club_color)->filter()->map(fn ($c) => strtolower($c))->all();
-            $free = array_values(array_diff(User::CLUB_PALETTE, $taken)) ?: User::CLUB_PALETTE;
+            $taken = $clubs->map(fn (EventClub $c) => $c->color)->filter()->map(fn ($c) => strtolower($c))->all();
+            $free = array_values(array_diff(EventClub::PALETTE, $taken)) ?: EventClub::PALETTE;
             $this->clubColors = [];
             $i = 0;
             foreach ($clubs as $c) {
-                $this->clubColors[Competitor::normalizeName($c->user->name)] = $c->user->club_color ?: $free[$i++ % count($free)];
+                $this->clubColors[Competitor::normalizeName($c->user->name)] = $c->color ?: $free[$i++ % count($free)];
             }
         }
 
