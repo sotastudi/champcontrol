@@ -16,7 +16,7 @@ class DemoRegistrations extends Command
 {
     private const MARK = 'DEMO';
 
-    protected $signature = 'champcontrol:demo-inscritos
+    protected $signature = 'kumitecontrol:demo-inscritos
         {category : ID de la categoría}
         {--count=12 : Número de inscritos a crear}
         {--extras : Añade también el peso (para probar ese criterio del sorteo)}
@@ -83,7 +83,7 @@ class DemoRegistrations extends Command
         });
 
         $this->info("Creados {$count} inscritos DEMO en «{$category->name}» (".($count - $pending).' confirmados, '.$pending.' pendientes).');
-        $this->line('Genera el cuadro en el panel para probar el sorteo. Para limpiar: php artisan champcontrol:demo-inscritos '.$category->id.' --clean');
+        $this->line('Genera el cuadro en el panel para probar el sorteo. Para limpiar: php artisan kumitecontrol:demo-inscritos '.$category->id.' --clean');
 
         return self::SUCCESS;
     }

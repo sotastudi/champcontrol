@@ -1,4 +1,4 @@
-# ChampControl v1 — Plan de implementación
+# KumiteControl v1 — Plan de implementación
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -15,7 +15,7 @@
 - Todos los comandos se ejecutan desde `web/` tras `source scripts/dev-env.sh` (PHP 8.4 + Node en el PATH). En el tool Bash cada llamada es un shell nuevo: encadenar `source scripts/dev-env.sh && <comando>`.
 - PHP 8.4 obligatorio (terminal y Composer). La terminal del usuario trae por defecto PHP 8.3.30 (alias MAMP) y Composer de Homebrew con PHP 8.5: no usarlos tal cual.
 - Laravel 13, Blade, Bootstrap 5.3, Vite, interfaz en español (`APP_LOCALE=es`), responsive. JavaScript solo si aporta; el cuadro se dibuja con Blade+CSS (sin JS).
-- Apache/MAMP debe servir **`champcontrol/web/public`** (no la raíz del repo ni `web/`). Host `champcontrol.test`.
+- Apache/MAMP debe servir **`kumitecontrol/web/public`** (no la raíz del repo ni `web/`). Host `kumitecontrol.test`.
 - Credenciales MySQL: las del `.env` local ya configurado con MAMP; no inventarlas ni tocarlas. `.env` nunca se versiona; `.env.example` sin secretos.
 - Los tests usan SQLite en memoria (`phpunit.xml`): nunca tocan la base MySQL de desarrollo.
 - Nada de `match` como nombre de clase (palabra reservada): el combate se llama `Bout` / tabla `bouts`.
@@ -54,7 +54,7 @@ Además, la exportación CSV neutraliza fórmulas (`=`, `+`, `-`, `@`) — Task 
 ```
 web/
   scripts/dev-env.sh                         # PATH PHP 8.4 + Node
-  config/champcontrol.php                    # public_form_min_age
+  config/kumitecontrol.php                    # public_form_min_age
   lang/es/{auth,passwords,validation}.php
   app/Enums/{EventStatus,RegistrationStatus,Sex,BronzeRule}.php  + Concerns/HasOptions.php
   app/Models/{User,Event,Category,Competitor,Registration,Bout}.php
@@ -109,7 +109,7 @@ Expected: lock actualizado, `./composer.json is valid`.
 
 - [ ] **Step 4: Ajustar `.env.example` y `phpunit.xml`**
 
-En `web/.env.example` dejar (sin secretos): `APP_NAME=ChampControl`, `APP_URL=https://champcontrol.test`, `APP_LOCALE=es`, `APP_FALLBACK_LOCALE=es`, `APP_FAKER_LOCALE=es_ES`, `APP_TIMEZONE=Europe/Madrid`, `DB_CONNECTION=mysql`, `DB_HOST=127.0.0.1`, `DB_PORT=3306`, `DB_DATABASE=champcontrol`, `DB_USERNAME=`, `DB_PASSWORD=`, `MAIL_MAILER=log`, y añadir al final `PUBLIC_FORM_MIN_AGE=18`. Añadir también `APP_TIMEZONE=Europe/Madrid` al `.env` local (sin tocar las credenciales).
+En `web/.env.example` dejar (sin secretos): `APP_NAME=KumiteControl`, `APP_URL=https://kumitecontrol.test`, `APP_LOCALE=es`, `APP_FALLBACK_LOCALE=es`, `APP_FAKER_LOCALE=es_ES`, `APP_TIMEZONE=Europe/Madrid`, `DB_CONNECTION=mysql`, `DB_HOST=127.0.0.1`, `DB_PORT=3306`, `DB_DATABASE=kumitecontrol`, `DB_USERNAME=`, `DB_PASSWORD=`, `MAIL_MAILER=log`, y añadir al final `PUBLIC_FORM_MIN_AGE=18`. Añadir también `APP_TIMEZONE=Europe/Madrid` al `.env` local (sin tocar las credenciales).
 
 En `web/phpunit.xml`, dentro de `<php>`, añadir:
 
@@ -240,13 +240,13 @@ window.bootstrap = bootstrap;
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Campeonatos') · ChampControl</title>
+    <title>@yield('title', 'Campeonatos') · KumiteControl</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-body-tertiary">
 <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
     <div class="container">
-        <a class="navbar-brand" href="{{ route('home') }}">ChampControl</a>
+        <a class="navbar-brand" href="{{ route('home') }}">KumiteControl</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Menú">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -2408,12 +2408,12 @@ git commit -m "feat: competidores e inscripciones manuales sin duplicados" -m "C
 ### Task 7: Formulario público de inscripción
 
 **Files:**
-- Create: `config/champcontrol.php`, `app/Http/Controllers/PublicRegistrationController.php`, `resources/views/public/registration.blade.php`, `tests/Feature/PublicRegistrationTest.php`
+- Create: `config/kumitecontrol.php`, `app/Http/Controllers/PublicRegistrationController.php`, `resources/views/public/registration.blade.php`, `tests/Feature/PublicRegistrationTest.php`
 - Modify: `routes/web.php`, `resources/views/public/events/show.blade.php`
 
 **Interfaces:**
 - Consumes: `Event::acceptsPublicRegistrations()`, `RegistrationRequest`, `RegistrationService::register`, `Competitor::ageOn`.
-- Produces: rutas `public.registration.create` (GET `/eventos/{event:slug}/inscripcion`) y `public.registration.store` (POST); `config('champcontrol.public_form_min_age')`.
+- Produces: rutas `public.registration.create` (GET `/eventos/{event:slug}/inscripcion`) y `public.registration.store` (POST); `config('kumitecontrol.public_form_min_age')`.
 
 - [ ] **Step 1: Tests que fallan** (Review Focus 5)
 
@@ -2515,7 +2515,7 @@ Run: `php artisan test --filter=PublicRegistrationTest` → Expected: FAIL.
 
 - [ ] **Step 2: Config, controlador, rutas, vistas**
 
-`config/champcontrol.php`:
+`config/kumitecontrol.php`:
 
 ```php
 <?php
@@ -2553,7 +2553,7 @@ class PublicRegistrationController extends Controller
         return view('public.registration', [
             'event' => $event,
             'categories' => $event->categories()->orderBy('name')->get(),
-            'minAge' => config('champcontrol.public_form_min_age'),
+            'minAge' => config('kumitecontrol.public_form_min_age'),
         ]);
     }
 
@@ -2565,7 +2565,7 @@ class PublicRegistrationController extends Controller
         $data = $request->validated();
 
         $competitor = new Competitor(['birth_date' => $data['birth_date']]);
-        if ($competitor->ageOn($event->starts_on) < config('champcontrol.public_form_min_age')) {
+        if ($competitor->ageOn($event->starts_on) < config('kumitecontrol.public_form_min_age')) {
             return back()->withInput()->withErrors([
                 'birth_date' => 'Este formulario no admite menores de edad. Contacta con el organizador.',
             ]);
@@ -4685,14 +4685,14 @@ Run: `php artisan test --filter=FirstMilestoneTest` → Expected: PASS (todo est
 2. Retiradas y descalificaciones: **no implementadas**; las bajas con resultados se resuelven manualmente (`RegistrationService::changeStatus` las bloquea).
 3. Una persona en varias categorías del mismo evento: permitido; identidad = nombre+apellidos normalizados+fecha de nacimiento por evento (`Competitor::normalizeName`).
 4. Un único inscrito: sin cuadro ni campeón automático (`BracketGenerator`).
-5. Edad mínima del formulario público (18) — `config/champcontrol.php`.
+5. Edad mínima del formulario público (18) — `config/kumitecontrol.php`.
 6. Correcciones tras finalizar el evento: requieren reabrirlo (`ResultRecorder`).
 
 `docs/menores.md`: antes de habilitar inscripciones de menores hay que definir (a) consentimiento del representante legal y su forma de recogida, (b) datos del representante necesarios y su conservación, (c) base legal y aviso de privacidad aplicable (RGPD/LOPDGDD, edad de consentimiento digital en España: 14 años — **verificar con asesoría legal**), (d) que esos datos nunca se publican. Mientras tanto el formulario público solo admite `PUBLIC_FORM_MIN_AGE` (18) o más en la fecha del evento; el alta manual por el organizador sí admite menores bajo su responsabilidad.
 
 - [ ] **Step 3: README**
 
-`/README.md` (raíz): cambiar «Estado» a «Primera versión implementada en `web/`», y en «Preparación local» sustituir el bloque de instalación por: código en `web/`, `source scripts/dev-env.sh`, `composer install`, `cp .env.example .env`, `php artisan key:generate`, `npm install`, `php artisan migrate`, `npm run dev`; **DocumentRoot de MAMP PRO = `champcontrol/web/public`**. Enlazar `docs/decisiones-pendientes.md` y `docs/menores.md`. `web/README.md`: reducirlo a 10 líneas con el mismo arranque.
+`/README.md` (raíz): cambiar «Estado» a «Primera versión implementada en `web/`», y en «Preparación local» sustituir el bloque de instalación por: código en `web/`, `source scripts/dev-env.sh`, `composer install`, `cp .env.example .env`, `php artisan key:generate`, `npm install`, `php artisan migrate`, `npm run dev`; **DocumentRoot de MAMP PRO = `kumitecontrol/web/public`**. Enlazar `docs/decisiones-pendientes.md` y `docs/menores.md`. `web/README.md`: reducirlo a 10 líneas con el mismo arranque.
 
 - [ ] **Step 4: Verificación final**
 
@@ -4700,7 +4700,7 @@ Run:
 ```bash
 vendor/bin/pint --test && php artisan test && npm run build && php artisan route:list --path=panel | head -50
 ```
-Expected: Pint sin cambios pendientes, **todos los tests PASS**, build de Vite correcto. Revisar visualmente (si el usuario ha configurado `champcontrol.test`): registro → evento → categoría → 5 inscripciones → cuadro → resultados → publicar → página pública en móvil y escritorio, y la vista de impresión.
+Expected: Pint sin cambios pendientes, **todos los tests PASS**, build de Vite correcto. Revisar visualmente (si el usuario ha configurado `kumitecontrol.test`): registro → evento → categoría → 5 inscripciones → cuadro → resultados → publicar → página pública en móvil y escritorio, y la vista de impresión.
 
 - [ ] **Step 5: Commit**
 

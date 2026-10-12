@@ -1,7 +1,7 @@
 // Puntuaciones sin conexión: si el envío falla por falta de internet, la puntuación se guarda en el navegador
 // (localStorage) y se reenvía sola al volver la conexión. El indicador de la barra muestra una nube con check cuando
 // todo está guardado en el servidor y un aviso + nube cuando hay resultados pendientes.
-const KEY = 'champcontrol.pendingScores';
+const KEY = 'kumitecontrol.pendingScores';
 const indicator = document.getElementById('sync-indicator');
 const panel = document.getElementById('sync-panel');
 

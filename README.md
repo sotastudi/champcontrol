@@ -1,4 +1,4 @@
-# ChampControl
+# KumiteControl
 
 Aplicación web ligera para organizar campeonatos de artes marciales: crear eventos y categorías, inscribir competidores, generar cuadros de eliminación, anotar combates y publicar clasificaciones.
 
@@ -6,7 +6,7 @@ Aplicación web ligera para organizar campeonatos de artes marciales: crear even
 
 ## Objetivo y alcance
 
-ChampControl está pensado para organizadores de campeonatos pequeños o medianos que necesitan sustituir hojas de cálculo y cuadros preparados a mano. Cada organizador gestiona sus propios eventos desde una cuenta; el público consulta la información publicada mediante enlaces del evento.
+KumiteControl está pensado para organizadores de campeonatos pequeños o medianos que necesitan sustituir hojas de cálculo y cuadros preparados a mano. Cada organizador gestiona sus propios eventos desde una cuenta; el público consulta la información publicada mediante enlaces del evento.
 
 La primera versión cubre un flujo completo: **crear evento → definir categorías → registrar participantes → cerrar inscripciones → generar cuadros → registrar resultados → publicar podios**. El diseño debe funcionar en ordenador y móvil, con especial atención a las pantallas usadas durante el campeonato.
 
@@ -101,21 +101,37 @@ npm install
 
 `scripts/dev-env.sh` tiene fijadas las rutas de esta máquina (MAMP PHP 8.4.17 y Node 26): hay que editarlo en otro equipo.
 
-Crear una base de datos MySQL vacía y ajustar `web/.env` con los valores reales de MAMP PRO (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `DB_PORT`; `APP_URL=https://champcontrol.test`). Después:
+Crear una base de datos MySQL vacía y ajustar `web/.env` con los valores reales de MAMP PRO (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `DB_PORT`; `APP_URL=https://kumitecontrol.test`). Después:
 
 ```bash
 php artisan migrate
 npm run dev
 ```
 
-En MAMP PRO, crear el host `champcontrol.test` y apuntar el **DocumentRoot a `champcontrol/web/public`**. Activar `mod_rewrite` y permitir las reglas `.htaccess` de Laravel. No mover `public/index.php`. La configuración de correo puede usar `MAIL_MAILER=log` hasta configurar SMTP para recuperar contraseñas.
+En MAMP PRO, crear el host `kumitecontrol.test` y apuntar el **DocumentRoot a `kumitecontrol/web/public`**. Activar `mod_rewrite` y permitir las reglas `.htaccess` de Laravel. No mover `public/index.php`. La configuración de correo puede usar `MAIL_MAILER=log` hasta configurar SMTP para recuperar contraseñas.
 
 Pruebas y estilo: `php artisan test` y `vendor/bin/pint --test`.
 
-Datos de prueba para el sorteo: `php artisan champcontrol:demo-inscritos ID_CATEGORIA --count=12` crea inscritos ficticios (marcados «DEMO») solo con los datos obligatorios; con `--extras` añade club y peso (`--clubs=3` limita los clubes), con `--pending=N` deja N pendientes, con `--seed=1` repite los datos y con `--clean` borra los de prueba. Se niega a actuar en producción (salvo `--force`) y en categorías con resultados o bajas.
+Datos de prueba para el sorteo: `php artisan kumitecontrol:demo-inscritos ID_CATEGORIA --count=12` crea inscritos ficticios (marcados «DEMO») solo con los datos obligatorios; con `--extras` añade club y peso (`--clubs=3` limita los clubes), con `--pending=N` deja N pendientes, con `--seed=1` repite los datos y con `--clean` borra los de prueba. Se niega a actuar en producción (salvo `--force`) y en categorías con resultados o bajas.
 
 ## Despliegue básico en Apache
-El servidor debe tener PHP 8.4 con las extensiones requeridas por Laravel, Composer disponible para instalar dependencias, MySQL, y permisos de escritura para storage/ y bootstrap/cache/. Configurar el host Apache para servir exclusivamente public/, subir el código sin .env, crear un .env propio en el servidor, instalar dependencias con composer install --no-dev, ejecutar las migraciones y compilar los recursos antes o durante el despliegue. Ajustar APP_ENV=production, APP_DEBUG=false, APP_URL con HTTPS y configurar copias de seguridad de base de datos.
+El servidor debe tener PHP 8.4 con las extensiones requeridas por Laravel, MySQL, y permisos de escritura para storage/ y bootstrap/cache/. La URL pública es `https://gimcontrol.com/kumite/`; el DocumentRoot del hosting apunta a `/web/kumite/` (raíz Laravel), y [`web/.htaccess`](web/.htaccess) reescribe a `public/`.
+
+Crear un `.env` propio en el servidor (el deploy no lo sobrescribe). Plantilla: [`web/deploy/.env.production.example`](web/deploy/.env.production.example). Valores clave:
+
+- `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://gimcontrol.com/kumite`
+- `DB_HOST=127.0.0.1` por TCP — **no** poner `DB_SOCKET` (eso es solo MAMP local)
+- En el panel del hosting, el usuario MySQL debe tener privilegios sobre la base (`kc-demo`); sin eso Laravel no puede migrar ni usar sesiones/caché en BD
+- `SESSION_PATH=/kumite`; hasta tener migraciones, `SESSION_DRIVER=file` y `CACHE_STORE=file`
+- Tras el primer deploy: migrar (artisan en el servidor puede fallar si `proc_open` está deshabilitado; en ese caso migrar desde local con PHP 8.4 apuntando al MySQL remoto, o importar el esquema en el panel), `php artisan storage:link` (o `ln -sfn ../storage/app/public public/storage`)
+
+Desde `web/`, copiar `deploy/.env.example` a `deploy/.env` (misma cuenta SSH que gimcontrol) y desplegar a `/web/kumite/`:
+
+```bash
+./deploy/deploy.sh --dry-run
+./deploy/deploy.sh              # npm build + composer --no-dev + rsync
+./deploy/deploy.sh --migrate    # + php artisan migrate --force en remoto
+```
 
 ## Orden de desarrollo
 1. Crear proyecto Laravel, entorno MAMP, estilos básicos y acceso de organizadores.
@@ -133,4 +149,4 @@ Ver [docs/decisiones-pendientes.md](docs/decisiones-pendientes.md) (regla del br
 - Smoothcomp y su explicación de cuadros y resultados: referencia de recorrido del participante y visualización pública.
 - MartialMatch: referencia para inscripciones, cuadros y publicación de resultados.
 - Requisitos y despliegue de Laravel 13 y documentación oficial: referencia para instalación y requisitos del servidor.
-Estos sitios sirven como inspiración funcional; ChampControl comienza con un alcance deliberadamente más reducido.
+Estos sitios sirven como inspiración funcional; KumiteControl comienza con un alcance deliberadamente más reducido.

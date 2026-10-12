@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Campeonatos') · ChampControl</title>
+    <title>@yield('title', 'Campeonatos') · KumiteControl</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('img/brand/light-icon-logo.svg') }}" media="(prefers-color-scheme: light)">
     <link rel="icon" type="image/svg+xml" href="{{ asset('img/brand/dark-icon-logo.svg') }}" media="(prefers-color-scheme: dark)">
     <script>
@@ -127,11 +127,11 @@
 </svg>
 <nav class="navbar navbar-expand-md bg-body border-bottom mb-4">
     <div class="container">
-        <a class="navbar-brand" href="{{ route('home') }}" aria-label="ChampControl">
+        <a class="navbar-brand" href="{{ route('home') }}" aria-label="KumiteControl">
             {{-- Logo horizontal desde tablet (md) hacia arriba; icono en móvil. Claro/oscuro según el tema activo. --}}
-            <img src="{{ asset('img/brand/light-logo-horizontal.svg') }}" alt="ChampControl" height="40" class="brand-logo brand-full brand-light">
+            <img src="{{ asset('img/brand/light-logo-horizontal.svg') }}" alt="KumiteControl" height="40" class="brand-logo brand-full brand-light">
             <img src="{{ asset('img/brand/dark-logo-horizontal.svg') }}" alt="" height="40" class="brand-logo brand-full brand-dark" aria-hidden="true">
-            <img src="{{ asset('img/brand/light-icon-logo.svg') }}" alt="ChampControl" height="36" class="brand-logo brand-icon brand-light">
+            <img src="{{ asset('img/brand/light-icon-logo.svg') }}" alt="KumiteControl" height="36" class="brand-logo brand-icon brand-light">
             <img src="{{ asset('img/brand/dark-icon-logo.svg') }}" alt="" height="36" class="brand-logo brand-icon brand-dark" aria-hidden="true">
         </a>
         <div class="d-flex align-items-center gap-2 ms-auto order-md-last nav-actions">

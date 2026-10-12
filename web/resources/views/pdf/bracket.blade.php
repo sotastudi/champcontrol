@@ -78,7 +78,7 @@
             </div>
         @endif
 
-        <div class="abs foot" style="left: {{ \App\Tournament\PaperBracket::MARGIN }}mm; bottom: 3mm;">ChampControl · Cuadro para rellenar a mano: en la primera ronda constan los nombres; en las siguientes, escribe el número de competidor.</div>
+        <div class="abs foot" style="left: {{ \App\Tournament\PaperBracket::MARGIN }}mm; bottom: 3mm;">KumiteControl · Cuadro para rellenar a mano: en la primera ronda constan los nombres; en las siguientes, escribe el número de competidor.</div>
     </div>
 @endforeach
 </body>

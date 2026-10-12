@@ -65,10 +65,10 @@ class Competitor extends Model
         return $age;
     }
 
-    /** Menor de edad en $date (según `champcontrol.adult_age`). */
+    /** Menor de edad en $date (según `kumitecontrol.adult_age`). */
     public function isMinorOn(CarbonInterface $date): bool
     {
-        return $this->ageOn($date) < config('champcontrol.adult_age');
+        return $this->ageOn($date) < config('kumitecontrol.adult_age');
     }
 
     /** Número de competidor para mostrar (`#12`) o cadena vacía si aún no se ha asignado. */

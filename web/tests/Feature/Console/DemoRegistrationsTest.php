@@ -25,7 +25,7 @@ class DemoRegistrationsTest extends TestCase
     {
         $category = $this->category(['min_age' => 15, 'max_age' => 17]);
 
-        $this->artisan('champcontrol:demo-inscritos', ['category' => $category->id, '--count' => 9, '--pending' => 2])->assertSuccessful();
+        $this->artisan('kumitecontrol:demo-inscritos', ['category' => $category->id, '--count' => 9, '--pending' => 2])->assertSuccessful();
 
         $this->assertSame(9, $category->registrations()->count());
         $this->assertSame(7, $category->registrations()->where('status', RegistrationStatus::Confirmed->value)->count());
@@ -49,34 +49,34 @@ class DemoRegistrationsTest extends TestCase
         $category = $this->category();
         $real = Registration::factory()->forCategory($category)->create();
 
-        $this->artisan('champcontrol:demo-inscritos', ['category' => $category->id, '--count' => 6, '--extras' => true, '--clubs' => 2])->assertSuccessful();
+        $this->artisan('kumitecontrol:demo-inscritos', ['category' => $category->id, '--count' => 6, '--extras' => true, '--clubs' => 2])->assertSuccessful();
         $demo = $category->registrations()->whereHas('competitor', fn ($q) => $q->where('notes', 'DEMO'))->with('competitor')->get();
         $this->assertCount(6, $demo);
         $this->assertSame(2, $demo->pluck('competitor.club')->unique()->count());
         $this->assertNotNull($demo->first()->competitor->weight);
 
-        $this->artisan('champcontrol:demo-inscritos', ['category' => $category->id, '--count' => 4])->assertSuccessful();
+        $this->artisan('kumitecontrol:demo-inscritos', ['category' => $category->id, '--count' => 4])->assertSuccessful();
         $this->assertSame(5, $category->registrations()->count());
         $this->assertTrue(Registration::whereKey($real->id)->exists());
 
-        $this->artisan('champcontrol:demo-inscritos', ['category' => $category->id, '--clean' => true])->assertSuccessful();
+        $this->artisan('kumitecontrol:demo-inscritos', ['category' => $category->id, '--clean' => true])->assertSuccessful();
         $this->assertSame([$real->id], $category->registrations()->pluck('id')->all());
         $this->assertSame(1, Competitor::where('event_id', $category->event_id)->count());
     }
 
     public function test_refuses_locked_categories_unknown_ids_and_production(): void
     {
-        $this->artisan('champcontrol:demo-inscritos', ['category' => 999])->assertFailed();
+        $this->artisan('kumitecontrol:demo-inscritos', ['category' => 999])->assertFailed();
 
         $category = $this->category();
-        $this->artisan('champcontrol:demo-inscritos', ['category' => $category->id, '--count' => 4])->assertSuccessful();
+        $this->artisan('kumitecontrol:demo-inscritos', ['category' => $category->id, '--count' => 4])->assertSuccessful();
         $registration = $category->registrations()->first();
         $registration->forceFill(['withdrawal_type' => 'withdrawn', 'withdrawn_at' => now()])->save();
-        $this->artisan('champcontrol:demo-inscritos', ['category' => $category->id])->assertFailed();
+        $this->artisan('kumitecontrol:demo-inscritos', ['category' => $category->id])->assertFailed();
 
         $this->app['env'] = 'production';
         $other = $this->category();
-        $this->artisan('champcontrol:demo-inscritos', ['category' => $other->id])->assertFailed();
+        $this->artisan('kumitecontrol:demo-inscritos', ['category' => $other->id])->assertFailed();
         $this->assertSame(0, $other->registrations()->count());
     }
 }

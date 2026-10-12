@@ -2,7 +2,7 @@
 
 ## Qué hace ahora el sistema
 
-- **Mayoría de edad configurable:** `ADULT_AGE` (18 por defecto, `config/champcontrol.php`). Es menor quien tiene menos años en la **fecha del evento** (el día del cumpleaños ya cuenta como cumplido).
+- **Mayoría de edad configurable:** `ADULT_AGE` (18 por defecto, `config/kumitecontrol.php`). Es menor quien tiene menos años en la **fecha del evento** (el día del cumpleaños ya cuenta como cumplido).
 - **Formulario público:** admite menores **solo si** se aportan el nombre y el contacto del representante legal y se marca la casilla de consentimiento («Declaro ser el padre, madre o representante legal del menor y consiento su inscripción y el tratamiento de sus datos para este evento.»). Si falta algún dato, la inscripción se rechaza y no se guarda nada. Si el competidor es adulto en la fecha del evento, los datos de representante enviados se descartan.
 - **Qué se guarda:** `guardian_name`, `guardian_contact` y `guardian_consent_at` (fecha y hora en que se marcó la casilla), en el competidor. Si el competidor ya existía en el evento, sus datos no se sobrescriben.
 - **Alta manual del organizador:** admite menores sin exigir datos del representante (el organizador asume la responsabilidad de haber obtenido el consentimiento fuera de la aplicación); puede registrar el nombre, el contacto y, al dar de alta, marcar «El representante ha dado su consentimiento». Los datos del representante pueden editarse después.
