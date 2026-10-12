@@ -18,6 +18,8 @@
         <form method="POST" action="{{ route('public.clubs.store', $event) }}">@csrf
             <button class="btn btn-primary">Registrar mi club en este campeonato</button>
         </form>
+    @elseif ($club->status === \App\Enums\ClubStatus::Invited)
+        <div class="alert alert-info">El organizador ha invitado a <strong>{{ $user->name }}</strong> a este campeonato. <a href="{{ route('panel.invitations.index') }}" class="alert-link">Confirma la invitación</a> para poder inscribir competidores.</div>
     @elseif ($club->status === \App\Enums\ClubStatus::Pending)
         <div class="alert alert-warning">La solicitud de <strong>{{ $user->name }}</strong> está pendiente de aprobación por el organizador. Cuando la acepte podrás inscribir competidores.</div>
     @else

@@ -66,8 +66,7 @@ class ProfileController extends Controller
         ]);
 
         if ($request->hasFile('logo')) {
-            $user->deleteLogo();
-            $user->forceFill(['logo_path' => $request->file('logo')->store('club-logos', 'local')])->save();
+            $user->setLogo($request->file('logo'));
             $message = 'Logo actualizado.';
         } elseif ($request->boolean('remove_logo')) {
             $user->deleteLogo();

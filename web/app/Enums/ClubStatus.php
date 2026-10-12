@@ -8,6 +8,7 @@ enum ClubStatus: string
 {
     use HasOptions;
 
+    case Invited = 'invited';
     case Pending = 'pending';
     case Approved = 'approved';
     case Rejected = 'rejected';
@@ -15,6 +16,7 @@ enum ClubStatus: string
     public function label(): string
     {
         return match ($this) {
+            self::Invited => 'Invitado',
             self::Pending => 'Pendiente',
             self::Approved => 'Aprobado',
             self::Rejected => 'Rechazado',
@@ -24,6 +26,7 @@ enum ClubStatus: string
     public function badgeClass(): string
     {
         return match ($this) {
+            self::Invited => 'text-bg-info',
             self::Pending => 'text-bg-warning',
             self::Approved => 'text-bg-success',
             self::Rejected => 'text-bg-secondary',

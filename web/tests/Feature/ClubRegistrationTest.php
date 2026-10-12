@@ -159,4 +159,59 @@ class ClubRegistrationTest extends TestCase
 
         $this->actingAs(User::factory()->create())->post(route('panel.clubs.store', $event), ['name' => 'Z', 'email' => 'z@example.com', 'password' => 'clave-segura-1'])->assertForbidden();
     }
+
+    public function test_organizer_can_generate_a_password_when_creating_a_club(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->for($owner)->registrationOpen()->create();
+
+        $response = $this->actingAs($owner)->post(route('panel.clubs.store', $event), [
+            'name' => 'Dojo Sur', 'email' => 'sur@example.com', 'generate_password' => '1',
+        ])->assertSessionHasNoErrors();
+
+        $password = session('generated_password.password');
+        $this->assertNotEmpty($password);
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check($password, User::firstWhere('email', 'sur@example.com')->password));
+        $this->get(route('panel.clubs.index', $event))->assertSee($password);
+    }
+
+    public function test_organizer_edits_own_club_account_generates_password_and_uploads_logo(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+        $owner = User::factory()->create();
+        $event = Event::factory()->for($owner)->registrationOpen()->create();
+        $this->actingAs($owner)->post(route('panel.clubs.store', $event), ['name' => 'Dojo Oeste', 'email' => 'oeste@example.com', 'password' => 'clave-segura-1']);
+        $user = User::firstWhere('email', 'oeste@example.com');
+        $club = $user->clubRegistrationFor($event);
+        $old = $user->password;
+
+        $this->put(route('panel.clubs.account', [$event, $club]), [
+            'name' => 'Dojo Oeste 2', 'email' => 'oeste2@example.com', 'generate_password' => '1',
+            'logo' => \Illuminate\Http\UploadedFile::fake()->image('logo.png'),
+        ])->assertSessionHasNoErrors();
+
+        $user->refresh();
+        $this->assertSame('Dojo Oeste 2', $user->name);
+        $this->assertSame('oeste2@example.com', $user->email);
+        $this->assertNotSame($old, $user->password);
+        $this->assertTrue($user->hasLogo());
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check(session('generated_password.password'), $user->password));
+
+        // Sin contraseña ni «generar»: no cambia; con «quitar logo» se borra.
+        $hash = $user->password;
+        $this->put(route('panel.clubs.account', [$event, $club]), ['name' => 'Dojo Oeste 2', 'email' => 'oeste2@example.com', 'remove_logo' => '1']);
+        $this->assertSame($hash, $user->fresh()->password);
+        $this->assertFalse($user->fresh()->hasLogo());
+    }
+
+    public function test_organizer_cannot_edit_accounts_created_by_the_clubs_themselves(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->for($owner)->registrationOpen()->create();
+        $club = $this->clubFor($event);
+
+        $this->actingAs($owner)->put(route('panel.clubs.account', [$event, $club->clubRegistrationFor($event)]), ['name' => 'Hack', 'email' => 'h@example.com', 'generate_password' => '1'])
+            ->assertForbidden();
+        $this->assertNotSame('Hack', $club->fresh()->name);
+    }
 }

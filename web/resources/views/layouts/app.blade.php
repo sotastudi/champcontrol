@@ -194,6 +194,14 @@
     @if (session('status'))
         <div class="alert alert-success">{{ session('status') }}</div>
     @endif
+    @auth
+        @if (auth()->user()->isClubAccount() && ! request()->routeIs('panel.invitations.*') && ($invitationCount = auth()->user()->pendingInvitations()->count()) > 0)
+            <div class="alert alert-info d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span>Tienes {{ $invitationCount }} {{ $invitationCount === 1 ? 'invitación pendiente' : 'invitaciones pendientes' }} para participar en un evento.</span>
+                <a href="{{ route('panel.invitations.index') }}" class="btn btn-sm btn-primary">Ver invitaciones</a>
+            </div>
+        @endif
+    @endauth
     @error('error')
         <div class="alert alert-danger">{{ $message }}</div>
     @enderror

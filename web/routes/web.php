@@ -15,6 +15,7 @@ use App\Http\Controllers\Panel\ClubController;
 use App\Http\Controllers\Panel\CompetitorController;
 use App\Http\Controllers\Panel\EventController;
 use App\Http\Controllers\Panel\ExportController;
+use App\Http\Controllers\Panel\InvitationController;
 use App\Http\Controllers\Panel\ProfileController;
 use App\Http\Controllers\Panel\PublicationController;
 use App\Http\Controllers\Panel\RegistrationController;
@@ -62,6 +63,9 @@ Route::post('salir', [LoginController::class, 'destroy'])->middleware('auth')->n
 Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
     // Token CSRF nuevo para reenviar resultados guardados en local tras estar sin conexión (sesión iniciada).
     Route::get('csrf', fn () => response()->json(['token' => csrf_token()]))->name('csrf');
+    Route::get('invitaciones', [InvitationController::class, 'index'])->name('invitations.index');
+    Route::post('invitaciones/{invitation}/aceptar', [InvitationController::class, 'accept'])->name('invitations.accept');
+    Route::post('invitaciones/{invitation}/rechazar', [InvitationController::class, 'decline'])->name('invitations.decline');
     Route::get('perfil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('perfil/logo', [ProfileController::class, 'logo'])->name('profile.logo.show');
@@ -90,6 +94,10 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::delete('pruebas/inscripciones', [TestDataController::class, 'clean'])->name('test.clean');
         Route::get('clubes', [ClubController::class, 'index'])->name('clubs.index');
         Route::post('clubes', [ClubController::class, 'store'])->name('clubs.store');
+        Route::post('clubes/anadir', [ClubController::class, 'add'])->name('clubs.add');
+        Route::post('clubes/invitar', [ClubController::class, 'invite'])->middleware('throttle:20,1')->name('clubs.invite');
+        Route::post('clubes/{club}/reenviar', [ClubController::class, 'resend'])->middleware('throttle:20,1')->name('clubs.resend');
+        Route::put('clubes/{club}/cuenta', [ClubController::class, 'account'])->name('clubs.account');
         Route::put('clubes/{club}', [ClubController::class, 'update'])->name('clubs.update');
         Route::get('normas.pdf', [EventController::class, 'rules'])->name('events.rules');
         Route::get('poster', [EventController::class, 'poster'])->name('events.poster');

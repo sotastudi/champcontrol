@@ -3,12 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\ClubStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
@@ -49,12 +51,31 @@ class User extends Authenticatable
         return filled($this->logo_path) && Storage::disk('local')->exists($this->logo_path);
     }
 
+    /** Sustituye el logo (borrando el anterior). */
+    public function setLogo(UploadedFile $file): void
+    {
+        $this->deleteLogo();
+        $this->forceFill(['logo_path' => $file->store('club-logos', 'local')])->save();
+    }
+
     public function deleteLogo(): void
     {
         if (filled($this->logo_path)) {
             Storage::disk('local')->delete($this->logo_path);
         }
         $this->forceFill(['logo_path' => null])->save();
+    }
+
+    /** Registros de este club en los campeonatos (cualquier estado). */
+    public function clubRegistrations(): HasMany
+    {
+        return $this->hasMany(EventClub::class);
+    }
+
+    /** Invitaciones de organizadores pendientes de aceptar. */
+    public function pendingInvitations()
+    {
+        return $this->clubRegistrations()->where('status', ClubStatus::Invited->value)->with('event.user');
     }
 
     /** Registro del club en el evento, si lo hay (cualquier estado). */
