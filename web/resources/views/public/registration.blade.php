@@ -9,7 +9,7 @@
         @if (count($roster) === 0)
             <p class="text-muted mb-0">Aún no tienes competidores guardados. <a href="{{ route('panel.athletes.index') }}">Añádelos en «Mis competidores»</a> y podrás agregarlos a una categoría con un clic, sin rellenar el formulario.</p>
         @else
-            <p class="text-muted small">Pulsa en la categoría para inscribir al competidor (queda pendiente de confirmar). Solo se ofrecen las categorías cuyos requisitos cumple; de las demás se indica debajo el motivo.</p>
+            <p class="text-muted small">Pulsa en la categoría para inscribir al competidor (queda pendiente de confirmar). Solo se ofrecen las categorías cuyos requisitos cumple; las demás aparecen apagadas: púlsalas para ver el motivo.</p>
             <div class="list-group list-group-flush">
                 @foreach ($roster as $row)
                     @php $athlete = $row['athlete']; @endphp
@@ -24,21 +24,17 @@
                                         <input type="hidden" name="athlete_id" value="{{ $athlete->id }}"><input type="hidden" name="category_id" value="{{ $option['category']->id }}">
                                         <button class="btn btn-outline-primary btn-sm btn-icon"><svg width="14" height="14" aria-hidden="true"><use href="#plus"/></svg> Agregar a {{ $option['category']->name }}</button>
                                     </form>
+                                @else
+                                    {{-- No disponible: un botón apagado (no «disabled», para poder pulsarlo) que al pulsarse muestra el motivo. --}}
+                                    <button type="button" class="btn btn-outline-secondary btn-sm opacity-50" data-bs-toggle="collapse" data-bs-target="#why-{{ $athlete->id }}-{{ $option['category']->id }}" aria-expanded="false" aria-controls="why-{{ $athlete->id }}-{{ $option['category']->id }}">{{ $option['category']->name }}</button>
                                 @endif
                             @endforeach
                         </div>
-                        @php $blocked = $row['options']->filter(fn ($o) => ! $o['registered'] && $o['problems'] !== []); @endphp
-                        @if ($blocked->isNotEmpty())
-                            @if ($blocked->count() === $row['options']->reject(fn ($o) => $o['registered'])->count())
-                                <div class="small text-danger mt-2">No cumple los requisitos de ninguna categoría disponible:</div>
-                            @else
-                                <div class="small text-muted mt-2">No puede entrar en:</div>
-                            @endif
-                            <ul class="small text-muted mb-0">
-                                @foreach ($blocked as $option)
-                                    <li><strong>{{ $option['category']->name }}</strong>: {{ implode('; ', $option['problems']) }}.</li>
-                                @endforeach
-                            </ul>
+                        @foreach ($row['options']->filter(fn ($o) => ! $o['registered'] && $o['problems'] !== []) as $option)
+                            <div class="collapse small text-danger mt-1" id="why-{{ $athlete->id }}-{{ $option['category']->id }}"><strong>{{ $option['category']->name }}:</strong> no disponible, {{ lcfirst(implode('; ', $option['problems'])) }}.</div>
+                        @endforeach
+                        @if ($row['options']->reject(fn ($o) => $o['registered'])->isNotEmpty() && $row['options']->reject(fn ($o) => $o['registered'])->every(fn ($o) => $o['problems'] !== []))
+                            <div class="small text-muted mt-1">No cumple los requisitos de ninguna categoría disponible (pulsa en cada una para ver el motivo).</div>
                         @endif
                     </div>
                 @endforeach

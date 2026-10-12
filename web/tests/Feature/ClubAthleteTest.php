@@ -67,7 +67,7 @@ class ClubAthleteTest extends TestCase
 
         $this->actingAs($club)->get(route('public.registration.create', $event))
             ->assertSee('Agregar a Senior femenina')->assertDontSee('Agregar a Senior masculina')
-            ->assertSee('No puede entrar en:')->assertSee('Sexo distinto al de la categoría');
+            ->assertSee('data-bs-target="#why-'.$athlete->id.'-'.$men->id.'"', false)->assertSee('no disponible, sexo distinto al de la categoría');
 
         $this->post(route('public.registration.roster', $event), ['athlete_id' => $athlete->id, 'category_id' => $senior->id])->assertSessionHasNoErrors();
         $registration = Registration::firstOrFail();
@@ -154,9 +154,9 @@ class ClubAthleteTest extends TestCase
         $club->athletes()->create($this->payload());
 
         $this->actingAs($club)->get(route('public.registration.create', $event))
-            ->assertSee('No cumple los requisitos de ninguna categoría disponible:')
-            ->assertSee('Infantil')->assertSee('superior al máximo (12)')
-            ->assertSee('Senior masculina')->assertSee('Sexo distinto al de la categoría')
-            ->assertDontSee('pasa el ratón');
+            ->assertSee('No cumple los requisitos de ninguna categoría disponible (pulsa en cada una para ver el motivo)')
+            ->assertSee('no disponible, edad')->assertSee('superior al máximo (12)')
+            ->assertSee('no disponible, sexo distinto al de la categoría')
+            ->assertDontSee('pasa el ratón')->assertDontSee('disabled');
     }
 }
