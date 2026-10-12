@@ -75,7 +75,9 @@ class PublicRegistrationController extends Controller
         $problems = $category->mismatchesFor($athlete->asCompetitor());
 
         if ($athlete->asCompetitor()->isMinorOn($category->event->starts_on) && ! $athlete->hasGuardianConsent()) {
-            $problems[] = 'es menor y faltan los datos o el consentimiento del representante (edítalo en «Mis competidores»)';
+            $problems[] = $athlete->asCompetitor()->isMinorOn(now())
+                ? 'es menor y faltan los datos o el consentimiento del representante (edítalo en «Mis competidores»)'
+                : 'será menor de edad en la fecha del evento y no constan datos de representante: contacta con el organizador para inscribirlo';
         }
 
         return $problems;

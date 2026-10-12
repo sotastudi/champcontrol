@@ -89,6 +89,13 @@ class ClubAthleteController extends Controller
         $consent = (bool) ($data['guardian_consent'] ?? false);
         unset($data['guardian_consent']);
 
+        // Un adulto no tiene representante: los datos enviados se descartan (el formulario los oculta).
+        if (! (new Competitor(['birth_date' => $data['birth_date']]))->isMinorOn(now())) {
+            $data['guardian_name'] = $data['guardian_contact'] = null;
+
+            return [$data, false];
+        }
+
         // La declaración del representante exige sus datos.
         if ($consent && (blank($data['guardian_name'] ?? null) || blank($data['guardian_contact'] ?? null))) {
             throw \Illuminate\Validation\ValidationException::withMessages(['guardian_name' => 'Indica el nombre y el contacto del representante para registrar su consentimiento.']);

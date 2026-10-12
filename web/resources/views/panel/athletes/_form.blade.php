@@ -13,8 +13,8 @@
     <div class="col-md-6"><x-field name="email" type="email" label="Correo electrónico" :value="$athlete?->email" /></div>
     <div class="col-md-6"><x-field name="phone" label="Teléfono" :value="$athlete?->phone" /></div>
 </div>
-<fieldset class="border rounded p-3 mb-3">
-    <legend class="h6 float-none px-2 w-auto">Representante legal (si es menor)</legend>
+<fieldset class="border rounded p-3 mb-3" data-guardian-section>
+    <legend class="h6 float-none px-2 w-auto">Representante legal (obligatorio al ser menor de edad)</legend>
     <div class="row">
         <div class="col-md-6"><x-field name="guardian_name" label="Nombre del representante" :value="$athlete?->guardian_name" /></div>
         <div class="col-md-6"><x-field name="guardian_contact" label="Contacto (teléfono o correo)" :value="$athlete?->guardian_contact" /></div>

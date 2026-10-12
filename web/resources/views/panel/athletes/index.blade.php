@@ -5,7 +5,7 @@
 <p class="text-muted">Guarda aquí los datos de los competidores de tu club una sola vez. En cada campeonato donde tu club esté aprobado podrás agregarlos a su categoría con un clic, siempre que cumplan los requisitos de la categoría.</p>
 
 <button type="button" class="btn btn-primary btn-sm btn-icon mb-3" data-bs-toggle="collapse" data-bs-target="#new-athlete" aria-expanded="{{ $errors->any() ? 'true' : 'false' }}" aria-controls="new-athlete"><svg width="16" height="16" aria-hidden="true"><use href="#plus"/></svg> Nuevo competidor</button>
-<form method="POST" action="{{ route('panel.athletes.store') }}" class="collapse{{ $errors->any() ? ' show' : '' }} mb-4" id="new-athlete">@csrf
+<form method="POST" data-athlete-form data-adult-age="{{ config('kumitecontrol.adult_age', config('champcontrol.adult_age', 18)) }}" action="{{ route('panel.athletes.store') }}" class="collapse{{ $errors->any() ? ' show' : '' }} mb-4" id="new-athlete">@csrf
     <div class="card"><div class="card-body">
         @include('panel.athletes._form')
         <button class="btn btn-primary">Guardar competidor</button>

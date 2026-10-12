@@ -130,4 +130,18 @@ class ClubAthleteTest extends TestCase
         $this->post(route('public.registration.roster', $event), ['athlete_id' => $theirs->id, 'category_id' => $category->id])->assertSessionHasNoErrors();
         $this->assertSame(1, Registration::count());
     }
+
+    public function test_roster_form_hides_the_guardian_section_for_adults_and_discards_their_guardian_data(): void
+    {
+        [, $club] = $this->openEvent();
+        $this->actingAs($club);
+
+        $this->get(route('panel.athletes.index'))->assertSee('data-athlete-form', false)->assertSee('data-guardian-section', false);
+
+        $this->post(route('panel.athletes.store'), $this->payload(['guardian_name' => 'Marta', 'guardian_contact' => 'm@x.test', 'guardian_consent' => '1']))->assertSessionHasNoErrors();
+        $adult = $club->athletes()->firstOrFail();
+        $this->assertNull($adult->guardian_name);
+        $this->assertNull($adult->guardian_contact);
+        $this->assertNull($adult->guardian_consent_at);
+    }
 }
