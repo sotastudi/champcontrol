@@ -24,7 +24,7 @@ enum RegistrationStatus: string
     public function badgeClass(): string
     {
         return match ($this) {
-            self::Pending => 'text-bg-warning',
+            self::Pending => 'text-bg-orange',
             self::Confirmed => 'text-bg-success',
             self::Cancelled => 'text-bg-secondary',
         };

@@ -27,7 +27,7 @@ enum ClubStatus: string
     {
         return match ($this) {
             self::Invited => 'text-bg-info',
-            self::Pending => 'text-bg-warning',
+            self::Pending => 'text-bg-orange',
             self::Approved => 'text-bg-success',
             self::Rejected => 'text-bg-secondary',
         };
