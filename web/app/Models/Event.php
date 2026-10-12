@@ -27,6 +27,9 @@ class Event extends Model
     /** @var array<string,int>|null cache por petición de clubLogoUrl() */
     private ?array $clubLogoIds = null;
 
+    /** @var array<string,string>|null cache por petición de clubColor() */
+    private ?array $clubColors = null;
+
     /** @use HasFactory<EventFactory> */
     use HasFactory;
 
@@ -138,6 +141,30 @@ class Event extends Model
         $id = $this->clubLogoIds[Competitor::normalizeName($club)] ?? null;
 
         return $id ? route('public.clubs.logo', [$this, $id]) : null;
+    }
+
+    /**
+     * Color (#rrggbb) del club en este evento: el que eligió o, si no, uno propuesto de la paleta
+     * (los clubes sin color propio reciben, por orden de alta, colores que ningún otro club use aún). Null si el club no está aprobado.
+     */
+    public function clubColor(?string $club): ?string
+    {
+        if (blank($club)) {
+            return null;
+        }
+
+        if ($this->clubColors === null) {
+            $clubs = $this->clubs()->where('status', 'approved')->with('user')->orderBy('id')->get();
+            $taken = $clubs->map(fn (EventClub $c) => $c->user->club_color)->filter()->map(fn ($c) => strtolower($c))->all();
+            $free = array_values(array_diff(User::CLUB_PALETTE, $taken)) ?: User::CLUB_PALETTE;
+            $this->clubColors = [];
+            $i = 0;
+            foreach ($clubs as $c) {
+                $this->clubColors[Competitor::normalizeName($c->user->name)] = $c->user->club_color ?: $free[$i++ % count($free)];
+            }
+        }
+
+        return $this->clubColors[Competitor::normalizeName($club)] ?? null;
     }
 
     public function acceptsPublicRegistrations(): bool

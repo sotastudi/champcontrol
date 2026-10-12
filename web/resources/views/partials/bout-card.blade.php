@@ -23,7 +23,7 @@
         <div class="slot d-flex justify-content-between gap-2 {{ $registrationId && $registrationId === $bout->winner_id ? 'winner' : '' }}">
             <span class="{{ $registrationId ? '' : 'text-muted fst-italic' }}">
                 @if ($registration?->competitor->bib_number)
-                    <div class="mb-1"><x-bib :competitor="$registration->competitor" /></div>
+                    <div class="mb-1"><x-bib :competitor="$registration->competitor" :event="$event" /></div>
                 @endif
                 @if (! $bout->isBye())
                     <span class="side-chip {{ $slot === 'a' ? 'side-aka' : 'side-shiro' }}" tabindex="0" role="img" aria-label="{{ $slot === 'a' ? 'AKA (rojo)' : 'SHIRO (blanco)' }}"><span class="side-text">{{ $slot === 'a' ? 'AKA' : 'SHIRO' }}</span></span>

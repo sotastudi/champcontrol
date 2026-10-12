@@ -158,8 +158,8 @@
                                 <div class="mb-3 tatami-now">
                                     <a href="{{ route('panel.brackets.show', [$event, $bout->category]) }}" class="text-decoration-none text-body">
                                         <div class="fw-semibold">{{ $bout->category->name }} · Combate {{ $bout->number }}</div>
-                                        <div><span class="side-chip side-aka" role="img" aria-label="AKA (rojo)"></span>{{ $bout->slotA->competitor->displayName() }}<x-bib :competitor="$bout->slotA->competitor" class="ms-1" /></div>
-                                        <div><span class="side-chip side-shiro" role="img" aria-label="SHIRO (blanco)"></span>{{ $bout->slotB->competitor->displayName() }}<x-bib :competitor="$bout->slotB->competitor" class="ms-1" /></div>
+                                        <div><span class="side-chip side-aka" role="img" aria-label="AKA (rojo)"></span>{{ $bout->slotA->competitor->displayName() }}<x-bib :competitor="$bout->slotA->competitor" :event="$event" class="ms-1" /></div>
+                                        <div><span class="side-chip side-shiro" role="img" aria-label="SHIRO (blanco)"></span>{{ $bout->slotB->competitor->displayName() }}<x-bib :competitor="$bout->slotB->competitor" :event="$event" class="ms-1" /></div>
                                     </a>
                                 </div>
                                 @if ($tatami['next']->isNotEmpty())

@@ -115,7 +115,12 @@
                                         </div>
                                     @endif
                                 </div>
-                                <div class="col-md-4 d-flex align-items-end"><button class="btn btn-primary">Guardar</button></div>
+                                <div class="col-md-4">
+                                    <label class="form-label small mb-1" for="club-color-{{ $club->id }}">Color del número</label>
+                                    <input id="club-color-{{ $club->id }}" type="color" name="club_color" value="{{ $club->user->club_color ?? $event->clubColor($club->user->name) ?? '#0072b2' }}" class="form-control form-control-color" oninput="document.getElementById('club-auto-{{ $club->id }}').checked = false">
+                                    <div class="form-check mt-1"><input type="checkbox" class="form-check-input" id="club-auto-{{ $club->id }}" name="auto_color" value="1" @checked(! $club->user->club_color)><label class="form-check-label small" for="club-auto-{{ $club->id }}">Color automático</label></div>
+                                </div>
+                                <div class="col-12"><button class="btn btn-primary">Guardar</button></div>
                             </form>
                         </td>
                     </tr>

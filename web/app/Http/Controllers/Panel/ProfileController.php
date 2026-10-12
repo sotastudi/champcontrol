@@ -77,4 +77,16 @@ class ProfileController extends Controller
 
         return redirect()->route('panel.profile.edit')->with('status', $message);
     }
+
+    /** Fija el color del club (para colorear el número de sus participantes) o vuelve al color automático. */
+    public function updateColor(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        abort_unless($user->isClubAccount(), 403);
+
+        $data = $request->validate(['club_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'], 'auto_color' => ['boolean']]);
+        $user->forceFill(['club_color' => $request->boolean('auto_color') ? null : (strtolower($data['club_color'] ?? '') ?: null)])->save();
+
+        return redirect()->route('panel.profile.edit')->with('status', 'Color del club actualizado.');
+    }
 }

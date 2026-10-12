@@ -80,6 +80,7 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
     Route::put('perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('perfil/logo', [ProfileController::class, 'logo'])->name('profile.logo.show');
     Route::put('perfil/logo', [ProfileController::class, 'updateLogo'])->name('profile.logo');
+    Route::put('perfil/color', [ProfileController::class, 'updateColor'])->name('profile.color');
     Route::put('perfil/contrasena', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1')->name('profile.password');
     Route::get('eventos', [EventController::class, 'index'])->name('events.index');
     Route::get('eventos/crear', [EventController::class, 'create'])->name('events.create');

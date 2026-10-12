@@ -83,9 +83,14 @@ class ClubController extends Controller
             'generate_password' => ['boolean'],
             'logo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'remove_logo' => ['boolean'],
+            'club_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'auto_color' => ['boolean'],
         ]);
 
         $user->forceFill(['name' => $data['name'], 'email' => $data['email']]);
+        if ($request->boolean('auto_color') || $request->has('club_color')) {
+            $user->forceFill(['club_color' => $request->boolean('auto_color') ? null : (strtolower($data['club_color'] ?? '') ?: null)]);
+        }
         $generated = null;
         if ($request->boolean('generate_password')) {
             $user->forceFill(['password' => $generated = $this->newPassword()]);

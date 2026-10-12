@@ -38,7 +38,7 @@
                         <img src="{{ $clubLogo }}" alt="Logo de {{ $registration->competitor->club }}" class="club-logo club-logo-corner" loading="lazy">
                     @endif
                     @if ($registration->competitor->bib_number)
-                        <div class="mb-2"><x-bib :competitor="$registration->competitor" class="bib-tag-lg" /></div>
+                        <div class="mb-2"><x-bib :competitor="$registration->competitor" :event="$event" class="bib-tag-lg" /></div>
                     @endif
                     <div class="fs-5 fw-semibold d-flex align-items-center gap-2">
                         <span class="side-chip {{ $slot === 'a' ? 'side-aka' : 'side-shiro' }}" tabindex="0" role="img" aria-label="{{ $slot === 'a' ? 'AKA (rojo)' : 'SHIRO (blanco)' }}"><span class="side-text">{{ $slot === 'a' ? 'AKA' : 'SHIRO' }}</span></span>
