@@ -7,15 +7,22 @@ use App\Enums\RegistrationStatus;
 use App\Enums\Sex;
 use App\Models\Category;
 use App\Models\Competitor;
+use App\Enums\ClubStatus;
 use App\Models\Event;
+use App\Models\EventClub;
+use App\Models\User;
 use App\Models\Registration;
 use App\Support\MartialLevels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /** Categorías e inscripciones ficticias para probar un evento marcado como «Test». Los inscritos llevan la nota «DEMO». */
 final class TestDataGenerator
 {
     public const MARK = 'DEMO';
+
+    /** Dominio de los correos de las cuentas de club ficticias (no existe: nadie puede entrar con ellas). */
+    public const CLUB_EMAIL_DOMAIN = '@demo.kumitecontrol.invalid';
 
     public const MAX_CATEGORIES = 20;
 
@@ -69,6 +76,7 @@ final class TestDataGenerator
         $clubNames = $this->clubNames(max(1, $clubs));
 
         DB::transaction(function () use ($category, $participants, $clubNames, $confirmed) {
+            self::ensureClubs($category->event, $clubNames);
             for ($i = 0; $i < $participants; $i++) {
                 $competitor = (new Competitor($this->competitorData($category, $clubNames[$i % count($clubNames)])))->forceFill(['event_id' => $category->event_id]);
                 $competitor->save();
@@ -110,7 +118,45 @@ final class TestDataGenerator
             $removed += $registrations->count();
         }
 
+        self::pruneClubs($event);
+
         return $removed;
+    }
+
+    /**
+     * Da de alta, aprobados en el evento, los clubes ficticios (cuenta de club con correo @demo...invalid, creada por el organizador)
+     * para que salgan en «Clubes» con su color. Si ya hay un club con ese nombre, solo se registra en el evento.
+     *
+     * @param  list<string>  $names
+     */
+    public static function ensureClubs(Event $event, array $names): void
+    {
+        foreach ($names as $name) {
+            $user = User::where('role', 'club')->where('name', $name)->first();
+            if (! $user) {
+                $user = (new User(['name' => $name, 'email' => Str::slug($name).self::CLUB_EMAIL_DOMAIN, 'password' => Str::random(32)]));
+                $user->forceFill(['role' => 'club', 'created_by_user_id' => $event->user_id])->save();
+            }
+            $event->clubs()->firstOrCreate(['user_id' => $user->id], ['status' => ClubStatus::Approved]);
+        }
+    }
+
+    /** Quita del evento los clubes ficticios que ya no tienen inscritos, y sus cuentas si no están en ningún otro evento. */
+    public static function pruneClubs(Event $event): void
+    {
+        $used = Competitor::where('event_id', $event->id)->pluck('club')->filter()->map(fn ($c) => Competitor::normalizeName($c))->all();
+
+        $event->clubs()->whereHas('user', fn ($q) => $q->where('email', 'like', '%'.self::CLUB_EMAIL_DOMAIN))->with('user')->get()
+            ->each(function (EventClub $club) use ($used) {
+                if (in_array(Competitor::normalizeName($club->user->name), $used, true)) {
+                    return;
+                }
+                $user = $club->user;
+                $club->delete();
+                if (! EventClub::where('user_id', $user->id)->exists()) {
+                    $user->delete();
+                }
+            });
     }
 
     /** @return list<array<string,mixed>> */

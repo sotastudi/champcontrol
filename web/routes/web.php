@@ -108,6 +108,7 @@ Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
         Route::post('clubes/invitar', [ClubController::class, 'invite'])->middleware('throttle:20,1')->name('clubs.invite');
         Route::post('clubes/{club}/reenviar', [ClubController::class, 'resend'])->middleware('throttle:20,1')->name('clubs.resend');
         Route::put('clubes/{club}/cuenta', [ClubController::class, 'account'])->name('clubs.account');
+        Route::put('clubes/{club}/color', [ClubController::class, 'color'])->name('clubs.color');
         Route::put('clubes/{club}', [ClubController::class, 'update'])->name('clubs.update');
         Route::get('normas.pdf', [EventController::class, 'rules'])->name('events.rules');
         Route::get('poster', [EventController::class, 'poster'])->name('events.poster');

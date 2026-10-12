@@ -165,4 +165,4 @@
 /* Logo del club junto a su nombre en las vistas de tatami. */
 .club-name { display: inline-flex; align-items: center; gap: .4rem; }
 .club-logo { height: 1.5rem; width: auto; max-width: 3rem; object-fit: contain; border-radius: .2rem; }
-.tatami-bout .club-logo { height: 2.25rem; max-width: 4.5rem; }
+.tatami-bout .club-logo-corner { position: absolute; top: .75rem; right: .75rem; height: 3.5rem; max-width: 6rem; }

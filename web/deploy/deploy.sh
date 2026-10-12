@@ -9,16 +9,19 @@ DRY_RUN=0
 SKIP_BUILD=0
 SKIP_COMPOSER=0
 DO_MIGRATE=0
+DO_CLEANCACHE=0
 STAGE=""
 
 usage() {
   cat <<'EOF'
-Usage: ./deploy/deploy.sh [--dry-run] [--skip-build] [--skip-composer] [--migrate]
+Usage: ./deploy/deploy.sh [--dry-run] [--skip-build] [--skip-composer] [--migrate] [--cleancache]
 
 Reads SSH_* and REMOTE_PATH from deploy/.env (not committed).
 By default: npm run build, composer --no-dev in a temp staging dir (local
 vendor/ untouched), then rsync to REMOTE_PATH.
 Protects remote .env and storage/ from overwrite/delete.
+--cleancache runs php artisan config:clear, route:clear, view:clear and
+event:clear on the server (needed after renaming/adding config files).
 EOF
 }
 
@@ -35,6 +38,7 @@ while [[ $# -gt 0 ]]; do
     --skip-build) SKIP_BUILD=1; shift ;;
     --skip-composer) SKIP_COMPOSER=1; shift ;;
     --migrate) DO_MIGRATE=1; shift ;;
+    --cleancache) DO_CLEANCACHE=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage; exit 1 ;;
   esac
@@ -152,6 +156,17 @@ if [[ "$DO_MIGRATE" -eq 1 ]]; then
     echo "==> php artisan migrate --force"
     ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
       "cd $(printf '%q' "${REMOTE_PATH%/}") && php artisan migrate --force"
+  fi
+fi
+
+if [[ "$DO_CLEANCACHE" -eq 1 ]]; then
+  CLEAR_CMD="php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan event:clear"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "==> clean cache (would run: $CLEAR_CMD)"
+  else
+    echo "==> clean cache"
+    ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+      "cd $(printf '%q' "${REMOTE_PATH%/}") && $CLEAR_CMD"
   fi
 fi
 

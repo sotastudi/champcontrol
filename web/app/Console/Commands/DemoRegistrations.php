@@ -7,6 +7,7 @@ use App\Enums\Sex;
 use App\Models\Category;
 use App\Models\Competitor;
 use App\Models\Registration;
+use App\Registrations\TestDataGenerator;
 use App\Support\MartialLevels;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -71,6 +72,7 @@ class DemoRegistrations extends Command
         $clubs = array_slice(self::CLUBS, 0, max(1, min(count(self::CLUBS), (int) $this->option('clubs'))));
 
         DB::transaction(function () use ($category, $count, $pending, $clubs) {
+            TestDataGenerator::ensureClubs($category->event, $clubs);
             for ($i = 0; $i < $count; $i++) {
                 $competitor = (new Competitor($this->data($category, $i, $clubs)))->forceFill(['event_id' => $category->event_id]);
                 $competitor->save();
@@ -129,6 +131,7 @@ class DemoRegistrations extends Command
             Registration::whereIn('id', $registrations->pluck('id'))->delete();
             Competitor::whereIn('id', $competitorIds)->where('notes', self::MARK)->doesntHave('registrations')->delete();
         });
+        TestDataGenerator::pruneClubs($category->event);
 
         return $registrations->count();
     }
