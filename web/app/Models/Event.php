@@ -166,12 +166,12 @@ class Event extends Model
     /** Reglas del campeonato: nunca null (tras create() el atributo puede estar sin refrescar y la BD aplica el DEFAULT). */
     public function dqPodiumRule(): DisqualifiedPodiumRule
     {
-        return $this->dq_podium_rule ?? DisqualifiedPodiumRule::Vacant;
+        return $this->dq_podium_rule ?? DisqualifiedPodiumRule::ShiftUp;
     }
 
     public function unfoughtWithdrawalRule(): UnfoughtWithdrawalRule
     {
-        return $this->unfought_withdrawal_rule ?? UnfoughtWithdrawalRule::KeepPlace;
+        return $this->unfought_withdrawal_rule ?? UnfoughtWithdrawalRule::NoPlace;
     }
 
     /** Número de tatamis del evento (mínimo 1; tras create() el atributo puede estar sin refrescar). */
