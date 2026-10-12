@@ -26,6 +26,13 @@ abstract class TestCase extends BaseTestCase
         return $user;
     }
 
+    /** Deja el evento listo para generar cuadros desde el panel: inscripciones cerradas y números de competidor asignados. */
+    protected function readyForBrackets(Event $event): void
+    {
+        $event->update(['status' => \App\Enums\EventStatus::RegistrationClosed]);
+        app(\App\Registrations\BibNumberAssigner::class)->assign($event);
+    }
+
     protected function setUp(): void
     {
         parent::setUp();

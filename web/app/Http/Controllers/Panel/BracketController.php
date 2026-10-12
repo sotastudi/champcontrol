@@ -16,7 +16,7 @@ use Illuminate\View\View;
 
 class BracketController extends Controller
 {
-    public function show(Event $event, Category $category, PodiumCalculator $podium): View
+    public function show(Event $event, Category $category, PodiumCalculator $podium, BracketGenerator $generator): View
     {
         $bouts = $category->bouts()->with(['slotA.competitor', 'slotB.competitor', 'winner'])->get();
 
@@ -34,12 +34,17 @@ class BracketController extends Controller
             'canWithdraw' => $bouts->isNotEmpty() && ($locked
                 || ($event->preResultsWithdrawalRule() === PreResultsWithdrawalRule::AllowWalkover && ! $stale)),
             'regenerationLocked' => $locked,
+            'readinessProblem' => $generator->readinessProblem($category),
             'canRecord' => $locked || ! $stale,
         ]);
     }
 
     public function store(Event $event, Category $category, BracketGenerator $generator): RedirectResponse
     {
+        if ($problem = $generator->readinessProblem($category)) {
+            return back()->withErrors(['error' => $problem]);
+        }
+
         try {
             $generator->generate($category);
         } catch (TournamentException $e) {

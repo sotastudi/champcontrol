@@ -59,6 +59,7 @@ class FirstMilestoneTest extends TestCase
             $this->get(route('panel.competitors.edit', [$event, $competitor]))->assertOk()->assertSee($values['iso']);
         }
 
+        $this->readyForBrackets($event);
         $this->post(route('panel.brackets.store', [$event, $category]))->assertSessionHasNoErrors();
         // Como mucho un participante suelto por ronda: uno en la primera ronda y otro en la segunda.
         $this->assertSame(2, $category->bouts()->where('required_participants', 1)->where('is_bronze', false)->count(), 'cinco competidores → dos pases');
