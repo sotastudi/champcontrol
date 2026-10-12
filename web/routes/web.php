@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\HelpController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Panel\BoutResultController;
 use App\Http\Controllers\Panel\BoutScoreController;
@@ -32,6 +33,7 @@ use App\Http\Middleware\EnsureResultsAccess;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+Route::get('ayuda', HelpController::class)->name('help');
 Route::get('eventos/{event:slug}', [PublicEventController::class, 'show'])->name('public.events.show');
 Route::get('eventos/{event:slug}/poster', [PublicEventController::class, 'poster'])->name('public.events.poster');
 Route::get('eventos/{event:slug}/clubes/{club}/logo', [PublicEventController::class, 'clubLogo'])->scopeBindings()->name('public.clubs.logo');

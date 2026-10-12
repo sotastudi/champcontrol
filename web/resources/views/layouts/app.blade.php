@@ -84,6 +84,10 @@
         <path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M15 8l4 4-4 4M19 12H9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
+    <symbol id="help" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/>
+        <path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.25c-.75.4-1.1.9-1.1 1.75M12 17h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
     <symbol id="eye" viewBox="0 0 24 24">
         <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
         <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.7"/>
@@ -147,6 +151,9 @@
             </button>
             <div id="sync-panel" class="card shadow-sm d-none no-print" role="dialog" aria-label="Resultados pendientes de sincronizar"></div>
         @endauth
+            <a class="btn btn-outline-secondary btn-sm d-flex align-items-center" href="{{ route('help') }}" aria-label="Ayuda" title="Ayuda">
+                <svg width="18" height="18" aria-hidden="true"><use href="#help"/></svg>
+            </a>
             <div class="dropdown">
                 <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" id="theme-menu" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tema de color">
                     <svg class="theme-icon theme-icon-light" width="18" height="18" aria-hidden="true"><use href="#bulb-on"/></svg>
@@ -221,7 +228,7 @@
             incluidos los registros e inscripciones realizados.
         </p>
         <p class="mb-0">
-            Web by <a href="https://sotastudi.com" target="_blank" rel="noopener" class="link-secondary">sotastudi</a>
+            <a href="{{ route('help') }}" class="link-secondary">Ayuda</a> · Web by <a href="https://sotastudi.com" target="_blank" rel="noopener" class="link-secondary">sotastudi</a>
             · v{{ config('app.version') }}@if (config('app.version_stage')) ({{ config('app.version_stage') }})@endif
         </p>
     </div>
