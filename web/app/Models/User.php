@@ -66,6 +66,12 @@ class User extends Authenticatable
         $this->forceFill(['logo_path' => null])->save();
     }
 
+    /** Competidores del plantel del club. */
+    public function athletes(): HasMany
+    {
+        return $this->hasMany(ClubAthlete::class);
+    }
+
     /** Registros de este club en los campeonatos (cualquier estado). */
     public function clubRegistrations(): HasMany
     {

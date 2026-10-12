@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ClubStatus;
+use App\Enums\RegistrationStatus;
 use App\Http\Requests\PublicRegistrationRequest;
+use App\Models\Category;
+use App\Models\ClubAthlete;
 use App\Models\Competitor;
 use App\Models\Event;
 use App\Models\EventClub;
+use App\Models\Registration;
 use App\Registrations\RegistrationException;
 use App\Registrations\RegistrationService;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +21,7 @@ use Illuminate\View\View;
 class PublicRegistrationController extends Controller
 {
     /** Formulario para clubes con el registro aprobado; el resto ve en qué paso está (iniciar sesión, registrar el club, esperar la aprobación). */
-    public function create(Request $request, Event $event): View
+    public function create(Request $request, Event $event, RegistrationService $service): View
     {
         abort_unless($event->acceptsPublicRegistrations(), 404);
 
@@ -28,11 +32,65 @@ class PublicRegistrationController extends Controller
             return view('public.registration-club', ['event' => $event, 'user' => $user, 'club' => $club]);
         }
 
+        $categories = $event->categories()->orderBy('name')->get();
+
         return view('public.registration', [
             'event' => $event,
             'clubName' => $user->name,
-            'categories' => $event->categories()->orderBy('name')->get(),
+            'categories' => $categories,
+            'roster' => $this->roster($user, $event, $categories, $service),
         ]);
+    }
+
+    /**
+     * Agrega un competidor del plantel del club a una categoría del evento, sin rellenar el formulario, si cumple sus requisitos.
+     */
+    public function fromRoster(Request $request, Event $event, RegistrationService $service): RedirectResponse
+    {
+        abort_unless($event->acceptsPublicRegistrations(), 404);
+        $user = $request->user();
+        abort_unless($user->isClubAccount() && $user->clubRegistrationFor($event)?->isApproved(), 403);
+
+        $data = $request->validate(['athlete_id' => ['required', 'integer'], 'category_id' => ['required', 'integer']]);
+        $athlete = $user->athletes()->findOrFail($data['athlete_id']);
+        $category = $event->categories()->findOrFail($data['category_id']);
+
+        $problems = $this->problems($athlete, $category);
+        if ($problems !== []) {
+            return back()->withErrors(['error' => $athlete->displayName().' no puede entrar en «'.$category->name.'»: '.implode('; ', $problems).'.']);
+        }
+
+        try {
+            $service->register($category, $athlete->registrationData($user->name));
+        } catch (RegistrationException) {
+            return back()->withErrors(['error' => 'No hemos podido completar la inscripción. Si ya inscribiste a este competidor en esa categoría, contacta con el organizador.']);
+        }
+
+        return back()->with('status', $athlete->displayName().' agregado a «'.$category->name.'». El organizador confirmará la inscripción.');
+    }
+
+    /** Motivos por los que un competidor del plantel no puede agregarse a la categoría (vacío si cumple). @return list<string> */
+    private function problems(ClubAthlete $athlete, Category $category): array
+    {
+        $problems = $category->mismatchesFor($athlete->asCompetitor());
+
+        if ($athlete->asCompetitor()->isMinorOn($category->event->starts_on) && ! $athlete->hasGuardianConsent()) {
+            $problems[] = 'es menor y faltan los datos o el consentimiento del representante (edítalo en «Mis competidores»)';
+        }
+
+        return $problems;
+    }
+
+    /** Plantel del club con, por competidor, las categorías a las que puede agregarse y en las que ya está inscrito. */
+    private function roster($user, Event $event, $categories, RegistrationService $service): array
+    {
+        return $user->athletes()->orderBy('last_name')->orderBy('first_name')->get()->map(function (ClubAthlete $athlete) use ($event, $categories, $service, $user) {
+            $competitor = $service->findCompetitor($event, $athlete->registrationData($user->name));
+            $registered = $competitor ? Registration::where('competitor_id', $competitor->id)->where('status', '!=', RegistrationStatus::Cancelled->value)->pluck('category_id')->all() : [];
+            $options = $categories->map(fn (Category $c) => ['category' => $c, 'problems' => $this->problems($athlete, $c), 'registered' => in_array($c->id, $registered, true)]);
+
+            return ['athlete' => $athlete, 'options' => $options];
+        })->all();
     }
 
     /** El club pide participar en el campeonato; el organizador debe aprobarlo antes de que pueda inscribir. */

@@ -11,6 +11,7 @@ use App\Http\Controllers\Panel\BoutScoreController;
 use App\Http\Controllers\Panel\BracketController;
 use App\Http\Controllers\Panel\BracketPdfController;
 use App\Http\Controllers\Panel\CategoryController;
+use App\Http\Controllers\Panel\ClubAthleteController;
 use App\Http\Controllers\Panel\ClubController;
 use App\Http\Controllers\Panel\CompetitorController;
 use App\Http\Controllers\Panel\EventController;
@@ -42,6 +43,8 @@ Route::get('eventos/{event:slug}/categorias/{category}', [PublicCategoryControll
     ->middleware(EnsureResultsAccess::class)->scopeBindings()->name('public.categories.show');
 Route::post('eventos/{event:slug}/inscripcion', [PublicRegistrationController::class, 'store'])
     ->middleware(['auth', 'throttle:10,1'])->name('public.registration.store');
+Route::post('eventos/{event:slug}/inscripcion/plantel', [PublicRegistrationController::class, 'fromRoster'])
+    ->middleware(['auth', 'throttle:30,1'])->name('public.registration.roster');
 Route::post('eventos/{event:slug}/club', [PublicRegistrationController::class, 'joinClub'])
     ->middleware(['auth', 'throttle:10,1'])->name('public.clubs.store');
 
@@ -63,6 +66,11 @@ Route::post('salir', [LoginController::class, 'destroy'])->middleware('auth')->n
 Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
     // Token CSRF nuevo para reenviar resultados guardados en local tras estar sin conexión (sesión iniciada).
     Route::get('csrf', fn () => response()->json(['token' => csrf_token()]))->name('csrf');
+    Route::get('competidores', [ClubAthleteController::class, 'index'])->name('athletes.index');
+    Route::post('competidores', [ClubAthleteController::class, 'store'])->name('athletes.store');
+    Route::get('competidores/{athlete}/editar', [ClubAthleteController::class, 'edit'])->name('athletes.edit');
+    Route::put('competidores/{athlete}', [ClubAthleteController::class, 'update'])->name('athletes.update');
+    Route::delete('competidores/{athlete}', [ClubAthleteController::class, 'destroy'])->name('athletes.destroy');
     Route::get('invitaciones', [InvitationController::class, 'index'])->name('invitations.index');
     Route::post('invitaciones/{invitation}/aceptar', [InvitationController::class, 'accept'])->name('invitations.accept');
     Route::post('invitaciones/{invitation}/rechazar', [InvitationController::class, 'decline'])->name('invitations.decline');
