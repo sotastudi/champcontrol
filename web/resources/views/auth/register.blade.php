@@ -11,5 +11,6 @@
         <button class="btn btn-primary w-100">Crear cuenta</button>
     </form>
     <p class="mt-3 mb-0">¿Ya tienes cuenta? <a href="{{ route('login') }}">Iniciar sesión</a></p>
+    <p class="mb-0">¿Eres un club y quieres inscribir competidores? <a href="{{ route('register.club') }}">Registrar mi club</a></p>
 </div>
 @endsection

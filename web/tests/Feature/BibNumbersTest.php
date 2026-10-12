@@ -35,7 +35,7 @@ class BibNumbersTest extends TestCase
         $alfa2 = $this->competitor($event, $a, 'Vidal', 'Ana', 'dojo alfa ');
         $alfa1 = $this->competitor($event, $a, 'Álvarez', 'Pau', 'Dojo Alfa');
         $none = $this->competitor($event, $a, 'Aaa', 'Sin', null);
-        $pending = $this->competitor($event, $a, 'Pend', 'Iente', 'Dojo Alfa', 'pending');
+        $cancelled = $this->competitor($event, $a, 'Canc', 'Elada', 'Dojo Alfa', 'cancelled');
         // Mismo competidor en otra categoría: un único número.
         Registration::factory()->create(['category_id' => $b->id, 'competitor_id' => $alfa1->id, 'status' => 'confirmed']);
 
@@ -45,7 +45,26 @@ class BibNumbersTest extends TestCase
         $this->assertSame(2, $alfa2->fresh()->bib_number);
         $this->assertSame(3, $zeta1->fresh()->bib_number);
         $this->assertSame(4, $none->fresh()->bib_number, 'sin club al final');
-        $this->assertNull($pending->fresh()->bib_number);
+        $this->assertNull($cancelled->fresh()->bib_number);
+    }
+
+    public function test_numbers_cannot_be_assigned_while_registrations_are_pending(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->for($user)->create(['status' => EventStatus::RegistrationClosed]);
+        $category = Category::factory()->for($event)->create();
+        $confirmed = $this->competitor($event, $category, 'Roca', 'Lia', 'Club X');
+        $pending = $this->competitor($event, $category, 'Mora', 'Teo', 'Club X', 'pending');
+
+        $this->actingAs($user)->get(route('panel.events.show', $event))->assertSee('Quedan 1 inscripción pendiente')->assertSee('Ver pendientes');
+        $this->post(route('panel.events.bibs', $event))->assertSessionHasErrors('error');
+        $this->assertNull($confirmed->fresh()->bib_number);
+
+        // Aprobada (o cancelada) la última pendiente, ya se pueden asignar.
+        $pending->registrations()->firstOrFail()->update(['status' => 'confirmed']);
+        $this->post(route('panel.events.bibs', $event))->assertSessionHasNoErrors();
+        $this->assertNotNull($confirmed->fresh()->bib_number);
+        $this->get(route('panel.events.show', $event))->assertDontSee('Quedan');
     }
 
     public function test_reassigning_renumbers_from_scratch_and_it_requires_closed_registration(): void

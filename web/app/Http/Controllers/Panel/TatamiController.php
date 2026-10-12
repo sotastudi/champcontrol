@@ -35,6 +35,7 @@ class TatamiController extends Controller
         return view('panel.tatamis.show', [
             'event' => $event,
             'tatami' => $state,
+            'sequence' => $sequence,
             'bout' => $bout,
             'isCurrent' => $bout && $state['now'] && $bout->id === $state['now']->id,
             // Anterior: siempre que haya; siguiente: solo hasta llegar al combate actual.

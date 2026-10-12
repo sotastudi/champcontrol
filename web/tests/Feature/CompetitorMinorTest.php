@@ -26,7 +26,7 @@ class CompetitorMinorTest extends TestCase
 
     public function test_is_minor_on_uses_the_adult_age_config(): void
     {
-        config(['champcontrol.adult_age' => 21]);
+        config(['kumitecontrol.adult_age' => 21]);
 
         $this->assertTrue($this->competitor('2008-11-20')->isMinorOn(Carbon::parse('2026-11-20')));
         $this->assertFalse($this->competitor('2005-11-20')->isMinorOn(Carbon::parse('2026-11-20')));

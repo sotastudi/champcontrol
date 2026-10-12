@@ -12,7 +12,26 @@ class PublicRegistrationRequest extends RegistrationRequest
         // 404 (no 403) antes de validar: no revela si un evento privado o cerrado existe.
         abort_unless($this->route('event')->acceptsPublicRegistrations(), 404);
 
+        // No hay inscripciones a título personal: solo un club con el registro aprobado en este evento.
+        abort_unless($this->approvedClubName() !== null, 403);
+
         return true;
+    }
+
+    /** El club de la inscripción es siempre el de la cuenta, aunque el formulario envíe otro. */
+    protected function prepareForValidation(): void
+    {
+        if (($club = $this->approvedClubName()) !== null) {
+            $this->merge(['club' => $club]);
+        }
+    }
+
+    private function approvedClubName(): ?string
+    {
+        $user = $this->user();
+        $registration = $user?->isClubAccount() ? $user->clubRegistrationFor($this->route('event')) : null;
+
+        return $registration?->isApproved() ? $user->name : null;
     }
 
     public function rules(): array

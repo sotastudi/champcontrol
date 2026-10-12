@@ -19,7 +19,7 @@ class CategoryTest extends TestCase
     private function payload(array $o = []): array
     {
         return array_merge([
-            'name' => 'Sub-18 -60kg', 'modality' => 'Combate', 'sex' => 'male', 'min_age' => 15, 'max_age' => 17,
+            'name' => 'Sub-18 -60kg', 'modality' => 'kumite', 'sex' => 'male', 'min_age' => 15, 'max_age' => 17,
             'min_weight' => 55, 'max_weight' => 60, 'level' => '5º kyu',
             'bronze_rule' => 'bronze_match', 'show_fourth' => '1',
         ], $o);

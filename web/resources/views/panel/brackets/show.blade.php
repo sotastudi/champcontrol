@@ -4,6 +4,9 @@
 @php
     $participants = $bouts->where('round', 1)->where('is_bronze', false)->flatMap(fn ($b) => [$b->slotA, $b->slotB])->filter()->unique('id');
 @endphp
+@if ($readinessProblem && ! $regenerationLocked)
+    <div class="alert alert-warning no-print">{{ $readinessProblem }} <a href="{{ route('panel.events.show', $event) }}" class="alert-link">Ir al evento</a></div>
+@endif
 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div>
         <a href="{{ route('panel.events.show', $event) }}" class="small">&larr; {{ $event->name }}</a>
@@ -20,11 +23,15 @@
     </div>
     <div class="d-flex gap-2 flex-wrap no-print">
         @unless ($regenerationLocked)
+            @if ($readinessProblem)
+                <button type="button" class="btn btn-primary" disabled>{{ $bouts->isEmpty() ? 'Generar cuadro' : 'Regenerar cuadro' }}</button>
+            @else
             <form method="POST" action="{{ route('panel.brackets.store', [$event, $category]) }}"
                   @if ($bouts->isNotEmpty()) onsubmit="return confirm('Se descartará el cuadro actual y se generará uno nuevo. ¿Continuar?')" @endif>
                 @csrf
                 <button type="submit" class="btn btn-primary">{{ $bouts->isEmpty() ? 'Generar cuadro' : 'Regenerar cuadro' }}</button>
             </form>
+            @endif
         @endunless
         @if ($bouts->isNotEmpty() || $category->is_published)
             <form method="POST" action="{{ route('panel.categories.publication', [$event, $category]) }}">

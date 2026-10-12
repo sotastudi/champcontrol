@@ -9,6 +9,7 @@ Desktop.ini
 .idea/
 .vscode/
 .zed/
+.cursor/*
 .nova/
 *.swp
 *.swo

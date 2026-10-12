@@ -8,15 +8,22 @@
         <div class="mt-2">
             <span class="badge text-bg-secondary">{{ $event->status->label() }}</span>
             <span class="badge text-bg-{{ $event->is_public ? 'success' : 'light' }}">{{ $event->is_public ? 'Público' : 'Privado' }}</span>
+            @if ($event->is_test)<span class="badge text-bg-warning">Test</span>@endif
         </div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
         <a href="{{ route('panel.registrations.index', $event) }}" class="btn btn-primary">Inscripciones</a>
-        <form method="POST" action="{{ route('panel.events.bibs', $event) }}"
-              onsubmit="return confirm('Se asignarán (o reasignarán) los números de competidor agrupando por club. ¿Continuar?')">
-            @csrf
-            <button type="submit" class="btn btn-blue">Asignar números de competidor</button>
-        </form>
+        @php $pendingClubs = $event->clubs()->where('status', 'pending')->count(); @endphp
+        <a href="{{ route('panel.clubs.index', $event) }}" class="btn btn-outline-primary">Clubes @if ($pendingClubs)<span class="badge text-bg-orange">{{ $pendingClubs }}</span>@endif</a>
+        @if ($bibsProblem)
+            <button type="button" class="btn btn-blue" disabled>Asignar números de competidor</button>
+        @else
+            <form method="POST" action="{{ route('panel.events.bibs', $event) }}"
+                  onsubmit="return confirm('Se asignarán (o reasignarán) los números de competidor agrupando por club. ¿Continuar?')">
+                @csrf
+                <button type="submit" class="btn btn-blue">Asignar números de competidor</button>
+            </form>
+        @endif
         <a href="{{ route('panel.exports.standings', $event) }}" class="btn btn-outline-secondary">Exportar clasificación (CSV)</a>
         <a href="{{ route('panel.events.edit', $event) }}" class="btn btn-yellow btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#pencil"/></svg> Editar</a>
         @if ($event->isListed())
@@ -29,6 +36,9 @@
         </form>
     </div>
 </div>
+@if ($bibsProblem && $event->status->value !== 'draft')
+    <div class="alert alert-warning no-print">{{ $bibsProblem }} <a href="{{ route('panel.registrations.index', ['event' => $event, 'status' => 'pending']) }}" class="alert-link">Ver pendientes</a></div>
+@endif
 @if ($event->description)<p style="white-space: pre-line">{{ $event->description }}</p>@endif
 
 <section id="acceso" class="mb-4">
@@ -42,6 +52,10 @@
     </div>
     <p class="text-muted small mt-1 mb-0">Se genera con el evento. El público lo necesita para ver cuadros, resultados y tatamis; tú decides a quién dárselo. Tú y tus controladores de tatami no lo necesitáis.</p>
 </section>
+
+@if ($event->is_test)
+    @include('panel.events._test-data')
+@endif
 
 <section id="categorias" class="mb-4">
     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -60,7 +74,7 @@
                         <td>{{ $category->name }}@if ($category->tatami)<div><span class="badge text-bg-secondary">Tatami {{ $category->tatami }}</span></div>@endif</td>
                         <td class="text-muted small">
                             {{ collect([
-                                $category->modality,
+                                $category->modalityEnum()->label(),
                                 $category->sex?->label(),
                                 ($category->min_age !== null || $category->max_age !== null) ? 'Edad '.($category->min_age ?? '…').'–'.($category->max_age ?? '…') : null,
                                 ($category->min_weight !== null || $category->max_weight !== null) ? 'Peso '.($category->min_weight ?? '…').'–'.($category->max_weight ?? '…').' kg' : null,
@@ -70,7 +84,9 @@
                         </td>
                         <td class="text-center"><a href="{{ route('panel.registrations.index', ['event' => $event, 'category_id' => $category->id]) }}">{{ $category->confirmed_count }}</a></td>
                         <td class="text-end">
-                            <a href="{{ route('panel.brackets.show', [$event, $category]) }}" class="btn btn-blue btn-sm btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#sitemap"/></svg> Cuadro</a>
+                            @if ($category->modalityEnum()->hasBracket())
+                                <a href="{{ route('panel.brackets.show', [$event, $category]) }}" class="btn btn-blue btn-sm btn-icon"><svg width="16" height="16" aria-hidden="true"><use href="#sitemap"/></svg> Cuadro</a>
+                            @endif
                             @if ($category->is_published && $event->isListed())
                                 <a href="{{ route('public.categories.show', [$event, $category]) }}" class="btn btn-outline-secondary btn-sm btn-icon" title="Ver página pública" aria-label="Ver página pública"><svg width="16" height="16" aria-hidden="true"><use href="#eye"/></svg> Ver</a>
                             @endif

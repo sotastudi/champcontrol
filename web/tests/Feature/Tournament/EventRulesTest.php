@@ -122,9 +122,10 @@ class EventRulesTest extends TestCase
         $this->assertSame([1, 2, 2], $this->places($category));
     }
 
-    public function test_unfought_withdrawal_keeps_its_place_by_default(): void
+    public function test_unfought_withdrawal_keeps_its_place_with_the_keep_place_rule(): void
     {
         [$category, $s1, $s2] = $this->fourWithUnfoughtWithdrawal(BronzeRule::BronzeMatch);
+        $this->rules($category, ['unfought_withdrawal_rule' => 'keep_place']);
 
         $this->assertSame([1, 2, 3, 4], $this->places($category));
         $withdrawn = collect(app(PodiumCalculator::class)->for($category))->firstWhere('withdrawn', true);
@@ -200,8 +201,8 @@ class EventRulesTest extends TestCase
     {
         $event = new Event;
 
-        $this->assertSame(DisqualifiedPodiumRule::Vacant, $event->dqPodiumRule());
-        $this->assertSame(UnfoughtWithdrawalRule::KeepPlace, $event->unfoughtWithdrawalRule());
+        $this->assertSame(DisqualifiedPodiumRule::ShiftUp, $event->dqPodiumRule());
+        $this->assertSame(UnfoughtWithdrawalRule::NoPlace, $event->unfoughtWithdrawalRule());
         $this->assertSame(BronzeRule::BronzeMatch, $event->defaultBronzeRule());
         $this->assertSame(PreResultsWithdrawalRule::CancelAndRegenerate, $event->preResultsWithdrawalRule());
     }

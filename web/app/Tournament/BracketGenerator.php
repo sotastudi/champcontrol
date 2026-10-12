@@ -3,6 +3,7 @@
 namespace App\Tournament;
 
 use App\Enums\BronzeRule;
+use App\Enums\EventStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\Bout;
 use App\Models\Category;
@@ -19,8 +20,39 @@ final class BracketGenerator
      *
      * @throws TournamentException
      */
+    /**
+     * Motivo por el que aún no se puede generar el cuadro desde el panel, o null si está listo: hay que cerrar las
+     * inscripciones y asignar los números de competidor a todos los confirmados de la categoría. Con menos de dos
+     * confirmados no se comprueba (generate() explica que no hay cuadro que hacer).
+     */
+    public function readinessProblem(Category $category): ?string
+    {
+        $confirmed = $category->registrations()->where('status', RegistrationStatus::Confirmed->value)->with('competitor')->get();
+        if ($confirmed->count() < 2) {
+            return null;
+        }
+
+        $event = $category->event;
+        if (! in_array($event->status, [EventStatus::RegistrationClosed, EventStatus::InProgress, EventStatus::Finished], true)) {
+            return 'Cierra las inscripciones del evento (estado «Inscripciones cerradas» o «En curso») antes de generar el cuadro.';
+        }
+
+        $without = $confirmed->filter(fn ($registration) => $registration->competitor->bib_number === null)->count();
+        if ($without > 0) {
+            return $without === $confirmed->count()
+                ? 'Asigna los números de competidor del evento antes de generar el cuadro.'
+                : "Hay {$without} inscritos confirmados sin número de competidor: vuelve a asignar los números del evento antes de generar el cuadro.";
+        }
+
+        return null;
+    }
+
     public function generate(Category $category, ?Closure $shuffler = null): void
     {
+        if (! $category->modalityEnum()->hasBracket()) {
+            throw new TournamentException('La modalidad «'.$category->modalityEnum()->label().'» no tiene cuadro: se gestiona solo con las inscripciones.');
+        }
+
         if ($category->isRegenerationLocked()) {
             throw new TournamentException('Hay resultados o bajas registradas: el cuadro ya no se puede regenerar.');
         }

@@ -92,11 +92,12 @@ class CompetitorPhotoTest extends TestCase
         $event = Event::factory()->create(['is_public' => true, 'registration_form_enabled' => true, 'status' => EventStatus::RegistrationOpen, 'starts_on' => '2026-11-20']);
         $category = Category::factory()->for($event)->create();
 
-        $this->post(route('public.registration.store', $event), $this->data($category, ['photo' => UploadedFile::fake()->image('f.jpg')]))->assertSessionHasNoErrors();
+        $this->actingAs($this->clubFor($event))->post(route('public.registration.store', $event), $this->data($category, ['photo' => UploadedFile::fake()->image('f.jpg')]))->assertSessionHasNoErrors();
         $competitor = Competitor::firstOrFail();
         Storage::disk('local')->assertExists($competitor->photo_path);
 
         $this->get(route('public.events.show', $event))->assertDontSee($competitor->photo_path);
+        auth()->logout();
         $this->get(route('panel.competitors.photo', [$event, $competitor]))->assertRedirect(route('login'));
     }
 

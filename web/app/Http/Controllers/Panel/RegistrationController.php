@@ -64,6 +64,20 @@ class RegistrationController extends Controller
         return redirect()->route('panel.registrations.index', $event)->with('status', 'Inscripción registrada.');
     }
 
+    /** Confirma todas las inscripciones pendientes que coinciden con el filtro actual (categoría, estado y búsqueda). */
+    public function confirmAll(Request $request, Event $event): RedirectResponse
+    {
+        $filters = $request->only('category_id', 'status', 'q');
+
+        $ids = $event->registrations()->filter($filters)
+            ->where('registrations.status', RegistrationStatus::Pending->value)->pluck('registrations.id');
+
+        Registration::whereIn('id', $ids)->update(['status' => RegistrationStatus::Confirmed->value]);
+
+        return redirect()->route('panel.registrations.index', ['event' => $event] + $filters)
+            ->with('status', $ids->isEmpty() ? 'No había inscripciones pendientes con ese filtro.' : "Inscripciones confirmadas: {$ids->count()}.");
+    }
+
     public function update(Request $request, Event $event, Registration $registration, RegistrationService $service): RedirectResponse
     {
         $data = $request->validate(['status' => ['required', Rule::enum(RegistrationStatus::class)]]);

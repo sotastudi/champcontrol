@@ -42,7 +42,7 @@
                         <span class="text-break">{{ $registration->competitor->displayName() }}</span>
                         @if ($winner)<span class="badge text-bg-success">Ganador</span>@endif
                     </div>
-                    <div class="text-muted{{ $registration->competitor->club ? '' : ' fst-italic' }} mb-3">{{ $registration->competitor->club ?: 'Sin club' }}</div>
+                    <div class="text-muted{{ $registration->competitor->club ? '' : ' fst-italic' }} mb-3">@if ($registration->competitor->club)<x-club-name :club="$registration->competitor->club" :event="$event" />@else Sin club @endif</div>
                     @include('partials.score-participant-controls')
                 </div>
             </div>

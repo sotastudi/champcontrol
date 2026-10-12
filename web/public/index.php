@@ -5,6 +5,10 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+// Subdirectory deploy under /kumite: make pathInfo relative to APP_URL path.
+$_SERVER['SCRIPT_NAME'] = '/kumite/index.php';
+$_SERVER['PHP_SELF'] = '/kumite/index.php';
+
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
     require $maintenance;

@@ -20,6 +20,9 @@ class EventFactory extends Factory
             'status' => EventStatus::Draft,
             'is_public' => false,
             'registration_form_enabled' => false,
+            // Los tests de clasificación parten de la regla clásica; los valores por defecto reales se prueban en EventTest.
+            'dq_podium_rule' => 'vacant',
+            'unfought_withdrawal_rule' => 'keep_place',
         ];
     }
 

@@ -20,10 +20,13 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'discipline', 'description', 'starts_on', 'start_time', 'venue', 'status', 'is_public', 'registration_form_enabled',
+#[Fillable(['name', 'discipline', 'description', 'starts_on', 'start_time', 'venue', 'status', 'is_public', 'registration_form_enabled', 'is_test',
     'dq_podium_rule', 'unfought_withdrawal_rule', 'default_bronze_rule', 'withdrawal_before_results_rule', 'draw_criteria', 'registration_opens_at', 'registration_closes_at', 'tatami_count', 'rules_text'])]
 class Event extends Model
 {
+    /** @var array<string,int>|null cache por petición de clubLogoUrl() */
+    private ?array $clubLogoIds = null;
+
     /** @use HasFactory<EventFactory> */
     use HasFactory;
 
@@ -33,6 +36,7 @@ class Event extends Model
             'starts_on' => 'date',
             'status' => EventStatus::class,
             'is_public' => 'boolean',
+            'is_test' => 'boolean',
             'registration_form_enabled' => 'boolean',
             'dq_podium_rule' => DisqualifiedPodiumRule::class,
             'unfought_withdrawal_rule' => UnfoughtWithdrawalRule::class,
@@ -115,6 +119,27 @@ class Event extends Model
         return $this->is_public && $this->status !== EventStatus::Draft;
     }
 
+    public function clubs(): HasMany
+    {
+        return $this->hasMany(EventClub::class);
+    }
+
+    /** URL del logo del club en este evento (club aprobado con logo, por nombre sin distinguir mayúsculas ni acentos), o null. */
+    public function clubLogoUrl(?string $club): ?string
+    {
+        if (blank($club)) {
+            return null;
+        }
+
+        $this->clubLogoIds ??= $this->clubs()->where('status', 'approved')->with('user')->get()
+            ->filter(fn (EventClub $c) => $c->user->hasLogo())
+            ->mapWithKeys(fn (EventClub $c) => [Competitor::normalizeName($c->user->name) => $c->id])->all();
+
+        $id = $this->clubLogoIds[Competitor::normalizeName($club)] ?? null;
+
+        return $id ? route('public.clubs.logo', [$this, $id]) : null;
+    }
+
     public function acceptsPublicRegistrations(): bool
     {
         return $this->isListed()
@@ -161,12 +186,12 @@ class Event extends Model
     /** Reglas del campeonato: nunca null (tras create() el atributo puede estar sin refrescar y la BD aplica el DEFAULT). */
     public function dqPodiumRule(): DisqualifiedPodiumRule
     {
-        return $this->dq_podium_rule ?? DisqualifiedPodiumRule::Vacant;
+        return $this->dq_podium_rule ?? DisqualifiedPodiumRule::ShiftUp;
     }
 
     public function unfoughtWithdrawalRule(): UnfoughtWithdrawalRule
     {
-        return $this->unfought_withdrawal_rule ?? UnfoughtWithdrawalRule::KeepPlace;
+        return $this->unfought_withdrawal_rule ?? UnfoughtWithdrawalRule::NoPlace;
     }
 
     /** Número de tatamis del evento (mínimo 1; tras create() el atributo puede estar sin refrescar). */

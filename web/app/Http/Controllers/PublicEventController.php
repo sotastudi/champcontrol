@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\EventClub;
 use App\Support\ResultsAccess;
 use App\Tournament\PodiumCalculator;
 use App\Tournament\TatamiBoard;
@@ -84,5 +85,18 @@ class PublicEventController extends Controller
         abort_unless($event->isListed() && $event->hasRulesPdf(), 404);
 
         return Storage::disk('local')->download($event->rules_pdf_path, $event->rules_pdf_name ?: 'normas.pdf', ['X-Content-Type-Options' => 'nosniff']);
+    }
+
+    /** Logo de un club aprobado en el evento: público si el evento está listado; si no, solo para su propietario y controladores de tatami. */
+    public function clubLogo(Request $request, Event $event, EventClub $club): StreamedResponse
+    {
+        abort_unless($club->event_id === $event->id && $club->isApproved(), 404);
+
+        $user = $request->user();
+        $allowed = $event->isListed()
+            || ($user && ((int) $event->user_id === (int) $user->id || $event->operators()->where('user_id', $user->id)->exists()));
+        abort_unless($allowed && $club->user->hasLogo(), 404);
+
+        return Storage::disk('local')->response($club->user->logo_path, null, ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => $event->isListed() ? 'public, max-age=3600' : 'private, max-age=600']);
     }
 }

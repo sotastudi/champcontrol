@@ -123,11 +123,11 @@ class EventTest extends TestCase
         $this->actingAs(User::factory()->create())->post(route('panel.events.store'), $this->payload())->assertRedirect();
 
         $event = Event::firstOrFail()->fresh();
-        $this->assertSame('vacant', $event->getRawOriginal('dq_podium_rule'));
-        $this->assertSame('keep_place', $event->getRawOriginal('unfought_withdrawal_rule'));
+        $this->assertSame('shift_up', $event->getRawOriginal('dq_podium_rule'));
+        $this->assertSame('no_place', $event->getRawOriginal('unfought_withdrawal_rule'));
         $this->assertSame('bronze_match', $event->getRawOriginal('default_bronze_rule'));
         $this->assertSame('cancel_and_regenerate', $event->getRawOriginal('withdrawal_before_results_rule'));
-        $this->assertSame(DisqualifiedPodiumRule::Vacant, $event->dqPodiumRule());
+        $this->assertSame(DisqualifiedPodiumRule::ShiftUp, $event->dqPodiumRule());
     }
 
     public function test_edit_form_shows_the_four_selects_with_the_saved_values(): void

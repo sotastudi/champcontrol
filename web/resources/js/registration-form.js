@@ -1,9 +1,10 @@
 // Formularios de inscripción/edición de competidor: el bloque del representante legal solo aparece
 // cuando hay fecha de nacimiento y el competidor es menor en la fecha del evento, y se avisa si no encaja en la categoría.
-const form = document.querySelector('form[data-registration-form]');
+// En el formulario del plantel del club (`data-athlete-form`) no hay evento: se usa la fecha de hoy.
+const form = document.querySelector('form[data-registration-form], form[data-athlete-form]');
 
 if (form) {
-    const eventDate = form.dataset.eventDate;
+    const eventDate = form.dataset.eventDate || new Date().toISOString().slice(0, 10);
     const adultAge = parseInt(form.dataset.adultAge, 10);
     const categories = JSON.parse(form.dataset.categories || '{}');
     const birth = form.querySelector('[name="birth_date"]');

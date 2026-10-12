@@ -57,14 +57,19 @@ final class RegistrationService
     }
 
     /** Identidad del competidor dentro del evento: nombre y apellidos normalizados + fecha de nacimiento. */
-    private function findOrCreateCompetitor(Event $event, array $data): Competitor
+    public function findCompetitor(Event $event, array $data): ?Competitor
     {
         $first = Competitor::normalizeName($data['first_name']);
         $last = Competitor::normalizeName($data['last_name']);
 
-        $existing = $event->competitors()->whereDate('birth_date', $data['birth_date'])->get()
+        return $event->competitors()->whereDate('birth_date', $data['birth_date'])->get()
             ->first(fn (Competitor $c) => Competitor::normalizeName($c->first_name) === $first
                 && Competitor::normalizeName($c->last_name) === $last);
+    }
+
+    private function findOrCreateCompetitor(Event $event, array $data): Competitor
+    {
+        $existing = $this->findCompetitor($event, $data);
 
         if ($existing) {
             return $existing; // los datos de un competidor existente no se sobrescriben

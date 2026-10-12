@@ -41,7 +41,11 @@ class OrganizerIsolationTest extends TestCase
             if (! str_starts_with($route->uri(), 'panel/eventos/{event}')) {
                 $this->assertContains(
                     $route->methods()[0].' '.$route->uri(),
-                    ['GET panel/csrf', 'GET panel/eventos', 'GET panel/eventos/crear', 'POST panel/eventos'],
+                    ['GET panel/csrf', 'GET panel/eventos', 'GET panel/eventos/crear', 'POST panel/eventos',
+                        'GET panel/perfil', 'PUT panel/perfil', 'PUT panel/perfil/contrasena',
+                        'GET panel/perfil/logo', 'PUT panel/perfil/logo',
+                        'GET panel/competidores', 'POST panel/competidores', 'GET panel/competidores/{athlete}/editar', 'PUT panel/competidores/{athlete}', 'DELETE panel/competidores/{athlete}',
+                        'GET panel/invitaciones', 'POST panel/invitaciones/{invitation}/aceptar', 'POST panel/invitaciones/{invitation}/rechazar'],
                     'Ruta del panel fuera de panel/eventos/{event} sin comprobación de propiedad: '.$route->uri(),
                 );
 
@@ -78,10 +82,12 @@ class OrganizerIsolationTest extends TestCase
 
         $bout = Bout::create(['category_id' => $category->id, 'round' => 1, 'position' => 1]);
 
+        $club = \App\Models\EventClub::create(['event_id' => $event->id, 'user_id' => User::factory()->create()->id]);
+
         $operator = $event->operators()->create(['user_id' => User::factory()->create()->id, 'tatami' => 1]);
 
         return [
-            'event' => $event->id, 'category' => $category->id, 'bout' => $bout->id, 'tatami' => 1, 'operator' => $operator->id,
+            'event' => $event->id, 'category' => $category->id, 'bout' => $bout->id, 'tatami' => 1, 'operator' => $operator->id, 'club' => $club->id,
             'registration' => $registration->id, 'competitor' => $registration->competitor_id,
         ];
     }

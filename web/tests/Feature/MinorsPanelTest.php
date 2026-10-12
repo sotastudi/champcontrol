@@ -155,7 +155,7 @@ class MinorsPanelTest extends TestCase
             ->assertSee('data-registration-form', false)->assertSee('data-guardian-section', false);
 
         $event->forceFill(['is_public' => true, 'registration_form_enabled' => true, 'status' => EventStatus::RegistrationOpen])->save();
-        $this->get(route('public.registration.create', $event))
+        $this->actingAs($this->clubFor($event))->get(route('public.registration.create', $event))
             ->assertSee('data-guardian-section', false)->assertSee('&quot;max_weight&quot;:40', false);
     }
 }

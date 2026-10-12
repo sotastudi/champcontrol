@@ -19,6 +19,7 @@ class BracketPanelTest extends TestCase
         $user = User::factory()->create();
         $category = Category::factory()->for(Event::factory()->for($user))->create();
         Registration::factory()->count($n)->confirmed()->forCategory($category)->create();
+        $this->readyForBrackets($category->event);
 
         return [$user, $category->event, $category];
     }
@@ -161,5 +162,33 @@ class BracketPanelTest extends TestCase
         $this->followingRedirects()->actingAs($user)->from($show)
             ->put(route('panel.bouts.result', [$event, $category, $bout]), ['winner_id' => 'abc'])
             ->assertSee('alert-danger', false);
+    }
+
+    public function test_bracket_is_not_generated_until_registrations_are_closed_and_numbers_assigned(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->for(Event::factory()->for($user)->registrationOpen())->create();
+        Registration::factory()->count(4)->confirmed()->forCategory($category)->create();
+        $event = $category->event;
+
+        // Inscripciones abiertas.
+        $this->actingAs($user)->get(route('panel.brackets.show', [$event, $category]))->assertOk()->assertSee('Cierra las inscripciones del evento');
+        $this->post(route('panel.brackets.store', [$event, $category]))->assertSessionHasErrors('error');
+        $this->assertSame(0, $category->bouts()->count());
+
+        // Cerradas pero sin números.
+        $event->update(['status' => \App\Enums\EventStatus::RegistrationClosed]);
+        $this->get(route('panel.brackets.show', [$event, $category]))->assertSee('Asigna los números de competidor');
+        $this->post(route('panel.brackets.store', [$event, $category]))->assertSessionHasErrors('error');
+        $this->assertSame(0, $category->bouts()->count());
+
+        // Con números asignados ya se genera; un confirmado nuevo sin número vuelve a bloquear la regeneración.
+        app(\App\Registrations\BibNumberAssigner::class)->assign($event);
+        $this->post(route('panel.brackets.store', [$event, $category]))->assertSessionHasNoErrors();
+        $this->assertGreaterThan(0, $category->bouts()->count());
+
+        Registration::factory()->confirmed()->forCategory($category)->create();
+        $this->post(route('panel.brackets.store', [$event, $category]))->assertSessionHasErrors('error');
+        $this->get(route('panel.brackets.show', [$event, $category]))->assertSee('1 inscritos confirmados sin número');
     }
 }

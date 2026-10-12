@@ -1,7 +1,7 @@
 @php($category ??= null)
 @php($defaultBronzeRule ??= 'bronze_match')
 <x-field name="name" label="Nombre" :value="$category?->name" required />
-<x-field name="modality" label="Modalidad" :value="$category?->modality" />
+<x-select name="modality" label="Modalidad" :options="\App\Enums\Modality::options()" :value="$category?->modalityEnum()->value ?? 'kumite'" required />
 <x-select name="sex" label="Sexo" :options="\App\Enums\Sex::options()" :value="$category?->sex?->value" placeholder="Mixta / sin restricción" />
 <div class="row">
     <div class="col-md-6"><x-field name="min_age" type="number" label="Edad mínima" :value="$category?->min_age" min="0" max="120" /></div>

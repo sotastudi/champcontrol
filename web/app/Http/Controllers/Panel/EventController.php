@@ -22,6 +22,12 @@ class EventController extends Controller
     {
         // Una cuenta de controlador con un único tatami va directa a él.
         $user = $request->user();
+        // Una cuenta de club no gestiona eventos: ve aquellos a los que está vinculado (confirmados, pendientes o invitaciones).
+        if ($user->isClubAccount()) {
+            return view('panel.events.club-index', [
+                'links' => $user->clubRegistrations()->with('event.user')->get()->sortByDesc(fn ($link) => $link->event->starts_on)->values(),
+            ]);
+        }
         if ($user->isTatamiAccount() && ($operations = $user->tatamiOperations()->get())->count() === 1) {
             return redirect()->route('panel.tatamis.show', [$operations[0]->event_id, $operations[0]->tatami]);
         }
@@ -34,14 +40,14 @@ class EventController extends Controller
 
     public function create(Request $request): View
     {
-        abort_if($request->user()->isTatamiAccount(), 403);
+        abort_if($request->user()->isTatamiAccount() || $request->user()->isClubAccount(), 403);
 
         return view('panel.events.create');
     }
 
     public function store(EventRequest $request): RedirectResponse
     {
-        abort_if($request->user()->isTatamiAccount(), 403);
+        abort_if($request->user()->isTatamiAccount() || $request->user()->isClubAccount(), 403);
 
         $event = $request->user()->events()->create($request->safe()->except(['poster', 'remove_poster', 'rules_pdf', 'remove_rules_pdf']));
         $this->savePoster($request, $event);
@@ -49,13 +55,14 @@ class EventController extends Controller
         return redirect()->route('panel.events.show', $event)->with('status', 'Evento creado.');
     }
 
-    public function show(Event $event, TatamiBoard $board): View
+    public function show(Event $event, TatamiBoard $board, BibNumberAssigner $bibs): View
     {
         return view('panel.events.show', [
             'event' => $event->load(['operators.user', 'categories' => fn ($q) => $q->orderBy('name')->withCount([
                 'registrations as confirmed_count' => fn ($r) => $r->where('status', RegistrationStatus::Confirmed->value),
             ])]),
             'tatamis' => $board->for($event),
+            'bibsProblem' => $bibs->blockingProblem($event),
         ]);
     }
 
