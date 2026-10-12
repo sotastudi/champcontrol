@@ -1,35 +1,77 @@
 # PROYECTO KUMITECONTROL
 
 ## A. Descripción
-KumiteControl es una aplicación web para la gestión de eventos de artes marciales, principalmente campeonatos de combates (KUMITE).
+
+KumiteControl es una aplicación web para gestionar campeonatos de artes marciales (kumite): eventos, categorías, inscripciones, cuadros de eliminación y resultados.
+
+El código Laravel está en `web/`. Detalle funcional en [`docs/README.md`](docs/README.md).
 
 ## B. Stack tecnológico utilizado
-- Laravel
-- NPM
-- PHP
-- MYSQL
-- Javascript
-- CSS
-- HTML
-- GitHub
-- IDE: Cursor, VSCode
-- ADE: OpenCode, Claude (desde terminal)
-- Terminal, SSH con servidor propio CDmon
-- Servidor local: MAMP PRO (desarrollo y test)
-- Sublime Merge: Git
-- FTP: Transmit / Ferry
 
-## C. Información sobre su instalación y ejecución.
+**Stack:** Laravel 13, PHP 8.4, MySQL, Blade, Bootstrap 5.3, Vite, JavaScript, Composer, npm.
 
-## D. Estructura del proyecto.
+**Entorno y herramientas:** MAMP PRO (local), CDmon (producción: SSH/FTP), GitHub, Cursor/VSCode, Sublime Merge, Transmit/Ferry, asistentes IA (Claude, OpenCode).
 
-## E. Funcionalidades principales.
+## C. Información sobre su instalación y ejecución
 
-- Usuarios con distintos Roles: Organizador, Club, Controlador de Tatami.
-- Entidades: Evento, Categoria, Participante
-- Frontend: para mostrar los eventos pasados, en curso y los futurios (con opción a inscripción).
-- Creación automática de cuadros de enfrentamiento según las reglas definidas en la categoría.
-- Cada club puede dar de alta a sus competidores y después inscribirlos a los eventos a los que está confirmado.
-- Los asistentes del público podrán ver los resultados en directo, mediatne un código que facilitará el organizador.
-- Los controladores podran anotar los resultados del combate según las decisiones de los jueces.
+Desde `web/`:
 
+```bash
+source scripts/dev-env.sh
+composer install
+cp .env.example .env
+php artisan key:generate
+npm install
+# Configurar MySQL en .env (APP_URL, DB_*)
+php artisan migrate
+npm run dev
+```
+
+En MAMP PRO, el DocumentRoot debe apuntar a `web/public`.
+
+Comandos diarios y deploy: [`web/README.md`](web/README.md). Preparación local ampliada: [`docs/README.md`](docs/README.md).
+
+## D. Estructura del proyecto
+
+```
+kumitecontrol/
+├── web/                         # Aplicación Laravel
+│   ├── app/
+│   │   ├── Enums/               # Estados y reglas de dominio
+│   │   ├── Http/                # Controllers, Middleware, Requests
+│   │   ├── Models/              # Eloquent (Event, Category, Bout…)
+│   │   ├── Tournament/          # Cuadros, puntuación, podio, tatamis
+│   │   ├── Registrations/       # Lógica de inscripciones
+│   │   ├── Policies/            # Autorización por rol
+│   │   ├── Support/             # Ayuda, CSV y utilidades
+│   │   └── Notifications/       # Notificaciones
+│   ├── database/                # Migrations, seeders, factories
+│   ├── resources/
+│   │   ├── views/
+│   │   │   ├── public/          # Portada, eventos y resultados públicos
+│   │   │   ├── panel/           # Panel (eventos, cuadros, tatamis…)
+│   │   │   ├── auth/            # Login, registro, contraseña
+│   │   │   ├── layouts/         # Plantillas base
+│   │   │   └── pdf/             # Plantillas PDF del cuadro
+│   │   ├── css/                 # Estilos (Vite)
+│   │   └── js/                  # JavaScript (Vite)
+│   ├── routes/web.php           # Rutas HTTP
+│   ├── public/                  # DocumentRoot (MAMP / producción)
+│   ├── tests/                   # Feature y Unit
+│   ├── lang/es/                 # Traducciones
+│   ├── deploy/                  # Deploy a CDmon
+│   └── scripts/                 # Entorno local (dev-env.sh)
+├── docs/                        # Especificación y decisiones
+├── assets/                      # Recursos gráficos
+└── README.md                    # Este documento
+```
+
+## E. Funcionalidades principales
+
+- Roles: Organizador, Club, Controlador de tatami; el visitante consulta lo publicado.
+- Entidades: Evento, Categoría, Competidor, Inscripción, Combate.
+- Portada pública con eventos pasados, en curso y futuros (con inscripción si aplica).
+- Cada club gestiona su plantel e inscribe competidores en los eventos en los que está aprobado.
+- Generación de cuadros de eliminación según las reglas de la categoría.
+- El público ve resultados en directo con un código de acceso del organizador.
+- Los controladores de tatami anotan la puntuación y el resultado de cada combate.
