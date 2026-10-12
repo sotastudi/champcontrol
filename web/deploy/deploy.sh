@@ -20,8 +20,9 @@ Reads SSH_* and REMOTE_PATH from deploy/.env (not committed).
 By default: npm run build, composer --no-dev in a temp staging dir (local
 vendor/ untouched), then rsync to REMOTE_PATH.
 Protects remote .env and storage/ from overwrite/delete.
---cleancache runs php artisan config:clear, route:clear, view:clear and
-event:clear on the server (needed after renaming/adding config files).
+--cleancache deletes the cached config/routes/events/views files on the server
+(needed after renaming/adding config files). It does not use artisan because
+the host disables proc_open().
 EOF
 }
 
@@ -155,12 +156,14 @@ if [[ "$DO_MIGRATE" -eq 1 ]]; then
   else
     echo "==> php artisan migrate --force"
     ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-      "cd $(printf '%q' "${REMOTE_PATH%/}") && php artisan migrate --force"
+      "cd $(printf '%q' "${REMOTE_PATH%/}") && COLUMNS=120 LINES=40 php artisan migrate --force"
   fi
 fi
 
 if [[ "$DO_CLEANCACHE" -eq 1 ]]; then
-  CLEAR_CMD="php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan event:clear"
+  # Equivalent to config:clear, route:clear, event:clear and view:clear. Done with
+  # rm because the host disables proc_open(), which makes any artisan call fail.
+  CLEAR_CMD="rm -f bootstrap/cache/config.php bootstrap/cache/routes-*.php bootstrap/cache/events.php && find storage/framework/views -type f -name '*.php' -delete"
   if [[ "$DRY_RUN" -eq 1 ]]; then
     echo "==> clean cache (would run: $CLEAR_CMD)"
   else
