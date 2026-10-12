@@ -93,7 +93,7 @@ class ClubLogoTest extends TestCase
         $b->update(['status' => 'confirmed']);
         app(\App\Tournament\BracketGenerator::class)->generate($category);
 
-        $this->actingAs($owner)->get(route('panel.tatamis.show', [$event, 1]))->assertSee($url, false)->assertSee('Otro Club');
+        $this->actingAs($owner)->get(route('panel.tatamis.show', [$event, 1]))->assertSee($url, false)->assertSee('club-logo-corner', false)->assertSee('Otro Club');
         auth()->logout();
         $this->seeResults($event)->get(route('public.events.show', $event))->assertSee($url, false);
     }

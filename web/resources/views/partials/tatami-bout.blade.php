@@ -33,7 +33,10 @@
         @endphp
         <div class="col-12 col-md-4">
             <div class="card h-100 tatami-competitor tatami-competitor-{{ $slot === 'a' ? 'aka' : 'shiro' }} {{ $winner ? 'is-winner' : '' }}">
-                <div class="card-body">
+                <div class="card-body position-relative">
+                    @if ($registration->competitor->club && ($clubLogo = $event->clubLogoUrl($registration->competitor->club)))
+                        <img src="{{ $clubLogo }}" alt="Logo de {{ $registration->competitor->club }}" class="club-logo club-logo-corner" loading="lazy">
+                    @endif
                     @if ($registration->competitor->bib_number)
                         <div class="mb-2"><x-bib :competitor="$registration->competitor" class="bib-tag-lg" /></div>
                     @endif
@@ -42,7 +45,7 @@
                         <span class="text-break">{{ $registration->competitor->displayName() }}</span>
                         @if ($winner)<span class="badge text-bg-success">Ganador</span>@endif
                     </div>
-                    <div class="text-muted{{ $registration->competitor->club ? '' : ' fst-italic' }} mb-3">@if ($registration->competitor->club)<x-club-name :club="$registration->competitor->club" :event="$event" />@else Sin club @endif</div>
+                    <div class="text-muted{{ $registration->competitor->club ? '' : ' fst-italic' }} mb-3">@if ($registration->competitor->club)<x-club-name :club="$registration->competitor->club" :event="$event" :logo="false" />@else Sin club @endif</div>
                     @include('partials.score-participant-controls')
                 </div>
             </div>
