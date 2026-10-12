@@ -163,7 +163,7 @@ class TatamiOrderTest extends TestCase
 
         $html = $this->actingAs($user)->get(route('panel.events.show', $event))->getContent();
 
-        $this->assertMatchesRegularExpression('#class="btn btn-blue">Asignar números de competidor</button>#', $html);
+        $this->assertMatchesRegularExpression('#class="btn btn-blue"[^>]*>Asignar números de competidor</button>#', $html);
         $this->assertMatchesRegularExpression('#class="btn btn-yellow btn-icon"><svg[^>]*><use href="\#pencil"/></svg> Editar</a>#', $html);
         $this->assertMatchesRegularExpression('#class="btn btn-outline-danger btn-icon"><svg[^>]*><use href="\#trash"/></svg> Eliminar</button>#', $html);
         $this->assertMatchesRegularExpression('#btn-icon"><svg[^>]*><use href="\#reset"/></svg> Regenerar código</button>#', $html);
