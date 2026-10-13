@@ -22,6 +22,9 @@ class EventController extends Controller
     {
         // Una cuenta de controlador con un único tatami va directa a él.
         $user = $request->user();
+        if ($user->isSuperAdmin()) {
+            return redirect()->route('panel.admin.index');
+        }
         // Una cuenta de club no gestiona eventos: ve aquellos a los que está vinculado (confirmados, pendientes o invitaciones).
         if ($user->isClubAccount()) {
             return view('panel.events.club-index', [
@@ -40,14 +43,14 @@ class EventController extends Controller
 
     public function create(Request $request): View
     {
-        abort_if($request->user()->isTatamiAccount() || $request->user()->isClubAccount(), 403);
+        abort_if($request->user()->isTatamiAccount() || $request->user()->isClubAccount() || $request->user()->isSuperAdmin(), 403);
 
         return view('panel.events.create');
     }
 
     public function store(EventRequest $request): RedirectResponse
     {
-        abort_if($request->user()->isTatamiAccount() || $request->user()->isClubAccount(), 403);
+        abort_if($request->user()->isTatamiAccount() || $request->user()->isClubAccount() || $request->user()->isSuperAdmin(), 403);
 
         $event = $request->user()->events()->create($request->safe()->except(['poster', 'remove_poster', 'rules_pdf', 'remove_rules_pdf']));
         $this->savePoster($request, $event);
