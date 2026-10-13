@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Campeonatos') · KumiteControl</title>
-    <link rel="icon" type="image/svg+xml" href="{{ asset('img/brand/light-icon-logo.svg') }}" media="(prefers-color-scheme: light)">
-    <link rel="icon" type="image/svg+xml" href="{{ asset('img/brand/dark-icon-logo.svg') }}" media="(prefers-color-scheme: dark)">
+    @include('layouts.partials.favicons')
     <script>
         // Modo de tema: light | dark | auto (sistema). Se aplica antes de pintar para evitar parpadeo.
         (function () {

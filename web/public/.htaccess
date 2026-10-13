@@ -1,3 +1,5 @@
+AddType application/manifest+json .webmanifest
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
