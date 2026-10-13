@@ -40,6 +40,12 @@ class User extends Authenticatable
         return $this->role === 'tatami';
     }
 
+    /** Cuenta de administración de la plataforma: solo lectura sobre organizadores, clubs, eventos e inscritos. */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'superadmin';
+    }
+
     /** Cuenta de un club: se registra en los campeonatos y, una vez aprobada, inscribe a sus competidores. */
     public function isClubAccount(): bool
     {

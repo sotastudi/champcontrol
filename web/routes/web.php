@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Panel\AdminController;
 use App\Http\Controllers\Panel\BoutResultController;
 use App\Http\Controllers\Panel\BoutScoreController;
 use App\Http\Controllers\Panel\BracketController;
@@ -68,6 +69,7 @@ Route::post('salir', [LoginController::class, 'destroy'])->middleware('auth')->n
 Route::middleware('auth')->prefix('panel')->name('panel.')->group(function () {
     // Token CSRF nuevo para reenviar resultados guardados en local tras estar sin conexión (sesión iniciada).
     Route::get('csrf', fn () => response()->json(['token' => csrf_token()]))->name('csrf');
+    Route::get('administracion', [AdminController::class, 'index'])->name('admin.index');
     Route::get('competidores', [ClubAthleteController::class, 'index'])->name('athletes.index');
     Route::post('competidores', [ClubAthleteController::class, 'store'])->name('athletes.store');
     Route::get('competidores/{athlete}/editar', [ClubAthleteController::class, 'edit'])->name('athletes.edit');
